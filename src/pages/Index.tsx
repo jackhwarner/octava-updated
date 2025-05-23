@@ -26,7 +26,7 @@ const Index = () => {
 
   // Update URL when tab changes
   useEffect(() => {
-    navigate(`/${activeTab === 'dashboard' ? 'dashboard' : activeTab}`);
+    navigate(`/${activeTab}`);
   }, [activeTab, navigate]);
 
   // Update active tab when URL changes
@@ -61,11 +61,11 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className="min-h-screen bg-white flex overflow-hidden">
       <div className="fixed left-0 h-screen z-10">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
-      <main className="flex-1 ml-[90px] overflow-auto">
+      <main className="flex-1 ml-[90px] overflow-auto p-6">
         {renderContent()}
       </main>
     </div>

@@ -4,10 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Edit, Play, Pause, ExternalLink, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { MapPin, Edit, Play, Pause, ExternalLink, Plus, Calendar } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Profile = () => {
   const [isPlaying, setIsPlaying] = useState<number | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editName, setEditName] = useState('Alex Rodriguez');
+  const [editUsername, setEditUsername] = useState('@alex_producer');
+  const [editBio, setEditBio] = useState('Professional music producer with over 10 years of experience in hip-hop, R&B, and pop. Passionate about creating innovative sounds and collaborating with talented artists. Credits include work with major label artists and independent musicians worldwide.');
+  const [editLocation, setEditLocation] = useState('Los Angeles, CA');
 
   const socialLinks = [
     { platform: 'Spotify', url: 'https://spotify.com/artist/username', color: 'text-green-600' },
@@ -28,6 +38,11 @@ const Profile = () => {
     setIsPlaying(isPlaying === trackId ? null : trackId);
   };
 
+  const handleSaveProfile = () => {
+    // Here you would typically save the profile
+    setShowEditDialog(false);
+  };
+
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
@@ -35,49 +50,49 @@ const Profile = () => {
         <Card className="mb-8">
           <CardContent className="p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
-              <div className="w-32 h-32 bg-gray-300 rounded-full flex-shrink-0"></div>
+              <div className="w-28 h-28 bg-gray-300 rounded-full flex-shrink-0"></div>
               
-              <div className="flex-1 space-y-4">
+              <div className="flex-1 space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Alex Rodriguez</h1>
-                    <p className="text-xl text-gray-600">@alex_producer</p>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-1">Alex Rodriguez</h1>
+                    <p className="text-lg text-gray-600 mb-3">@alex_producer</p>
                     
-                    <div className="flex items-center text-gray-600 mt-2 text-lg">
-                      <MapPin className="w-5 h-5 mr-2" />
+                    <div className="inline-flex items-center text-gray-900 px-3 py-1 border border-gray-300 rounded">
+                      <MapPin className="w-4 h-4 mr-2 text-gray-900" />
                       Los Angeles, CA
                     </div>
                   </div>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => setShowEditDialog(true)}>
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Profile
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
-                  <Badge className="bg-purple-100 text-purple-700 px-4 py-1.5 text-base">Producer</Badge>
-                  <Badge variant="outline" className="px-3 py-1">Hip-Hop</Badge>
-                  <Badge variant="outline" className="px-3 py-1">R&B</Badge>
-                  <Badge variant="outline" className="px-3 py-1">Pop</Badge>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">127</div>
+                    <div className="text-xl font-bold text-gray-900">127</div>
                     <div className="text-sm text-gray-500">Collaborations</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">45K</div>
+                    <div className="text-xl font-bold text-gray-900">45K</div>
                     <div className="text-sm text-gray-500">Plays</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">892</div>
+                    <div className="text-xl font-bold text-gray-900">892</div>
                     <div className="text-sm text-gray-500">Followers</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">234</div>
+                    <div className="text-xl font-bold text-gray-900">234</div>
                     <div className="text-sm text-gray-500">Following</div>
                   </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 pt-3">
+                  <Badge className="bg-purple-100 text-purple-700 px-3 py-1 text-sm">Producer</Badge>
+                  <Badge variant="outline" className="px-3 py-1 text-sm">Hip-Hop</Badge>
+                  <Badge variant="outline" className="px-3 py-1 text-sm">R&B</Badge>
+                  <Badge variant="outline" className="px-3 py-1 text-sm">Pop</Badge>
                 </div>
               </div>
             </div>
@@ -89,7 +104,7 @@ const Profile = () => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="music">Music</TabsTrigger>
-            <TabsTrigger value="links">Links</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
           </TabsList>
 
           <TabsContent value="about" className="space-y-6">
@@ -110,26 +125,45 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-semibold mb-3">Experience Level</h3>
-                    <Badge className="bg-purple-100 text-purple-700 px-4 py-1.5 text-base">Professional (10+ years)</Badge>
+                    <Badge className="bg-purple-100 text-purple-700 px-3 py-1 text-sm">Professional (10+ years)</Badge>
                   </div>
 
                   <div>
                     <h3 className="font-semibold mb-3">Instruments</h3>
                     <div className="flex flex-wrap gap-3">
-                      <Badge variant="outline" className="px-3 py-1.5 text-base">Piano</Badge>
-                      <Badge variant="outline" className="px-3 py-1.5 text-base">Guitar</Badge>
-                      <Badge variant="outline" className="px-3 py-1.5 text-base">Drums</Badge>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold mb-3 text-xl">Location</h3>
-                    <div className="flex items-center text-gray-600 text-lg">
-                      <MapPin className="w-5 h-5 mr-2" />
-                      Los Angeles, CA
+                      <Badge variant="outline" className="px-3 py-1 text-sm">Piano</Badge>
+                      <Badge variant="outline" className="px-3 py-1 text-sm">Guitar</Badge>
+                      <Badge variant="outline" className="px-3 py-1 text-sm">Drums</Badge>
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Availability</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center mb-3">
+                  <Calendar className="w-5 h-5 mr-2 text-purple-600" />
+                  <h3 className="font-medium text-lg">Weekly Availability</h3>
+                </div>
+
+                <div className="grid grid-cols-7 gap-2 text-center">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                    <div key={day} className="space-y-2">
+                      <div className="font-medium">{day}</div>
+                      <div className="bg-green-100 text-green-800 rounded px-1 py-2 text-xs">10am - 2pm</div>
+                      <div className="bg-green-100 text-green-800 rounded px-1 py-2 text-xs">6pm - 10pm</div>
+                    </div>
+                  ))}
+                </div>
+
+                <Button variant="outline" className="w-full mt-4">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  View Full Schedule
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -178,7 +212,48 @@ const Profile = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="links" className="space-y-6">
+          <TabsContent value="projects" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Public Projects</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card className="hover:shadow-lg transition-shadow">
+                    <div className="h-28 bg-purple-100 relative"></div>
+                    <CardHeader className="pb-0">
+                      <CardTitle className="text-lg">Summer Vibes</CardTitle>
+                      <p className="text-sm text-gray-500">Upbeat pop track</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex justify-between items-center mt-2">
+                        <Badge variant="outline">Pop</Badge>
+                        <Button variant="ghost" size="sm">
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="hover:shadow-lg transition-shadow">
+                    <div className="h-28 bg-purple-100 relative"></div>
+                    <CardHeader className="pb-0">
+                      <CardTitle className="text-lg">Urban Echoes</CardTitle>
+                      <p className="text-sm text-gray-500">Hip-hop collaboration</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex justify-between items-center mt-2">
+                        <Badge variant="outline">Hip-Hop</Badge>
+                        <Button variant="ghost" size="sm">
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Social & Streaming Links</CardTitle>
@@ -207,6 +282,109 @@ const Profile = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>
+              Make changes to your profile information.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex items-center justify-center mb-4">
+              <div className="relative">
+                <div className="w-20 h-20 bg-gray-300 rounded-full"></div>
+                <Button variant="secondary" size="sm" className="absolute -bottom-1 -right-1 rounded-full h-8 w-8 p-0">
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input id="username" value={editUsername} onChange={(e) => setEditUsername(e.target.value)} />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea 
+                id="bio" 
+                value={editBio} 
+                onChange={(e) => setEditBio(e.target.value)}
+                rows={4}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select defaultValue="producer">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your primary role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="producer">Producer</SelectItem>
+                  <SelectItem value="artist">Artist</SelectItem>
+                  <SelectItem value="songwriter">Songwriter</SelectItem>
+                  <SelectItem value="engineer">Engineer</SelectItem>
+                  <SelectItem value="instrumentalist">Instrumentalist</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Experience Level</Label>
+              <Select defaultValue="professional">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your experience level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="professional">Professional</SelectItem>
+                  <SelectItem value="expert">Expert</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Genres (You can select multiple)</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select genres" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pop">Pop</SelectItem>
+                  <SelectItem value="hiphop">Hip-Hop</SelectItem>
+                  <SelectItem value="rnb">R&B</SelectItem>
+                  <SelectItem value="electronic">Electronic</SelectItem>
+                  <SelectItem value="rock">Rock</SelectItem>
+                  <SelectItem value="jazz">Jazz</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveProfile} className="bg-purple-600 hover:bg-purple-700">
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -11,7 +11,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,7 @@ interface SidebarProps {
 const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const mainMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -44,23 +45,26 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   ];
 
   return (
-    <div className="w-[90px] bg-white border-r border-gray-200 flex flex-col items-center py-4 h-full">
+    <div className="w-[90px] bg-white border-r border-gray-200 flex flex-col items-center py-3 h-full">
       {/* Logo */}
-      <div className="mb-5">
-        <Link to="/">
+      <div className="mb-4">
+        <Link to="/" onClick={(e) => {
+          e.preventDefault();
+          navigate('/');
+        }}>
           <img 
             src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
             alt="Octava Logo" 
-            className="w-12 h-12" 
+            className="w-14 h-14" 
           />
         </Link>
       </div>
       
       {/* Divider */}
-      <div className="w-16 h-px bg-gray-200 mb-6"></div>
+      <div className="w-16 h-px bg-gray-200 mb-5"></div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 flex flex-col items-center space-y-6">
+      <nav className="flex-1 flex flex-col items-center space-y-5">
         {mainMenuItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -74,14 +78,14 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               }`}
               aria-label={item.label}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-6 h-6" />
             </button>
           );
         })}
       </nav>
 
       {/* Notifications Button */}
-      <div className="mb-4">
+      <div className="mb-3">
         <DropdownMenu open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
           <DropdownMenuTrigger asChild>
             <button 
@@ -90,10 +94,10 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               }`}
               aria-label="Notifications"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-6 h-6" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-3 mr-8">
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-10">
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-medium">Notifications</h3>
               <button className="text-xs text-purple-600">Mark all as read</button>
@@ -115,18 +119,18 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
       </div>
 
       {/* User Menu - Bottom of Sidebar */}
-      <div className="mt-auto mb-4">
+      <div className="mt-auto mb-3">
         <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
           <DropdownMenuTrigger asChild>
             <button 
-              className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
+              className="w-9 h-9 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
               aria-label="User menu"
             >
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-3 mr-8">
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-10">
             <div className="flex items-center p-3 mb-2">
-              <div className="w-14 h-14 bg-gray-300 rounded-full mr-4"></div>
+              <div className="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
               <div>
                 <p className="font-medium text-base">Alex Rodriguez</p>
                 <p className="text-sm text-gray-500">@alex_producer</p>
