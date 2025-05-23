@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Star, Music } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,6 +14,7 @@ const Browse = () => {
   const [selectedInstrument, setSelectedInstrument] = useState('');
   const [selectedExperience, setSelectedExperience] = useState('');
   const [selectedAvailability, setSelectedAvailability] = useState('');
+  const [location, setLocation] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
@@ -127,14 +129,14 @@ const Browse = () => {
       <Card className="mb-8">
         <CardContent className="p-6">
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="musicians">Musicians</TabsTrigger>
-              <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsList className="w-full">
+              <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
+              <TabsTrigger value="musicians" className="flex-1">Musicians</TabsTrigger>
+              <TabsTrigger value="projects" className="flex-1">Projects</TabsTrigger>
             </TabsList>
           </Tabs>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
             <Select value={selectedRole} onValueChange={setSelectedRole}>
               <SelectTrigger>
                 <SelectValue placeholder="Role" />
@@ -207,15 +209,21 @@ const Browse = () => {
                 <SelectItem value="in-person">In-Person Only</SelectItem>
               </SelectContent>
             </Select>
-          </div>
 
-          <div className="flex justify-end">
-            <Button 
-              className="bg-purple-600 hover:bg-purple-700"
-              onClick={handleSearch}
-            >
-              Apply Filters
-            </Button>
+            <div className="flex items-center gap-2">
+              <Input 
+                placeholder="City or Location" 
+                value={location} 
+                onChange={(e) => setLocation(e.target.value)} 
+                className="flex-grow"
+              />
+              <Button 
+                className="bg-purple-600 hover:bg-purple-700 ml-auto"
+                onClick={handleSearch}
+              >
+                Search
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -225,12 +233,12 @@ const Browse = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {profiles.map((profile) => (
             <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader className="text-center p-4">
-                <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3"></div>
+              <CardHeader className="text-center p-3">
+                <div className="w-14 h-14 bg-gray-300 rounded-full mx-auto mb-3"></div>
                 <CardTitle className="text-base">{profile.name}</CardTitle>
                 <p className="text-xs text-gray-500">{profile.username}</p>
               </CardHeader>
-              <CardContent className="space-y-3 p-4">
+              <CardContent className="space-y-3 p-3">
                 <div className="text-center">
                   <Badge variant="secondary" className="bg-purple-100 text-purple-700">
                     {profile.role}
@@ -259,10 +267,10 @@ const Browse = () => {
         </div>
       ) : (
         /* Spotlight Projects and Suggested Collaborators when not searching */
-        <div className="space-y-12">
+        <div className="space-y-10">
           {/* Spotlight Projects */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center">
               <Star className="w-5 h-5 mr-2 text-purple-600" />
               Spotlight Projects
             </h2>
@@ -295,28 +303,20 @@ const Browse = () => {
           
           {/* Suggested Collaborators */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Suggested Collaborators</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-5">Suggested Collaborators</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {suggestedCollaborators.map((profile) => (
                 <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader className="text-center p-4">
-                    <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3"></div>
-                    <CardTitle className="text-base">{profile.name}</CardTitle>
-                    <p className="text-xs text-gray-500">{profile.username}</p>
+                  <CardHeader className="text-center p-2">
+                    <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-2"></div>
+                    <CardTitle className="text-sm mb-0">{profile.name}</CardTitle>
+                    <p className="text-xs text-gray-500 mt-0">{profile.username}</p>
                   </CardHeader>
-                  <CardContent className="space-y-3 p-4">
+                  <CardContent className="space-y-2 p-2">
                     <div className="text-center">
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-xs">
                         {profile.role}
                       </Badge>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-1 justify-center">
-                      {profile.genres.map((genre) => (
-                        <Badge key={genre} variant="outline" className="text-xs">
-                          {genre}
-                        </Badge>
-                      ))}
                     </div>
 
                     <div className="flex items-center justify-center text-xs text-gray-500">
@@ -324,7 +324,7 @@ const Browse = () => {
                       {profile.location}
                     </div>
 
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-8 text-xs">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-7 text-xs">
                       Connect
                     </Button>
                   </CardContent>

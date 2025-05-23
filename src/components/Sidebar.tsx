@@ -11,6 +11,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,16 +44,16 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   ];
 
   return (
-    <div className="w-[90px] bg-white border-r border-gray-200 flex flex-col items-center py-4 fixed h-screen">
+    <div className="w-[90px] bg-white border-r border-gray-200 flex flex-col items-center py-4 h-full">
       {/* Logo */}
-      <div className="mb-6">
-        <button className="p-1" onClick={() => setActiveTab('dashboard')}>
+      <div className="mb-5">
+        <Link to="/">
           <img 
             src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
             alt="Octava Logo" 
-            className="w-14 h-14" 
+            className="w-12 h-12" 
           />
-        </button>
+        </Link>
       </div>
       
       {/* Divider */}
@@ -66,7 +67,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`p-3 rounded-lg transition-colors ${
+              className={`p-2.5 rounded-lg transition-colors ${
                 activeTab === item.id
                   ? 'bg-purple-100 text-purple-700'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -84,7 +85,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         <DropdownMenu open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
           <DropdownMenuTrigger asChild>
             <button 
-              className={`p-3 rounded-lg transition-colors ${
+              className={`p-2.5 rounded-lg transition-colors ${
                 isNotificationsOpen ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
               aria-label="Notifications"
@@ -92,7 +93,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               <Bell className="w-5 h-5" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-3 mr-2">
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-8">
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-medium">Notifications</h3>
               <button className="text-xs text-purple-600">Mark all as read</button>
@@ -118,14 +119,14 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
           <DropdownMenuTrigger asChild>
             <button 
-              className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
+              className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
               aria-label="User menu"
             >
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-3 mr-2">
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-8">
             <div className="flex items-center p-3 mb-2">
-              <div className="w-16 h-16 bg-gray-300 rounded-full mr-4"></div>
+              <div className="w-14 h-14 bg-gray-300 rounded-full mr-4"></div>
               <div>
                 <p className="font-medium text-base">Alex Rodriguez</p>
                 <p className="text-sm text-gray-500">@alex_producer</p>
@@ -133,16 +134,16 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setActiveTab('profile')} className="py-3 cursor-pointer">
-              <User className="w-5 h-5 mr-3" />
+              <User className="w-4 h-4 mr-3" />
               <span>Profile</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setActiveTab('settings')} className="py-3 cursor-pointer">
-              <Settings className="w-5 h-5 mr-3" />
+              <Settings className="w-4 h-4 mr-3" />
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setActiveTab('support')} className="py-3 cursor-pointer">
-              <HelpCircle className="w-5 h-5 mr-3" />
+              <HelpCircle className="w-4 h-4 mr-3" />
               <span>Support</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -25,6 +25,7 @@ const Projects = () => {
   const [projectName, setProjectName] = useState('');
   const [projectGenre, setProjectGenre] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
+  const [searchCollaborator, setSearchCollaborator] = useState('');
 
   const folders = [
     { id: 'pop', name: 'Pop Projects', count: 5, type: 'folder' },
@@ -96,6 +97,18 @@ const Projects = () => {
     setCurrentFolderName(null);
   };
 
+  const handleCreateProject = () => {
+    // Here we would typically save the project
+    // For now, just close the dialog
+    setShowNewProjectDialog(false);
+    
+    // Reset the form
+    setProjectName('');
+    setProjectGenre('');
+    setProjectDescription('');
+    setSearchCollaborator('');
+  };
+
   const renderBreadcrumb = () => {
     if (currentFolderId === null) return null;
     
@@ -135,7 +148,7 @@ const Projects = () => {
         <Button variant="outline">Filter</Button>
       </div>
 
-      {/* Breadcrumb Navigation */}
+      {/* Breadcrumb Navigation - Only show when in a folder */}
       {renderBreadcrumb()}
 
       {/* Projects and Folders Grid */}
@@ -215,24 +228,21 @@ const Projects = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="project-name" className="text-right">
-                Name
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="project-name">Name</Label>
               <Input 
                 id="project-name" 
                 value={projectName} 
                 onChange={(e) => setProjectName(e.target.value)} 
-                className="col-span-3" 
+                className="w-full" 
                 placeholder="Enter project name"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="project-genre" className="text-right">
-                Genre
-              </Label>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-genre">Genre</Label>
               <Select value={projectGenre} onValueChange={setProjectGenre}>
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select genre" />
                 </SelectTrigger>
                 <SelectContent>
@@ -246,24 +256,22 @@ const Projects = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="project-description" className="text-right">
-                Description
-              </Label>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-description">Description</Label>
               <Textarea 
                 id="project-description" 
                 value={projectDescription} 
                 onChange={(e) => setProjectDescription(e.target.value)} 
-                className="col-span-3" 
+                className="w-full" 
                 placeholder="Describe your project"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="project-privacy" className="text-right">
-                Privacy
-              </Label>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-privacy">Privacy</Label>
               <Select>
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select privacy" />
                 </SelectTrigger>
                 <SelectContent>
@@ -273,43 +281,45 @@ const Projects = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="project-folder" className="text-right">
-                Folder
-              </Label>
-              <Select>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select folder" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="pop">Pop Projects</SelectItem>
-                  <SelectItem value="hip-hop">Hip-Hop Projects</SelectItem>
-                  <SelectItem value="collaborations">Collaborations</SelectItem>
-                </SelectContent>
-              </Select>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-collaborators">Collaborators</Label>
+              <Input 
+                id="project-collaborators"
+                value={searchCollaborator}
+                onChange={(e) => setSearchCollaborator(e.target.value)}
+                className="w-full"
+                placeholder="Search for collaborators by name"
+              />
+              {searchCollaborator && (
+                <div className="mt-1 p-2 border rounded-md">
+                  <div className="cursor-pointer hover:bg-gray-100 p-2 rounded">
+                    David Kim - Pianist
+                  </div>
+                  <div className="cursor-pointer hover:bg-gray-100 p-2 rounded">
+                    Sophia Martinez - Vocalist
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="project-collaborators" className="text-right">
-                Collaborators
-              </Label>
-              <Select>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Add collaborators" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="david">David Kim</SelectItem>
-                  <SelectItem value="sophia">Sophia Martinez</SelectItem>
-                  <SelectItem value="jackson">Jackson Lee</SelectItem>
-                </SelectContent>
-              </Select>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-deadline">Deadline</Label>
+              <Input 
+                id="project-deadline"
+                type="date"
+                className="w-full"
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewProjectDialog(false)}>
               Cancel
             </Button>
-            <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(false)}>
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={handleCreateProject}
+            >
               Create Project
             </Button>
           </DialogFooter>
