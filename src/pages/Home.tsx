@@ -32,17 +32,25 @@ const Home = () => {
       </header>
       
       {/* Hero section */}
-      <section className="py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto text-center">
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 max-w-4xl mx-auto">
+      <section className="py-20 md:py-28 px-6 md:px-10 max-w-7xl mx-auto text-center">
+        <h1 className="text-4xl md:text-6xl font-bold mb-8 max-w-4xl mx-auto">
           Spend less time <span className="text-purple-600">networking</span> and more time <span className="text-purple-600">creating music</span>
         </h1>
-        <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+        <p className="text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
           Octava is the platform that connects musicians, producers, and creators to bring your musical vision to life.
         </p>
-        <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-6 rounded-full" asChild>
+        <Button 
+          size="lg" 
+          className="text-lg px-10 py-8 rounded-full shadow-lg text-white"
+          style={{
+            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%)",
+            boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -5px rgba(217, 70, 239, 0.2)"
+          }}
+          asChild
+        >
           <Link to="/signup">Get Started</Link>
         </Button>
-        <div className="mt-14">
+        <div className="mt-16">
           <div className="bg-gray-200 rounded-md max-w-4xl mx-auto aspect-[16/9] flex items-center justify-center">
             <img 
               src="/lovable-uploads/bbc2aa1e-fc0b-471d-8bcb-dd79522521d5.png"
@@ -54,30 +62,30 @@ const Home = () => {
       </section>
       
       {/* Features section */}
-      <section id="features" className="py-16 px-4 md:px-8 bg-gray-50">
+      <section id="features" className="py-20 px-6 md:px-10 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-16 text-center">Why Choose Octava?</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-20 text-center">Why Choose Octava?</h2>
           
           {/* Feature 1 */}
-          <div className="flex flex-col md:flex-row items-center mb-20">
-            <div className="md:w-1/2 md:pr-8 mb-8 md:mb-0">
-              <h3 className="text-2xl font-bold mb-4">Connect with Professionals</h3>
-              <p className="text-gray-600 mb-6">
+          <div className="flex flex-col md:flex-row items-center mb-28 max-w-6xl mx-auto">
+            <div className="md:w-1/2 md:pr-12 mb-8 md:mb-0">
+              <h3 className="text-3xl font-bold mb-6">Connect with Professionals</h3>
+              <p className="text-gray-600 mb-8 text-lg">
                 Find the perfect collaborators for your next project. Connect with producers, vocalists, 
                 instrumentalists, and other music professionals around the world.
               </p>
-              <ul className="space-y-2">
+              <ul className="space-y-4">
                 <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-2" />
-                  <span>Advanced search filters to find the perfect match</span>
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">Advanced search filters to find the perfect match</span>
                 </li>
                 <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-2" />
-                  <span>Verified professional profiles</span>
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">Verified professional profiles</span>
                 </li>
                 <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-2" />
-                  <span>In-app messaging and scheduling</span>
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">In-app messaging and scheduling</span>
                 </li>
               </ul>
             </div>
@@ -87,25 +95,25 @@ const Home = () => {
           </div>
           
           {/* Feature 2 */}
-          <div className="flex flex-col md:flex-row-reverse items-center mb-20">
-            <div className="md:w-1/2 md:pl-8 mb-8 md:mb-0">
-              <h3 className="text-2xl font-bold mb-4">Collaborate on the Cloud</h3>
-              <p className="text-gray-600 mb-6">
+          <div className="flex flex-col md:flex-row-reverse items-center mb-28 max-w-6xl mx-auto">
+            <div className="md:w-1/2 md:pl-12 mb-8 md:mb-0">
+              <h3 className="text-3xl font-bold mb-6">Collaborate on the Cloud</h3>
+              <p className="text-gray-600 mb-8 text-lg">
                 Work seamlessly with your team, no matter where they are. Share files, add comments, and 
                 track revisions all in one place.
               </p>
-              <ul className="space-y-2">
+              <ul className="space-y-4">
                 <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-2" />
-                  <span>Real-time collaboration tools</span>
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">Real-time collaboration tools</span>
                 </li>
                 <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-2" />
-                  <span>Version control and file history</span>
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">Version control and file history</span>
                 </li>
                 <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-2" />
-                  <span>Feedback and approval workflows</span>
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">Feedback and approval workflows</span>
                 </li>
               </ul>
             </div>
@@ -115,25 +123,25 @@ const Home = () => {
           </div>
           
           {/* Feature 3 */}
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 md:pr-8 mb-8 md:mb-0">
-              <h3 className="text-2xl font-bold mb-4">Bring Your Project to Life</h3>
-              <p className="text-gray-600 mb-6">
+          <div className="flex flex-col md:flex-row items-center max-w-6xl mx-auto">
+            <div className="md:w-1/2 md:pr-12 mb-8 md:mb-0">
+              <h3 className="text-3xl font-bold mb-6">Bring Your Project to Life</h3>
+              <p className="text-gray-600 mb-8 text-lg">
                 Create project listings, track progress, and showcase your work to the world. 
                 From concept to completion, Octava helps you manage every step of the creative process.
               </p>
-              <ul className="space-y-2">
+              <ul className="space-y-4">
                 <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-2" />
-                  <span>Project management tools</span>
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">Project management tools</span>
                 </li>
                 <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-2" />
-                  <span>Portfolio building and showcasing</span>
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">Portfolio building and showcasing</span>
                 </li>
                 <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-2" />
-                  <span>Distribution opportunities</span>
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">Distribution opportunities</span>
                 </li>
               </ul>
             </div>
@@ -145,10 +153,10 @@ const Home = () => {
       </section>
       
       {/* Pricing section */}
-      <section id="pricing" className="py-16 px-4 md:px-8">
+      <section id="pricing" className="py-20 px-6 md:px-10">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Simple, Transparent Pricing</h2>
-          <p className="text-gray-600 mb-16 text-center max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-center">Simple, Transparent Pricing</h2>
+          <p className="text-gray-600 mb-20 text-center max-w-2xl mx-auto text-lg">
             Choose the plan that works for you. No hidden fees, cancel anytime.
           </p>
           
@@ -225,21 +233,46 @@ const Home = () => {
         </div>
       </section>
       
-      {/* About Us / CTA section */}
-      <section id="about" className="py-16 px-4 md:px-8 bg-purple-900 text-white">
+      {/* About Us section */}
+      <section id="about" className="py-20 px-6 md:px-10 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl md:text-5xl font-bold mb-10 text-center">About Us</h2>
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="text-lg mb-6 text-gray-700">
+              Octava was founded with a simple mission: to connect musicians and creators around the world. 
+              We believe in the power of collaboration to create amazing music.
+            </p>
+            <p className="text-lg text-gray-700">
+              Our team of musicians and technology enthusiasts are working every day to improve the platform 
+              and help our community of creators thrive.
+            </p>
+          </div>
+        </div>
+      </section>
+      
+      {/* CTA section */}
+      <section className="py-20 px-6 md:px-10 bg-purple-900 text-white">
         <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Your Music Collaboration?</h2>
-          <p className="text-lg mb-10 opacity-80 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Transform Your Music Collaboration?</h2>
+          <p className="text-xl mb-10 opacity-80 max-w-2xl mx-auto">
             Join thousands of musicians and creators who are using Octava to bring their musical projects to life.
           </p>
-          <Button size="lg" className="bg-white text-purple-900 hover:bg-gray-100 px-8 py-6 text-lg rounded-full" asChild>
+          <Button 
+            size="lg" 
+            className="text-lg px-10 py-7 rounded-full shadow-lg"
+            style={{
+              background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%)",
+              boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.5), 0 8px 10px -5px rgba(219, 39, 119, 0.2)"
+            }}
+            asChild
+          >
             <Link to="/signup">Start Your Free Trial</Link>
           </Button>
         </div>
       </section>
       
       {/* Footer */}
-      <footer className="py-10 px-4 md:px-8 bg-gray-900 text-gray-400">
+      <footer className="py-10 px-6 md:px-10 bg-gray-900 text-gray-400">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">

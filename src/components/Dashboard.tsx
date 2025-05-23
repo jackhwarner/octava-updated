@@ -1,7 +1,7 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Music, MessageSquare, Upload, Calendar, PlusCircle, Search, BookOpen, Send, BarChart, ChevronRight } from 'lucide-react';
+import { Plus, Users, Music, MessageSquare, Calendar, PlusCircle, Search, Send, HelpCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -10,13 +10,18 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate } from 'react-router-dom';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 
 const Dashboard = () => {
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
   const [projectName, setProjectName] = useState('');
-  const [projectGenre, setProjectGenre] = useState('');
+  const [projectGenre, setProjectGenre] = useState<string[]>([]);
   const [projectDescription, setProjectDescription] = useState('');
   const [searchCollaborator, setSearchCollaborator] = useState('');
+  const [selectedCollaborators, setSelectedCollaborators] = useState<string[]>([]);
+  const [date, setDate] = useState<Date>();
   const navigate = useNavigate();
 
   const suggestedCollaborators = [
@@ -44,6 +49,14 @@ const Dashboard = () => {
       avatar: null,
       online: false,
     },
+    {
+      id: 4,
+      name: 'Emily Wilson',
+      role: 'Keyboardist',
+      genres: ['Electronic', 'Dance'],
+      avatar: null,
+      online: true,
+    },
   ];
   
   const onlineCollaborators = suggestedCollaborators.filter(collab => collab.online);
@@ -56,16 +69,38 @@ const Dashboard = () => {
     navigate('/projects');
   };
 
+  const handleGoToAvailability = () => {
+    navigate('/availability');
+  };
+
+  const handleGoToSupport = () => {
+    navigate('/support');
+  };
+
   const handleCreateProject = () => {
     setShowNewProjectDialog(false);
     navigate('/projects');
   };
 
+  const handleAddCollaborator = (name: string) => {
+    if (!selectedCollaborators.includes(name)) {
+      setSelectedCollaborators([...selectedCollaborators, name]);
+    }
+    setSearchCollaborator('');
+  };
+
+  const handleRemoveCollaborator = (name: string) => {
+    setSelectedCollaborators(selectedCollaborators.filter(c => c !== name));
+  };
+
+  const filteredCollaborators = suggestedCollaborators
+    .filter(c => c.name.toLowerCase().includes(searchCollaborator.toLowerCase()))
+    .map(c => c.name);
+
   return (
-    <div className="p-8">
+    <div className="p-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back!</h1>
-        <p className="text-gray-600">Here's what's happening with your music network</p>
+        <h1 className="text-3xl font-bold text-gray-900">Welcome back!</h1>
       </div>
 
       {/* Quick Stats */}
@@ -94,16 +129,16 @@ const Dashboard = () => {
 
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={handleGoToMessages}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Messages</CardTitle>
+            <CardTitle className="text-sm font-medium">Unread Messages</CardTitle>
             <MessageSquare className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">47</div>
-            <p className="text-xs text-gray-500">5 unread</p>
+            <div className="text-2xl font-bold">5</div>
+            <p className="text-xs text-gray-500">3 new today</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={handleGoToAvailability}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Upcoming Sessions</CardTitle>
             <Calendar className="h-4 w-4 text-purple-600" />
@@ -132,28 +167,16 @@ const Dashboard = () => {
                 Find Collaborators
               </Button>
               <Button variant="outline">
-                <Upload className="w-4 h-4 mr-2" />
+                <PlusCircle className="w-4 h-4 mr-2" />
                 Upload Track
               </Button>
-              <Button variant="outline" onClick={() => navigate('/availability')}>
+              <Button variant="outline" onClick={handleGoToAvailability}>
                 <Calendar className="w-4 h-4 mr-2" />
                 Schedule Session
               </Button>
-              <Button variant="outline">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Create Event
-              </Button>
-              <Button variant="outline">
-                <Send className="w-4 h-4 mr-2" />
-                Send Proposal
-              </Button>
-              <Button variant="outline">
-                <BarChart className="w-4 h-4 mr-2" />
-                View Analytics
-              </Button>
-              <Button variant="outline">
-                <BookOpen className="w-4 h-4 mr-2" />
-                Learning Resources
+              <Button variant="outline" onClick={handleGoToSupport}>
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Support
               </Button>
             </div>
           </CardContent>
@@ -165,7 +188,6 @@ const Dashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Online Collaborators</CardTitle>
-            <CardDescription>People in your network who are currently online</CardDescription>
           </CardHeader>
           <CardContent>
             {onlineCollaborators.length > 0 ? (
@@ -179,9 +201,8 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <h4 className="font-medium">{collaborator.name}</h4>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-500">{collaborator.role}</span>
-                          <span className="text-gray-300">•</span>
                           <Badge variant="outline" className="text-xs">
                             {collaborator.genres[0]}
                           </Badge>
@@ -209,7 +230,6 @@ const Dashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Recent Projects</CardTitle>
-            <CardDescription>Your latest music collaborations</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -222,8 +242,10 @@ const Dashboard = () => {
                     <h4 className="font-medium">Summer Vibes {item}</h4>
                     <p className="text-sm text-gray-500">Pop • 3 collaborators</p>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    <ChevronRight className="h-5 w-5" />
+                  <Button variant="ghost" size="sm" className="p-1">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 7.5C3 8.32843 2.32843 9 1.5 9C0.671573 9 0 8.32843 0 7.5C0 6.67157 0.671573 6 1.5 6C2.32843 6 3 6.67157 3 7.5ZM9 7.5C9 8.32843 8.32843 9 7.5 9C6.67157 9 6 8.32843 6 7.5C6 6.67157 6.67157 6 7.5 6C8.32843 6 9 6.67157 9 7.5ZM15 7.5C15 8.32843 14.3284 9 13.5 9C12.6716 9 12 8.32843 12 7.5C12 6.67157 12.6716 6 13.5 6C14.3284 6 15 6.67157 15 7.5Z" fill="currentColor"></path>
+                    </svg>
                   </Button>
                 </div>
               ))}
@@ -234,7 +256,6 @@ const Dashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Suggested Collaborators</CardTitle>
-            <CardDescription>People you might want to collaborate with</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -244,9 +265,8 @@ const Dashboard = () => {
                     <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
                     <div>
                       <h4 className="font-medium">{collaborator.name}</h4>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-500">{collaborator.role}</span>
-                        <span className="text-gray-300">•</span>
                         <Badge variant="outline" className="text-xs">
                           {collaborator.genres[0]}
                         </Badge>
@@ -283,10 +303,10 @@ const Dashboard = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="project-genre">Genre</Label>
-              <Select value={projectGenre} onValueChange={setProjectGenre}>
+              <Label htmlFor="project-genre">Genre (select multiple)</Label>
+              <Select>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select genre" />
+                  <SelectValue placeholder="Select genres" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pop">Pop</SelectItem>
@@ -327,6 +347,14 @@ const Dashboard = () => {
             
             <div className="space-y-2">
               <Label htmlFor="project-collaborators">Collaborators</Label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedCollaborators.map((name) => (
+                  <Badge key={name} variant="secondary" className="py-1 px-2 flex items-center gap-1">
+                    {name}
+                    <button onClick={() => handleRemoveCollaborator(name)} className="ml-1 text-xs">×</button>
+                  </Badge>
+                ))}
+              </div>
               <Input 
                 id="project-collaborators"
                 value={searchCollaborator}
@@ -334,25 +362,41 @@ const Dashboard = () => {
                 className="w-full"
                 placeholder="Search for collaborators by name"
               />
-              {searchCollaborator && (
-                <div className="mt-1 p-2 border rounded-md">
-                  <div className="cursor-pointer hover:bg-gray-100 p-2 rounded">
-                    David Kim - Pianist
-                  </div>
-                  <div className="cursor-pointer hover:bg-gray-100 p-2 rounded">
-                    Sophia Martinez - Vocalist
-                  </div>
+              {searchCollaborator && filteredCollaborators.length > 0 && (
+                <div className="mt-1 p-2 border rounded-md max-h-32 overflow-auto">
+                  {filteredCollaborators.map((name) => (
+                    <div 
+                      key={name} 
+                      className="cursor-pointer hover:bg-gray-100 p-2 rounded"
+                      onClick={() => handleAddCollaborator(name)}
+                    >
+                      {name}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="project-deadline">Deadline</Label>
-              <Input 
-                id="project-deadline"
-                type="date"
-                className="w-full"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <CalendarComponent
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <DialogFooter>

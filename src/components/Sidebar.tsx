@@ -55,7 +55,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
           <img 
             src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
             alt="Octava Logo" 
-            className="w-14 h-14" 
+            className="w-16 h-16" 
           />
         </Link>
       </div>
@@ -71,14 +71,14 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`p-2.5 rounded-lg transition-colors ${
+              className={`p-3 rounded-lg transition-colors ${
                 activeTab === item.id
                   ? 'bg-purple-100 text-purple-700'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
               aria-label={item.label}
             >
-              <Icon className="w-6 h-6" />
+              <Icon className="w-7 h-7" />
             </button>
           );
         })}
@@ -89,15 +89,15 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         <DropdownMenu open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
           <DropdownMenuTrigger asChild>
             <button 
-              className={`p-2.5 rounded-lg transition-colors ${
+              className={`p-3 rounded-lg transition-colors ${
                 isNotificationsOpen ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
               aria-label="Notifications"
             >
-              <Bell className="w-6 h-6" />
+              <Bell className="w-7 h-7" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-3 mr-10">
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-20">
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-medium">Notifications</h3>
               <button className="text-xs text-purple-600">Mark all as read</button>
@@ -123,14 +123,14 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
           <DropdownMenuTrigger asChild>
             <button 
-              className="w-9 h-9 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
+              className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
               aria-label="User menu"
             >
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-3 mr-10">
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-20">
             <div className="flex items-center p-3 mb-2">
-              <div className="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
+              <div className="w-10 h-10 bg-gray-300 rounded-full mr-4"></div>
               <div>
                 <p className="font-medium text-base">Alex Rodriguez</p>
                 <p className="text-sm text-gray-500">@alex_producer</p>

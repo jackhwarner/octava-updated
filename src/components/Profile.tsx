@@ -44,7 +44,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-10">
       <div className="max-w-4xl mx-auto">
         {/* Profile Header */}
         <Card className="mb-8">
@@ -52,16 +52,11 @@ const Profile = () => {
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
               <div className="w-28 h-28 bg-gray-300 rounded-full flex-shrink-0"></div>
               
-              <div className="flex-1 space-y-6">
-                <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-1">Alex Rodriguez</h1>
-                    <p className="text-lg text-gray-600 mb-3">@alex_producer</p>
-                    
-                    <div className="inline-flex items-center text-gray-900 px-3 py-1 border border-gray-300 rounded">
-                      <MapPin className="w-4 h-4 mr-2 text-gray-900" />
-                      Los Angeles, CA
-                    </div>
+                    <h1 className="text-2xl font-bold text-gray-900">Alex Rodriguez</h1>
+                    <p className="text-lg text-gray-600 mt-1">@alex_producer</p>
                   </div>
                   <Button variant="outline" onClick={() => setShowEditDialog(true)}>
                     <Edit className="w-4 h-4 mr-2" />
@@ -69,31 +64,43 @@ const Profile = () => {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <div className="text-xl font-bold text-gray-900">127</div>
-                    <div className="text-sm text-gray-500">Collaborations</div>
+                <div className="flex flex-wrap items-center gap-4 mt-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge className="bg-purple-100 text-purple-700 px-3 py-1.5 text-sm">Producer</Badge>
+                    <Badge variant="outline" className="px-3 py-1.5 text-sm">Hip-Hop</Badge>
+                    <Badge variant="outline" className="px-3 py-1.5 text-sm">R&B</Badge>
+                    <Badge variant="outline" className="px-3 py-1.5 text-sm">Pop</Badge>
                   </div>
-                  <div>
-                    <div className="text-xl font-bold text-gray-900">45K</div>
-                    <div className="text-sm text-gray-500">Plays</div>
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold text-gray-900">892</div>
-                    <div className="text-sm text-gray-500">Followers</div>
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold text-gray-900">234</div>
-                    <div className="text-sm text-gray-500">Following</div>
+                  
+                  <div className="inline-flex items-center text-gray-900 px-4 py-1.5 border border-gray-300 rounded">
+                    <MapPin className="w-4 h-4 mr-2 text-gray-900" />
+                    Los Angeles, CA
                   </div>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                <div className="flex flex-wrap gap-3 pt-3">
-                  <Badge className="bg-purple-100 text-purple-700 px-3 py-1 text-sm">Producer</Badge>
-                  <Badge variant="outline" className="px-3 py-1 text-sm">Hip-Hop</Badge>
-                  <Badge variant="outline" className="px-3 py-1 text-sm">R&B</Badge>
-                  <Badge variant="outline" className="px-3 py-1 text-sm">Pop</Badge>
-                </div>
+        {/* Profile Stats */}
+        <Card className="mb-8">
+          <CardContent className="py-4">
+            <div className="grid grid-cols-4 gap-4 text-center">
+              <div>
+                <div className="text-xl font-bold text-gray-900">127</div>
+                <div className="text-sm text-gray-500">Collaborations</div>
+              </div>
+              <div>
+                <div className="text-xl font-bold text-gray-900">45K</div>
+                <div className="text-sm text-gray-500">Plays</div>
+              </div>
+              <div>
+                <div className="text-xl font-bold text-gray-900">892</div>
+                <div className="text-sm text-gray-500">Followers</div>
+              </div>
+              <div>
+                <div className="text-xl font-bold text-gray-900">234</div>
+                <div className="text-sm text-gray-500">Following</div>
               </div>
             </div>
           </CardContent>
@@ -101,10 +108,11 @@ const Profile = () => {
 
         {/* Profile Content */}
         <Tabs defaultValue="about" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="music">Music</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="links">Links</TabsTrigger>
           </TabsList>
 
           <TabsContent value="about" className="space-y-6">
@@ -125,15 +133,15 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-semibold mb-3">Experience Level</h3>
-                    <Badge className="bg-purple-100 text-purple-700 px-3 py-1 text-sm">Professional (10+ years)</Badge>
+                    <Badge className="bg-purple-100 text-purple-700 px-4 py-1.5 text-sm">Professional (10+ years)</Badge>
                   </div>
 
                   <div>
                     <h3 className="font-semibold mb-3">Instruments</h3>
                     <div className="flex flex-wrap gap-3">
-                      <Badge variant="outline" className="px-3 py-1 text-sm">Piano</Badge>
-                      <Badge variant="outline" className="px-3 py-1 text-sm">Guitar</Badge>
-                      <Badge variant="outline" className="px-3 py-1 text-sm">Drums</Badge>
+                      <Badge variant="outline" className="px-4 py-1.5 text-sm">Piano</Badge>
+                      <Badge variant="outline" className="px-4 py-1.5 text-sm">Guitar</Badge>
+                      <Badge variant="outline" className="px-4 py-1.5 text-sm">Drums</Badge>
                     </div>
                   </div>
                 </div>
@@ -154,8 +162,8 @@ const Profile = () => {
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
                     <div key={day} className="space-y-2">
                       <div className="font-medium">{day}</div>
-                      <div className="bg-green-100 text-green-800 rounded px-1 py-2 text-xs">10am - 2pm</div>
-                      <div className="bg-green-100 text-green-800 rounded px-1 py-2 text-xs">6pm - 10pm</div>
+                      <div className="bg-green-100 text-green-800 rounded px-2 py-2 text-xs">10am - 2pm</div>
+                      <div className="bg-green-100 text-green-800 rounded px-2 py-2 text-xs">6pm - 10pm</div>
                     </div>
                   ))}
                 </div>
@@ -176,7 +184,7 @@ const Profile = () => {
               <CardContent>
                 <div className="space-y-4">
                   {tracks.map((track) => (
-                    <div key={track.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                    <div key={track.id} className="flex items-center justify-between p-5 border rounded-lg hover:bg-gray-50">
                       <div className="flex items-center space-x-4">
                         <Button
                           variant="ghost"
@@ -221,11 +229,11 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card className="hover:shadow-lg transition-shadow">
                     <div className="h-28 bg-purple-100 relative"></div>
-                    <CardHeader className="pb-0">
+                    <CardHeader className="pb-0 p-5">
                       <CardTitle className="text-lg">Summer Vibes</CardTitle>
                       <p className="text-sm text-gray-500">Upbeat pop track</p>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-5 pt-2">
                       <div className="flex justify-between items-center mt-2">
                         <Badge variant="outline">Pop</Badge>
                         <Button variant="ghost" size="sm">
@@ -237,11 +245,11 @@ const Profile = () => {
 
                   <Card className="hover:shadow-lg transition-shadow">
                     <div className="h-28 bg-purple-100 relative"></div>
-                    <CardHeader className="pb-0">
+                    <CardHeader className="pb-0 p-5">
                       <CardTitle className="text-lg">Urban Echoes</CardTitle>
                       <p className="text-sm text-gray-500">Hip-hop collaboration</p>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-5 pt-2">
                       <div className="flex justify-between items-center mt-2">
                         <Badge variant="outline">Hip-Hop</Badge>
                         <Button variant="ghost" size="sm">
@@ -253,7 +261,9 @@ const Profile = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
 
+          <TabsContent value="links" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Social & Streaming Links</CardTitle>
@@ -261,7 +271,7 @@ const Profile = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {socialLinks.map((link) => (
-                    <div key={link.platform} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={link.platform} className="flex items-center justify-between p-5 border rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className={`w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center ${link.color}`}>
                           <ExternalLink className="w-5 h-5" />
@@ -285,7 +295,7 @@ const Profile = () => {
 
       {/* Edit Profile Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
             <DialogDescription>
