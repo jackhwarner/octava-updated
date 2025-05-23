@@ -1,17 +1,24 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Music, Star } from 'lucide-react';
+import { Search, MapPin, Music, Star, Filter } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 
 const Browse = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedExperience, setSelectedExperience] = useState('');
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [experienceRange, setExperienceRange] = useState([1]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const profiles = [
     {
@@ -123,8 +130,8 @@ const Browse = () => {
       {/* Search and Filters */}
       <Card className="mb-8">
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div className="relative md:col-span-2">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search by name or skill..."
@@ -150,27 +157,96 @@ const Browse = () => {
               </SelectContent>
             </Select>
 
-            <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-              <SelectTrigger>
-                <SelectValue placeholder="Genre" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pop">Pop</SelectItem>
-                <SelectItem value="rock">Rock</SelectItem>
-                <SelectItem value="hip-hop">Hip-Hop</SelectItem>
-                <SelectItem value="r&b">R&B</SelectItem>
-                <SelectItem value="country">Country</SelectItem>
-                <SelectItem value="electronic">Electronic</SelectItem>
-                <SelectItem value="jazz">Jazz</SelectItem>
-                <SelectItem value="classical">Classical</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex space-x-2">
+              <Select value={selectedGenre} onValueChange={setSelectedGenre} className="flex-1">
+                <SelectTrigger>
+                  <SelectValue placeholder="Genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pop">Pop</SelectItem>
+                  <SelectItem value="rock">Rock</SelectItem>
+                  <SelectItem value="hip-hop">Hip-Hop</SelectItem>
+                  <SelectItem value="r&b">R&B</SelectItem>
+                  <SelectItem value="country">Country</SelectItem>
+                  <SelectItem value="electronic">Electronic</SelectItem>
+                  <SelectItem value="jazz">Jazz</SelectItem>
+                  <SelectItem value="classical">Classical</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Button className="bg-purple-600 hover:bg-purple-700" onClick={handleSearch}>
-              <Search className="w-4 h-4 mr-2" />
-              Search
+              <Button 
+                className="bg-purple-600 hover:bg-purple-700 px-4"
+                onClick={handleSearch}
+                size="icon"
+              >
+                <Search className="w-4 h-4" />
+                <span className="sr-only">Search</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Button 
+              variant="ghost" 
+              className="text-purple-600 p-0 h-auto flex items-center"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            >
+              <Filter className="w-4 h-4 mr-1" />
+              {showAdvancedFilters ? "Hide advanced filters" : "Show advanced filters"}
             </Button>
           </div>
+
+          {showAdvancedFilters && (
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Location" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ny">New York</SelectItem>
+                  <SelectItem value="la">Los Angeles</SelectItem>
+                  <SelectItem value="nash">Nashville</SelectItem>
+                  <SelectItem value="miami">Miami</SelectItem>
+                  <SelectItem value="chicago">Chicago</SelectItem>
+                  <SelectItem value="austin">Austin</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedExperience} onValueChange={setSelectedExperience}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Experience Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="professional">Professional</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="availableOnly" 
+                  checked={availableOnly} 
+                  onCheckedChange={(checked) => {
+                    if (typeof checked === 'boolean') setAvailableOnly(checked);
+                  }}
+                />
+                <Label htmlFor="availableOnly">Available for projects</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Years of Experience (1-20+)</Label>
+                <Slider 
+                  value={experienceRange} 
+                  min={1} 
+                  max={20} 
+                  step={1} 
+                  onValueChange={setExperienceRange} 
+                />
+                <div className="text-sm text-gray-500 text-right">{experienceRange[0]}+ years</div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

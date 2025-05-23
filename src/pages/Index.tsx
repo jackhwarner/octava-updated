@@ -9,6 +9,7 @@ import Projects from '@/components/Projects';
 import Profile from '@/components/Profile';
 import Settings from '@/components/Settings';
 import Support from '@/components/Support';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -35,12 +36,14 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="flex-1 overflow-hidden">
-        {renderContent()}
-      </main>
-    </div>
+    <TooltipProvider>
+      <div className="min-h-screen bg-white flex">
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <main className="flex-1 overflow-auto">
+          {renderContent()}
+        </main>
+      </div>
+    </TooltipProvider>
   );
 };
 
