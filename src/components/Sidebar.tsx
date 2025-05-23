@@ -7,11 +7,10 @@ import {
   Settings, 
   HelpCircle,
   User,
-  ChevronDown,
   Bell,
   Calendar
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +26,7 @@ interface SidebarProps {
 
 const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const mainMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -36,24 +36,30 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
     { id: 'availability', label: 'Availability', icon: Calendar },
   ];
 
+  const notifications = [
+    { id: 1, text: 'David Kim wants to connect with you', time: '2 hours ago' },
+    { id: 2, text: 'Your track was commented on', time: '1 day ago' },
+    { id: 3, text: 'New project invitation received', time: '2 days ago' },
+  ];
+
   return (
-    <div className="w-[80px] bg-white border-r border-gray-200 flex flex-col items-center py-6">
+    <div className="w-[90px] bg-white border-r border-gray-200 flex flex-col items-center py-4 fixed h-screen">
       {/* Logo */}
-      <div className="mb-8">
-        <button className="p-2" onClick={() => setActiveTab('dashboard')}>
+      <div className="mb-6">
+        <button className="p-1" onClick={() => setActiveTab('dashboard')}>
           <img 
             src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
             alt="Octava Logo" 
-            className="w-16 h-16" 
+            className="w-14 h-14" 
           />
         </button>
       </div>
       
       {/* Divider */}
-      <div className="w-16 h-px bg-gray-200 mb-8"></div>
+      <div className="w-16 h-px bg-gray-200 mb-6"></div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 flex flex-col items-center space-y-8">
+      <nav className="flex-1 flex flex-col items-center space-y-6">
         {mainMenuItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -67,34 +73,57 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               }`}
               aria-label={item.label}
             >
-              <Icon className="w-6 h-6" />
+              <Icon className="w-5 h-5" />
             </button>
           );
         })}
       </nav>
 
       {/* Notifications Button */}
-      <div className="mb-6">
-        <button 
-          className="p-3 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-          onClick={() => {}}
-          aria-label="Notifications"
-        >
-          <Bell className="w-6 h-6" />
-        </button>
+      <div className="mb-4">
+        <DropdownMenu open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+          <DropdownMenuTrigger asChild>
+            <button 
+              className={`p-3 rounded-lg transition-colors ${
+                isNotificationsOpen ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+              aria-label="Notifications"
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-2">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-medium">Notifications</h3>
+              <button className="text-xs text-purple-600">Mark all as read</button>
+            </div>
+            <DropdownMenuSeparator />
+            {notifications.map(notification => (
+              <div key={notification.id} className="py-2">
+                <p className="text-sm">{notification.text}</p>
+                <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                {notification.id !== notifications.length && <DropdownMenuSeparator className="mt-2" />}
+              </div>
+            ))}
+            <DropdownMenuSeparator />
+            <button className="w-full text-center text-sm text-purple-600 py-2">
+              View all notifications
+            </button>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* User Menu - Bottom of Sidebar */}
-      <div className="mt-auto">
+      <div className="mt-auto mb-4">
         <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
           <DropdownMenuTrigger asChild>
             <button 
-              className="w-14 h-14 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
+              className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
               aria-label="User menu"
             >
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-3">
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-2">
             <div className="flex items-center p-3 mb-2">
               <div className="w-16 h-16 bg-gray-300 rounded-full mr-4"></div>
               <div>

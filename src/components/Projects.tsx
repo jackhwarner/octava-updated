@@ -13,10 +13,18 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage
 } from '@/components/ui/breadcrumb';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const Projects = () => {
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
+  const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
+  const [projectName, setProjectName] = useState('');
+  const [projectGenre, setProjectGenre] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
 
   const folders = [
     { id: 'pop', name: 'Pop Projects', count: 5, type: 'folder' },
@@ -89,6 +97,8 @@ const Projects = () => {
   };
 
   const renderBreadcrumb = () => {
+    if (currentFolderId === null) return null;
+    
     return (
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
@@ -97,14 +107,10 @@ const Projects = () => {
               <Home className="w-4 h-4" />
             </BreadcrumbLink>
           </BreadcrumbItem>
-          {currentFolderId && (
-            <>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{currentFolderName}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </>
-          )}
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{currentFolderName}</BreadcrumbPage>
+          </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
     );
@@ -117,7 +123,7 @@ const Projects = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
           <p className="text-gray-600">Manage your music collaborations</p>
         </div>
-        <Button className="bg-purple-600 hover:bg-purple-700">
+        <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
           New Project
         </Button>
@@ -198,6 +204,117 @@ const Projects = () => {
           </Card>
         ))}
       </div>
+
+      {/* New Project Dialog */}
+      <Dialog open={showNewProjectDialog} onOpenChange={setShowNewProjectDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Fill out the details below to start a new music project.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-name" className="text-right">
+                Name
+              </Label>
+              <Input 
+                id="project-name" 
+                value={projectName} 
+                onChange={(e) => setProjectName(e.target.value)} 
+                className="col-span-3" 
+                placeholder="Enter project name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-genre" className="text-right">
+                Genre
+              </Label>
+              <Select value={projectGenre} onValueChange={setProjectGenre}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pop">Pop</SelectItem>
+                  <SelectItem value="rock">Rock</SelectItem>
+                  <SelectItem value="hip-hop">Hip-Hop</SelectItem>
+                  <SelectItem value="r&b">R&B</SelectItem>
+                  <SelectItem value="jazz">Jazz</SelectItem>
+                  <SelectItem value="classical">Classical</SelectItem>
+                  <SelectItem value="electronic">Electronic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-description" className="text-right">
+                Description
+              </Label>
+              <Textarea 
+                id="project-description" 
+                value={projectDescription} 
+                onChange={(e) => setProjectDescription(e.target.value)} 
+                className="col-span-3" 
+                placeholder="Describe your project"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-privacy" className="text-right">
+                Privacy
+              </Label>
+              <Select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select privacy" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="connections-only">Connections Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-folder" className="text-right">
+                Folder
+              </Label>
+              <Select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select folder" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="pop">Pop Projects</SelectItem>
+                  <SelectItem value="hip-hop">Hip-Hop Projects</SelectItem>
+                  <SelectItem value="collaborations">Collaborations</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-collaborators" className="text-right">
+                Collaborators
+              </Label>
+              <Select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Add collaborators" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="david">David Kim</SelectItem>
+                  <SelectItem value="sophia">Sophia Martinez</SelectItem>
+                  <SelectItem value="jackson">Jackson Lee</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewProjectDialog(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(false)}>
+              Create Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

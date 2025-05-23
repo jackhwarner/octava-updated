@@ -5,9 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Star, Music } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Browse = () => {
@@ -16,12 +13,8 @@ const Browse = () => {
   const [selectedInstrument, setSelectedInstrument] = useState('');
   const [selectedExperience, setSelectedExperience] = useState('');
   const [selectedAvailability, setSelectedAvailability] = useState('');
-  const [availableOnly, setAvailableOnly] = useState(false);
-  const [experienceRange, setExperienceRange] = useState([1]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  const [ratingFilter, setRatingFilter] = useState([3]);
 
   const profiles = [
     {
@@ -138,7 +131,6 @@ const Browse = () => {
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="musicians">Musicians</TabsTrigger>
               <TabsTrigger value="projects">Projects</TabsTrigger>
-              <TabsTrigger value="studios">Studios</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -217,15 +209,7 @@ const Browse = () => {
             </Select>
           </div>
 
-          <div className="flex justify-between">
-            <Button 
-              variant="ghost" 
-              className="text-purple-600 p-0 h-auto flex items-center"
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            >
-              {showAdvancedFilters ? "Hide advanced filters" : "Show advanced filters"}
-            </Button>
-
+          <div className="flex justify-end">
             <Button 
               className="bg-purple-600 hover:bg-purple-700"
               onClick={handleSearch}
@@ -233,69 +217,20 @@ const Browse = () => {
               Apply Filters
             </Button>
           </div>
-
-          {showAdvancedFilters && (
-            <div className="mt-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="availableOnly" 
-                      checked={availableOnly} 
-                      onCheckedChange={(checked) => {
-                        if (typeof checked === 'boolean') setAvailableOnly(checked);
-                      }}
-                    />
-                    <Label htmlFor="availableOnly">Available for projects</Label>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label>Years of Experience</Label>
-                      <span className="text-sm text-gray-500">{experienceRange[0]}+ years</span>
-                    </div>
-                    <Slider 
-                      value={experienceRange} 
-                      min={1} 
-                      max={20} 
-                      step={1} 
-                      onValueChange={setExperienceRange} 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label>Minimum Rating</Label>
-                      <span className="text-sm text-gray-500">{ratingFilter[0]}+ stars</span>
-                    </div>
-                    <Slider 
-                      value={ratingFilter} 
-                      min={1} 
-                      max={5} 
-                      step={1} 
-                      onValueChange={setRatingFilter} 
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
       {hasSearched ? (
         /* Search Results */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {profiles.map((profile) => (
             <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader className="text-center">
-                <div className="w-20 h-20 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                <CardTitle className="text-lg">{profile.name}</CardTitle>
-                <p className="text-sm text-gray-500">{profile.username}</p>
+              <CardHeader className="text-center p-4">
+                <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3"></div>
+                <CardTitle className="text-base">{profile.name}</CardTitle>
+                <p className="text-xs text-gray-500">{profile.username}</p>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 p-4">
                 <div className="text-center">
                   <Badge variant="secondary" className="bg-purple-100 text-purple-700">
                     {profile.role}
@@ -310,23 +245,14 @@ const Browse = () => {
                   ))}
                 </div>
 
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <MapPin className="w-4 h-4 mr-1" />
+                <div className="flex items-center justify-center text-xs text-gray-500">
+                  <MapPin className="w-3 h-3 mr-1" />
                   {profile.location}
                 </div>
 
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">{profile.experience}</p>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
-                    View Profile
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    Message
-                  </Button>
-                </div>
+                <Button className="w-full bg-purple-600 hover:bg-purple-700 h-8 text-xs">
+                  View Profile
+                </Button>
               </CardContent>
             </Card>
           ))}
@@ -370,15 +296,15 @@ const Browse = () => {
           {/* Suggested Collaborators */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Suggested Collaborators</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {suggestedCollaborators.map((profile) => (
                 <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader className="text-center">
-                    <div className="w-20 h-20 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                    <CardTitle className="text-lg">{profile.name}</CardTitle>
-                    <p className="text-sm text-gray-500">{profile.username}</p>
+                  <CardHeader className="text-center p-4">
+                    <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3"></div>
+                    <CardTitle className="text-base">{profile.name}</CardTitle>
+                    <p className="text-xs text-gray-500">{profile.username}</p>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 p-4">
                     <div className="text-center">
                       <Badge variant="secondary" className="bg-purple-100 text-purple-700">
                         {profile.role}
@@ -393,23 +319,14 @@ const Browse = () => {
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-center text-sm text-gray-500">
-                      <MapPin className="w-4 h-4 mr-1" />
+                    <div className="flex items-center justify-center text-xs text-gray-500">
+                      <MapPin className="w-3 h-3 mr-1" />
                       {profile.location}
                     </div>
 
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600">{profile.experience}</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
-                        View Profile
-                      </Button>
-                      <Button variant="outline" className="flex-1">
-                        Connect
-                      </Button>
-                    </div>
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-8 text-xs">
+                      Connect
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
