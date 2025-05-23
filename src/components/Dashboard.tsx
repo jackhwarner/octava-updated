@@ -2,8 +2,33 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Music, MessageSquare } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const Dashboard = () => {
+  const suggestedCollaborators = [
+    {
+      id: 1,
+      name: 'David Kim',
+      role: 'Pianist',
+      genres: ['Classical', 'Jazz'],
+      avatar: null,
+    },
+    {
+      id: 2,
+      name: 'Sophia Martinez',
+      role: 'Vocalist',
+      genres: ['Pop', 'Soul'],
+      avatar: null,
+    },
+    {
+      id: 3,
+      name: 'Jackson Lee',
+      role: 'Producer',
+      genres: ['Hip-Hop', 'R&B'],
+      avatar: null,
+    },
+  ];
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -47,7 +72,7 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Activity and Suggested Collaborators */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
@@ -73,18 +98,29 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Suggested Connections</CardTitle>
+            <CardTitle>Suggested Collaborators</CardTitle>
             <CardDescription>People you might want to collaborate with</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="flex items-center justify-between p-3 rounded-lg border">
+              {suggestedCollaborators.map((collaborator) => (
+                <div key={collaborator.id} className="flex items-center justify-between p-3 rounded-lg border">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
                     <div>
-                      <h4 className="font-medium">Alex Producer</h4>
-                      <p className="text-sm text-gray-500">Producer • Hip-Hop</p>
+                      <h4 className="font-medium">{collaborator.name}</h4>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-gray-500">{collaborator.role}</span>
+                        <span className="text-gray-300">•</span>
+                        <Badge variant="outline" className="text-xs">
+                          {collaborator.genres[0]}
+                        </Badge>
+                        {collaborator.genres.length > 1 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{collaborator.genres.length - 1}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <Button size="sm" variant="outline">Connect</Button>

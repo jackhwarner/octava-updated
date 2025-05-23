@@ -4,16 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Folder, Music, Users, MoreHorizontal } from 'lucide-react';
+import { Plus, Folder, Music, Users, MoreHorizontal, ChevronRight, Home } from 'lucide-react';
+import { 
+  Breadcrumb, 
+  BreadcrumbItem, 
+  BreadcrumbLink, 
+  BreadcrumbList, 
+  BreadcrumbSeparator,
+  BreadcrumbPage
+} from '@/components/ui/breadcrumb';
 
 const Projects = () => {
-  const [selectedFolder, setSelectedFolder] = useState('all');
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
 
   const folders = [
-    { id: 'all', name: 'All Projects', count: 12 },
-    { id: 'pop', name: 'Pop Projects', count: 5 },
-    { id: 'hip-hop', name: 'Hip-Hop Projects', count: 3 },
-    { id: 'collaborations', name: 'Collaborations', count: 4 },
+    { id: 'pop', name: 'Pop Projects', count: 5, type: 'folder' },
+    { id: 'hip-hop', name: 'Hip-Hop Projects', count: 3, type: 'folder' },
+    { id: 'collaborations', name: 'Collaborations', count: 4, type: 'folder' },
   ];
 
   const projects = [
@@ -26,6 +34,7 @@ const Projects = () => {
       status: 'In Progress',
       lastUpdated: '2 days ago',
       folder: 'pop',
+      type: 'project'
     },
     {
       id: 2,
@@ -36,6 +45,7 @@ const Projects = () => {
       status: 'Review',
       lastUpdated: '1 week ago',
       folder: 'collaborations',
+      type: 'project'
     },
     {
       id: 3,
@@ -46,6 +56,7 @@ const Projects = () => {
       status: 'Complete',
       lastUpdated: '3 days ago',
       folder: 'hip-hop',
+      type: 'project'
     },
   ];
 
@@ -62,9 +73,42 @@ const Projects = () => {
     }
   };
 
-  const filteredProjects = selectedFolder === 'all' 
-    ? projects 
-    : projects.filter(project => project.folder === selectedFolder);
+  // Combine folders and projects when showing the root folder
+  const displayItems = currentFolderId === null 
+    ? [...folders, ...projects] 
+    : projects.filter(project => project.folder === currentFolderId);
+
+  const handleFolderClick = (folderId: string, folderName: string) => {
+    setCurrentFolderId(folderId);
+    setCurrentFolderName(folderName);
+  };
+
+  const handleBackToRoot = () => {
+    setCurrentFolderId(null);
+    setCurrentFolderName(null);
+  };
+
+  const renderBreadcrumb = () => {
+    return (
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={handleBackToRoot} className="cursor-pointer">
+              <Home className="w-4 h-4" />
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          {currentFolderId && (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{currentFolderName}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </>
+          )}
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  };
 
   return (
     <div className="p-8">
@@ -79,86 +123,80 @@ const Projects = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Folders Sidebar */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Folder className="w-5 h-5 mr-2" />
-              Folders
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {folders.map((folder) => (
-              <button
-                key={folder.id}
-                onClick={() => setSelectedFolder(folder.id)}
-                className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${
-                  selectedFolder === folder.id
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                <span>{folder.name}</span>
-                <Badge variant="secondary" className="bg-gray-100">
-                  {folder.count}
+      {/* Search Bar */}
+      <div className="mb-6 flex items-center space-x-4">
+        <Input placeholder="Search projects..." className="max-w-sm" />
+        <Button variant="outline">Filter</Button>
+      </div>
+
+      {/* Breadcrumb Navigation */}
+      {renderBreadcrumb()}
+
+      {/* Projects and Folders Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {currentFolderId === null && folders.map((folder) => (
+          <Card 
+            key={folder.id} 
+            className="hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => handleFolderClick(folder.id, folder.name)}
+          >
+            <CardContent className="p-6 flex items-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                <Folder className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900">{folder.name}</h3>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Music className="w-4 h-4 mr-1" />
+                  {folder.count} projects
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </CardContent>
+          </Card>
+        ))}
+
+        {displayItems.filter(item => item.type === 'project').map((project: any) => (
+          <Card key={project.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-lg">{project.title}</CardTitle>
+                  <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+                </div>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Badge variant="outline">{project.genre}</Badge>
+                <Badge className={getStatusColor(project.status)}>
+                  {project.status}
                 </Badge>
-              </button>
-            ))}
-          </CardContent>
-        </Card>
+              </div>
 
-        {/* Projects Grid */}
-        <div className="lg:col-span-3">
-          <div className="mb-6 flex items-center space-x-4">
-            <Input placeholder="Search projects..." className="max-w-sm" />
-            <Button variant="outline">Filter</Button>
-          </div>
+              <div className="flex items-center space-x-4 text-sm text-gray-500">
+                <div className="flex items-center">
+                  <Users className="w-4 h-4 mr-1" />
+                  {project.collaborators} collaborators
+                </div>
+                <div>Updated {project.lastUpdated}</div>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredProjects.map((project) => (
-              <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{project.title}</CardTitle>
-                      <p className="text-sm text-gray-500 mt-1">{project.description}</p>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline">{project.genre}</Badge>
-                    <Badge className={getStatusColor(project.status)}>
-                      {project.status}
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {project.collaborators} collaborators
-                    </div>
-                    <div>Updated {project.lastUpdated}</div>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
-                      <Music className="w-4 h-4 mr-2" />
-                      Open
-                    </Button>
-                    <Button variant="outline" className="flex-1">
-                      Share
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+              <div className="flex space-x-2">
+                <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
+                  <Music className="w-4 h-4 mr-2" />
+                  Open
+                </Button>
+                <Button variant="outline" className="flex-1">
+                  Share
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );

@@ -1,5 +1,22 @@
 
-import { Home, Search, MessageCircle, FolderOpen, User, Settings, HelpCircle } from 'lucide-react';
+import { 
+  Home, 
+  Search, 
+  MessageCircle, 
+  FolderOpen, 
+  Settings, 
+  HelpCircle,
+  User,
+  ChevronDown
+} from 'lucide-react';
+import { useState } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface SidebarProps {
   activeTab: string;
@@ -7,14 +24,13 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
-  const menuItems = [
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const mainMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'browse', label: 'Browse', icon: Search },
     { id: 'messages', label: 'Messages', icon: MessageCircle },
     { id: 'projects', label: 'Projects', icon: FolderOpen },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'support', label: 'Support', icon: HelpCircle },
   ];
 
   return (
@@ -25,10 +41,10 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         <p className="text-sm text-gray-500 mt-1">Music Industry Network</p>
       </div>
 
-      {/* Navigation */}
+      {/* Main Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {menuItems.map((item) => {
+          {mainMenuItems.map((item) => {
             const Icon = item.icon;
             return (
               <li key={item.id}>
@@ -48,6 +64,37 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
           })}
         </ul>
       </nav>
+
+      {/* User Menu - Bottom of Sidebar */}
+      <div className="p-4 border-t border-gray-200 mt-auto">
+        <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <button className="w-full flex items-center px-4 py-2 rounded-lg text-left hover:bg-gray-50">
+              <div className="w-8 h-8 bg-gray-300 rounded-full mr-3"></div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-gray-900">Alex Rodriguez</p>
+                <p className="text-xs text-gray-500">@alex_producer</p>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuItem onClick={() => setActiveTab('profile')}>
+              <User className="w-4 h-4 mr-2" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setActiveTab('settings')}>
+              <Settings className="w-4 h-4 mr-2" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setActiveTab('support')}>
+              <HelpCircle className="w-4 h-4 mr-2" />
+              <span>Support</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 };

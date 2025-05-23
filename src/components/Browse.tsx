@@ -1,16 +1,17 @@
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Music } from 'lucide-react';
+import { Search, MapPin, Music, Star } from 'lucide-react';
 
 const Browse = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
 
   const profiles = [
     {
@@ -44,6 +45,73 @@ const Browse = () => {
       avatar: null,
     },
   ];
+
+  const spotlightProjects = [
+    {
+      id: 1,
+      title: "Summer Anthem",
+      creator: "Alex Rodriguez",
+      genre: "Pop",
+      collaborators: 4,
+      description: "Upbeat summer track with catchy hooks and tropical vibes",
+      image: null
+    },
+    {
+      id: 2,
+      title: "Midnight Blues",
+      creator: "Jazz Quartet",
+      genre: "Jazz",
+      collaborators: 5,
+      description: "Smooth jazz composition with piano solos and brass sections",
+      image: null
+    },
+    {
+      id: 3,
+      title: "Electronic Dreams",
+      creator: "Sarah Beats",
+      genre: "Electronic",
+      collaborators: 2,
+      description: "Ambient electronic track with layered synths and minimal vocals",
+      image: null
+    }
+  ];
+
+  const suggestedCollaborators = [
+    {
+      id: 4,
+      name: 'David Kim',
+      username: '@david_keys',
+      role: 'Pianist',
+      genres: ['Classical', 'Jazz'],
+      location: 'New York, NY',
+      experience: 'Professional',
+      avatar: null,
+    },
+    {
+      id: 5,
+      name: 'Sophia Martinez',
+      username: '@sophia_voice',
+      role: 'Vocalist',
+      genres: ['Pop', 'Soul'],
+      location: 'Miami, FL',
+      experience: 'Professional',
+      avatar: null,
+    },
+    {
+      id: 6,
+      name: 'Jackson Lee',
+      username: '@j_producer',
+      role: 'Producer',
+      genres: ['Hip-Hop', 'R&B'],
+      location: 'Chicago, IL',
+      experience: 'Intermediate',
+      avatar: null,
+    },
+  ];
+
+  const handleSearch = () => {
+    setHasSearched(true);
+  };
 
   return (
     <div className="p-8">
@@ -98,7 +166,7 @@ const Browse = () => {
               </SelectContent>
             </Select>
 
-            <Button className="bg-purple-600 hover:bg-purple-700">
+            <Button className="bg-purple-600 hover:bg-purple-700" onClick={handleSearch}>
               <Search className="w-4 h-4 mr-2" />
               Search
             </Button>
@@ -106,51 +174,138 @@ const Browse = () => {
         </CardContent>
       </Card>
 
-      {/* Results */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {profiles.map((profile) => (
-          <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader className="text-center">
-              <div className="w-20 h-20 bg-gray-300 rounded-full mx-auto mb-4"></div>
-              <CardTitle className="text-lg">{profile.name}</CardTitle>
-              <p className="text-sm text-gray-500">{profile.username}</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                  {profile.role}
-                </Badge>
-              </div>
-              
-              <div className="flex flex-wrap gap-1 justify-center">
-                {profile.genres.map((genre) => (
-                  <Badge key={genre} variant="outline" className="text-xs">
-                    {genre}
+      {hasSearched ? (
+        /* Search Results */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {profiles.map((profile) => (
+            <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader className="text-center">
+                <div className="w-20 h-20 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                <CardTitle className="text-lg">{profile.name}</CardTitle>
+                <p className="text-sm text-gray-500">{profile.username}</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center">
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                    {profile.role}
                   </Badge>
-                ))}
-              </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-1 justify-center">
+                  {profile.genres.map((genre) => (
+                    <Badge key={genre} variant="outline" className="text-xs">
+                      {genre}
+                    </Badge>
+                  ))}
+                </div>
 
-              <div className="flex items-center justify-center text-sm text-gray-500">
-                <MapPin className="w-4 h-4 mr-1" />
-                {profile.location}
-              </div>
+                <div className="flex items-center justify-center text-sm text-gray-500">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  {profile.location}
+                </div>
 
-              <div className="text-center">
-                <p className="text-sm text-gray-600">{profile.experience}</p>
-              </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">{profile.experience}</p>
+                </div>
 
-              <div className="flex gap-2">
-                <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
-                  View Profile
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  Message
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <div className="flex gap-2">
+                  <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
+                    View Profile
+                  </Button>
+                  <Button variant="outline" className="flex-1">
+                    Message
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        /* Spotlight Projects and Suggested Collaborators when not searching */
+        <div className="space-y-12">
+          {/* Spotlight Projects */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+              <Star className="w-5 h-5 mr-2 text-purple-600" />
+              Spotlight Projects
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {spotlightProjects.map((project) => (
+                <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                  <div className="h-36 bg-purple-100 relative">
+                    <div className="absolute bottom-3 left-3">
+                      <Badge className="bg-purple-600">{project.genre}</Badge>
+                    </div>
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{project.title}</CardTitle>
+                    <CardDescription>by {project.creator}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-gray-600">{project.description}</p>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Music className="w-4 h-4 mr-1" />
+                      {project.collaborators} collaborators
+                    </div>
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                      View Project
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+          
+          {/* Suggested Collaborators */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Suggested Collaborators</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {suggestedCollaborators.map((profile) => (
+                <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardHeader className="text-center">
+                    <div className="w-20 h-20 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                    <CardTitle className="text-lg">{profile.name}</CardTitle>
+                    <p className="text-sm text-gray-500">{profile.username}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="text-center">
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                        {profile.role}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1 justify-center">
+                      {profile.genres.map((genre) => (
+                        <Badge key={genre} variant="outline" className="text-xs">
+                          {genre}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-center text-sm text-gray-500">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {profile.location}
+                    </div>
+
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600">{profile.experience}</p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
+                        View Profile
+                      </Button>
+                      <Button variant="outline" className="flex-1">
+                        Message
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
