@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Search } from 'lucide-react';
+import { Send, Search, Plus } from 'lucide-react';
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState(1);
@@ -62,17 +62,19 @@ const Messages = () => {
   ];
 
   return (
-    <div className="p-8 h-screen flex flex-col">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
-        <p className="text-gray-600">Connect with your collaborators</p>
+    <div className="p-10 h-screen flex flex-col">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
+        <Button className="bg-purple-600 hover:bg-purple-700">
+          <Plus className="w-4 h-4 mr-2" />
+          New Message
+        </Button>
       </div>
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
         {/* Chat List */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Conversations</CardTitle>
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input placeholder="Search messages..." className="pl-9" />

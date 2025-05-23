@@ -53,7 +53,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
           navigate('/');
         }}>
           <img 
-            src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
+            src="/lovable-uploads/473e0e70-6ce1-470c-989b-502bc6fc4f4e.png" 
             alt="Octava Logo" 
             className="w-16 h-16" 
           />
@@ -78,7 +78,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               }`}
               aria-label={item.label}
             >
-              <Icon className="w-7 h-7" />
+              <Icon className="w-6 h-6" />
             </button>
           );
         })}
@@ -94,10 +94,10 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               }`}
               aria-label="Notifications"
             >
-              <Bell className="w-7 h-7" />
+              <Bell className="w-6 h-6" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-3 mr-20">
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-28">
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-medium">Notifications</h3>
               <button className="text-xs text-purple-600">Mark all as read</button>
@@ -123,12 +123,12 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
           <DropdownMenuTrigger asChild>
             <button 
-              className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
+              className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
               aria-label="User menu"
             >
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-3 mr-20">
+          <DropdownMenuContent align="end" className="w-80 p-3 mr-28">
             <div className="flex items-center p-3 mb-2">
               <div className="w-10 h-10 bg-gray-300 rounded-full mr-4"></div>
               <div>

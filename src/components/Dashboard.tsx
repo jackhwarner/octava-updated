@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Music, MessageSquare, Calendar, PlusCircle, Search, Send, HelpCircle } from 'lucide-react';
+import { Plus, Users, Music, MessageCircle, Calendar, HelpCircle, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 const Dashboard = () => {
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
   const [projectName, setProjectName] = useState('');
-  const [projectGenre, setProjectGenre] = useState<string[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [projectDescription, setProjectDescription] = useState('');
   const [searchCollaborator, setSearchCollaborator] = useState('');
   const [selectedCollaborators, setSelectedCollaborators] = useState<string[]>([]);
@@ -112,7 +112,6 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-gray-500">+2 from last month</p>
           </CardContent>
         </Card>
 
@@ -123,18 +122,16 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">284</div>
-            <p className="text-xs text-gray-500">+18 new this week</p>
           </CardContent>
         </Card>
 
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={handleGoToMessages}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Unread Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-purple-600" />
+            <MessageCircle className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-gray-500">3 new today</p>
           </CardContent>
         </Card>
 
@@ -145,7 +142,6 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-gray-500">Next: Tomorrow, 2PM</p>
           </CardContent>
         </Card>
       </div>
@@ -165,14 +161,6 @@ const Dashboard = () => {
               <Button variant="outline" onClick={() => navigate('/browse')}>
                 <Search className="w-4 h-4 mr-2" />
                 Find Collaborators
-              </Button>
-              <Button variant="outline">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Upload Track
-              </Button>
-              <Button variant="outline" onClick={handleGoToAvailability}>
-                <Calendar className="w-4 h-4 mr-2" />
-                Schedule Session
               </Button>
               <Button variant="outline" onClick={handleGoToSupport}>
                 <HelpCircle className="w-4 h-4 mr-2" />
@@ -394,6 +382,7 @@ const Dashboard = () => {
                     selected={date}
                     onSelect={setDate}
                     initialFocus
+                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>

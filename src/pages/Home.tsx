@@ -10,7 +10,7 @@ const Home = () => {
       <header className="w-full p-5 md:p-6 flex justify-between items-center bg-white shadow-sm">
         <div className="flex items-center gap-2">
           <img 
-            src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
+            src="/lovable-uploads/473e0e70-6ce1-470c-989b-502bc6fc4f4e.png" 
             alt="Octava Logo" 
             className="w-10 h-10" 
           />
@@ -32,16 +32,16 @@ const Home = () => {
       </header>
       
       {/* Hero section */}
-      <section className="py-20 md:py-28 px-6 md:px-10 max-w-7xl mx-auto text-center">
+      <section className="py-24 md:py-32 px-8 md:px-12 max-w-7xl mx-auto text-center">
         <h1 className="text-4xl md:text-6xl font-bold mb-8 max-w-4xl mx-auto">
           Spend less time <span className="text-purple-600">networking</span> and more time <span className="text-purple-600">creating music</span>
         </h1>
-        <p className="text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
+        <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
           Octava is the platform that connects musicians, producers, and creators to bring your musical vision to life.
         </p>
         <Button 
           size="lg" 
-          className="text-lg px-10 py-8 rounded-full shadow-lg text-white"
+          className="text-lg px-12 py-8 rounded-full shadow-lg text-white"
           style={{
             background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%)",
             boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -5px rgba(217, 70, 239, 0.2)"
@@ -62,14 +62,14 @@ const Home = () => {
       </section>
       
       {/* Features section */}
-      <section id="features" className="py-20 px-6 md:px-10 bg-gray-50">
+      <section id="features" className="py-20 px-8 md:px-16 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold mb-20 text-center">Why Choose Octava?</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-24 text-center">Why Choose Octava?</h2>
           
           {/* Feature 1 */}
           <div className="flex flex-col md:flex-row items-center mb-28 max-w-6xl mx-auto">
-            <div className="md:w-1/2 md:pr-12 mb-8 md:mb-0">
-              <h3 className="text-3xl font-bold mb-6">Connect with Professionals</h3>
+            <div className="md:w-1/2 md:pr-16 mb-8 md:mb-0">
+              <h3 className="text-3xl font-bold mb-8">Connect with Professionals</h3>
               <p className="text-gray-600 mb-8 text-lg">
                 Find the perfect collaborators for your next project. Connect with producers, vocalists, 
                 instrumentalists, and other music professionals around the world.
@@ -96,8 +96,8 @@ const Home = () => {
           
           {/* Feature 2 */}
           <div className="flex flex-col md:flex-row-reverse items-center mb-28 max-w-6xl mx-auto">
-            <div className="md:w-1/2 md:pl-12 mb-8 md:mb-0">
-              <h3 className="text-3xl font-bold mb-6">Collaborate on the Cloud</h3>
+            <div className="md:w-1/2 md:pl-16 mb-8 md:mb-0">
+              <h3 className="text-3xl font-bold mb-8">Collaborate on the Cloud</h3>
               <p className="text-gray-600 mb-8 text-lg">
                 Work seamlessly with your team, no matter where they are. Share files, add comments, and 
                 track revisions all in one place.
@@ -124,8 +124,8 @@ const Home = () => {
           
           {/* Feature 3 */}
           <div className="flex flex-col md:flex-row items-center max-w-6xl mx-auto">
-            <div className="md:w-1/2 md:pr-12 mb-8 md:mb-0">
-              <h3 className="text-3xl font-bold mb-6">Bring Your Project to Life</h3>
+            <div className="md:w-1/2 md:pr-16 mb-8 md:mb-0">
+              <h3 className="text-3xl font-bold mb-8">Bring Your Project to Life</h3>
               <p className="text-gray-600 mb-8 text-lg">
                 Create project listings, track progress, and showcase your work to the world. 
                 From concept to completion, Octava helps you manage every step of the creative process.
@@ -153,7 +153,7 @@ const Home = () => {
       </section>
       
       {/* Pricing section */}
-      <section id="pricing" className="py-20 px-6 md:px-10">
+      <section id="pricing" className="py-20 px-8 md:px-12">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-center">Simple, Transparent Pricing</h2>
           <p className="text-gray-600 mb-20 text-center max-w-2xl mx-auto text-lg">
@@ -234,7 +234,7 @@ const Home = () => {
       </section>
       
       {/* About Us section */}
-      <section id="about" className="py-20 px-6 md:px-10 bg-gray-50">
+      <section id="about" className="py-20 px-8 md:px-12 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold mb-10 text-center">About Us</h2>
           <div className="max-w-4xl mx-auto text-center">
@@ -251,15 +251,15 @@ const Home = () => {
       </section>
       
       {/* CTA section */}
-      <section className="py-20 px-6 md:px-10 bg-purple-900 text-white">
+      <section className="py-20 px-8 md:px-12 bg-purple-900 text-white">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Transform Your Music Collaboration?</h2>
-          <p className="text-xl mb-10 opacity-80 max-w-2xl mx-auto">
+          <p className="text-xl mb-12 opacity-80 max-w-2xl mx-auto">
             Join thousands of musicians and creators who are using Octava to bring their musical projects to life.
           </p>
           <Button 
             size="lg" 
-            className="text-lg px-10 py-7 rounded-full shadow-lg"
+            className="text-lg px-12 py-8 rounded-full shadow-lg"
             style={{
               background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%)",
               boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.5), 0 8px 10px -5px rgba(219, 39, 119, 0.2)"
@@ -272,12 +272,12 @@ const Home = () => {
       </section>
       
       {/* Footer */}
-      <footer className="py-10 px-6 md:px-10 bg-gray-900 text-gray-400">
+      <footer className="py-10 px-8 md:px-12 bg-gray-900 text-gray-400">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <img 
-                src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
+                src="/lovable-uploads/473e0e70-6ce1-470c-989b-502bc6fc4f4e.png" 
                 alt="Octava Logo" 
                 className="w-8 h-8" 
               />

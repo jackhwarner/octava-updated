@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -217,7 +217,7 @@ const Browse = () => {
                 className="flex-grow"
               />
               <Button 
-                className="bg-purple-600 hover:bg-purple-700 p-2"
+                className="bg-purple-600 hover:bg-purple-700 p-3 h-auto"
                 onClick={handleSearch}
                 aria-label="Search"
               >
@@ -270,22 +270,22 @@ const Browse = () => {
         <div className="space-y-10">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-5">Suggested Collaborators</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
               {suggestedCollaborators.map((profile) => (
                 <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader className="text-center p-3">
+                  <CardHeader className="text-center p-4">
                     <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-2"></div>
-                    <CardTitle className="text-sm mb-0">{profile.name}</CardTitle>
-                    <p className="text-xs text-gray-500 mt-0">{profile.username}</p>
+                    <CardTitle className="text-sm mb-1">{profile.name}</CardTitle>
+                    <p className="text-xs text-gray-500 mb-2">{profile.username}</p>
                   </CardHeader>
-                  <CardContent className="space-y-2 p-3">
+                  <CardContent className="space-y-3 p-4">
                     <div className="text-center">
                       <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-xs">
                         {profile.role}
                       </Badge>
                     </div>
                     
-                    <div className="flex flex-wrap gap-1 justify-center">
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {profile.genres.map((genre, i) => (
                         <Badge key={genre} variant="outline" className="text-xs">
                           {genre}
@@ -293,12 +293,12 @@ const Browse = () => {
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-center text-xs text-gray-500">
+                    <div className="flex items-center justify-center text-xs text-gray-500 mt-2">
                       <MapPin className="w-3 h-3 mr-1" />
                       {profile.location}
                     </div>
 
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-7 text-xs">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-7 text-xs mt-2">
                       Connect
                     </Button>
                   </CardContent>
