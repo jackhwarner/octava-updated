@@ -11,7 +11,7 @@ const Home = () => {
           <img 
             src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
             alt="Octava Logo" 
-            className="h-10" 
+            className="h-10 w-[172px]" 
           />
         </div>
         <nav className="hidden md:flex space-x-8">
