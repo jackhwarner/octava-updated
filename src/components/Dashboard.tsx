@@ -3,8 +3,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Music, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const Dashboard = () => {
+  const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
+  const [projectName, setProjectName] = useState('');
+  const [projectGenre, setProjectGenre] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
+
   const suggestedCollaborators = [
     {
       id: 1,
@@ -12,6 +23,7 @@ const Dashboard = () => {
       role: 'Pianist',
       genres: ['Classical', 'Jazz'],
       avatar: null,
+      online: true,
     },
     {
       id: 2,
@@ -19,6 +31,7 @@ const Dashboard = () => {
       role: 'Vocalist',
       genres: ['Pop', 'Soul'],
       avatar: null,
+      online: true,
     },
     {
       id: 3,
@@ -26,8 +39,11 @@ const Dashboard = () => {
       role: 'Producer',
       genres: ['Hip-Hop', 'R&B'],
       avatar: null,
+      online: false,
     },
   ];
+  
+  const onlineCollaborators = suggestedCollaborators.filter(collab => collab.online);
 
   return (
     <div className="p-8">
@@ -72,7 +88,61 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Recent Activity and Suggested Collaborators */}
+      {/* Quick Actions */}
+      <div className="mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-4">
+              <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                New Project
+              </Button>
+              <Button variant="outline">Find Collaborators</Button>
+              <Button variant="outline">Upload Track</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Online Collaborators */}
+      <div className="mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Online Collaborators</CardTitle>
+            <CardDescription>People in your network who are currently online</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {onlineCollaborators.map((collaborator) => (
+                <div key={collaborator.id} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{collaborator.name}</h4>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-gray-500">{collaborator.role}</span>
+                        <span className="text-gray-300">•</span>
+                        <Badge variant="outline" className="text-xs">
+                          {collaborator.genres[0]}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline">Message</Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Projects and Suggested Collaborators */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
@@ -115,11 +185,6 @@ const Dashboard = () => {
                         <Badge variant="outline" className="text-xs">
                           {collaborator.genres[0]}
                         </Badge>
-                        {collaborator.genres.length > 1 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{collaborator.genres.length - 1}
-                          </Badge>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -131,24 +196,100 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mt-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4">
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                <Plus className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
-              <Button variant="outline">Find Collaborators</Button>
-              <Button variant="outline">Upload Track</Button>
+      {/* New Project Dialog */}
+      <Dialog open={showNewProjectDialog} onOpenChange={setShowNewProjectDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Fill out the details below to start a new music project.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-name" className="text-right">
+                Name
+              </Label>
+              <Input 
+                id="project-name" 
+                value={projectName} 
+                onChange={(e) => setProjectName(e.target.value)} 
+                className="col-span-3" 
+                placeholder="Enter project name"
+              />
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-genre" className="text-right">
+                Genre
+              </Label>
+              <Select value={projectGenre} onValueChange={setProjectGenre}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pop">Pop</SelectItem>
+                  <SelectItem value="rock">Rock</SelectItem>
+                  <SelectItem value="hip-hop">Hip-Hop</SelectItem>
+                  <SelectItem value="r&b">R&B</SelectItem>
+                  <SelectItem value="jazz">Jazz</SelectItem>
+                  <SelectItem value="classical">Classical</SelectItem>
+                  <SelectItem value="electronic">Electronic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-description" className="text-right">
+                Description
+              </Label>
+              <Textarea 
+                id="project-description" 
+                value={projectDescription} 
+                onChange={(e) => setProjectDescription(e.target.value)} 
+                className="col-span-3" 
+                placeholder="Describe your project"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-privacy" className="text-right">
+                Privacy
+              </Label>
+              <Select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select privacy" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="connections-only">Connections Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-collaborators" className="text-right">
+                Collaborators
+              </Label>
+              <Select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Add collaborators" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="david">David Kim</SelectItem>
+                  <SelectItem value="sophia">Sophia Martinez</SelectItem>
+                  <SelectItem value="jackson">Jackson Lee</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewProjectDialog(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(false)}>
+              Create Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

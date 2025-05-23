@@ -2,29 +2,26 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Music, Star, Filter, Clock, Award, Tag } from 'lucide-react';
+import { MapPin, Star, Music } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Browse = () => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedInstrument, setSelectedInstrument] = useState('');
   const [selectedExperience, setSelectedExperience] = useState('');
+  const [selectedAvailability, setSelectedAvailability] = useState('');
   const [availableOnly, setAvailableOnly] = useState(false);
   const [experienceRange, setExperienceRange] = useState([1]);
   const [hasSearched, setHasSearched] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [ratingFilter, setRatingFilter] = useState([3]);
-  const [collaborationStatus, setCollaborationStatus] = useState('');
-  const [projectTypes, setProjectTypes] = useState<string[]>([]);
 
   const profiles = [
     {
@@ -126,14 +123,6 @@ const Browse = () => {
     setHasSearched(true);
   };
 
-  const handleProjectTypeChange = (type: string) => {
-    setProjectTypes(current =>
-      current.includes(type) 
-        ? current.filter(t => t !== type) 
-        : [...current, type]
-    );
-  };
-
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -141,7 +130,7 @@ const Browse = () => {
         <p className="text-gray-600">Find your next collaborator</p>
       </div>
 
-      {/* Search and Filters */}
+      {/* Filters */}
       <Card className="mb-8">
         <CardContent className="p-6">
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
@@ -153,17 +142,7 @@ const Browse = () => {
             </TabsList>
           </Tabs>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search by name or skill..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
             <Select value={selectedRole} onValueChange={setSelectedRole}>
               <SelectTrigger>
                 <SelectValue placeholder="Role" />
@@ -180,88 +159,83 @@ const Browse = () => {
               </SelectContent>
             </Select>
 
-            <div className="flex space-x-2">
-              <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Genre" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pop">Pop</SelectItem>
-                  <SelectItem value="rock">Rock</SelectItem>
-                  <SelectItem value="hip-hop">Hip-Hop</SelectItem>
-                  <SelectItem value="r&b">R&B</SelectItem>
-                  <SelectItem value="country">Country</SelectItem>
-                  <SelectItem value="electronic">Electronic</SelectItem>
-                  <SelectItem value="jazz">Jazz</SelectItem>
-                  <SelectItem value="classical">Classical</SelectItem>
-                </SelectContent>
-              </Select>
+            <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+              <SelectTrigger>
+                <SelectValue placeholder="Genre" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pop">Pop</SelectItem>
+                <SelectItem value="rock">Rock</SelectItem>
+                <SelectItem value="hip-hop">Hip-Hop</SelectItem>
+                <SelectItem value="r&b">R&B</SelectItem>
+                <SelectItem value="country">Country</SelectItem>
+                <SelectItem value="electronic">Electronic</SelectItem>
+                <SelectItem value="jazz">Jazz</SelectItem>
+                <SelectItem value="classical">Classical</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <Button 
-                className="bg-purple-600 hover:bg-purple-700"
-                onClick={handleSearch}
-                size="icon"
-              >
-                <Search className="w-4 h-4" />
-                <span className="sr-only">Search</span>
-              </Button>
-            </div>
+            <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+              <SelectTrigger>
+                <SelectValue placeholder="Instrument" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="piano">Piano</SelectItem>
+                <SelectItem value="guitar">Guitar</SelectItem>
+                <SelectItem value="drums">Drums</SelectItem>
+                <SelectItem value="bass">Bass</SelectItem>
+                <SelectItem value="violin">Violin</SelectItem>
+                <SelectItem value="vocals">Vocals</SelectItem>
+                <SelectItem value="saxophone">Saxophone</SelectItem>
+                <SelectItem value="trumpet">Trumpet</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedExperience} onValueChange={setSelectedExperience}>
+              <SelectTrigger>
+                <SelectValue placeholder="Experience" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="beginner">Beginner</SelectItem>
+                <SelectItem value="intermediate">Intermediate</SelectItem>
+                <SelectItem value="professional">Professional</SelectItem>
+                <SelectItem value="expert">Expert</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
+              <SelectTrigger>
+                <SelectValue placeholder="Availability" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="available-now">Available Now</SelectItem>
+                <SelectItem value="this-week">This Week</SelectItem>
+                <SelectItem value="this-month">This Month</SelectItem>
+                <SelectItem value="remote-only">Remote Only</SelectItem>
+                <SelectItem value="in-person">In-Person Only</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between">
             <Button 
               variant="ghost" 
               className="text-purple-600 p-0 h-auto flex items-center"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             >
-              <Filter className="w-4 h-4 mr-1" />
               {showAdvancedFilters ? "Hide advanced filters" : "Show advanced filters"}
+            </Button>
+
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={handleSearch}
+            >
+              Apply Filters
             </Button>
           </div>
 
           {showAdvancedFilters && (
             <div className="mt-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ny">New York</SelectItem>
-                    <SelectItem value="la">Los Angeles</SelectItem>
-                    <SelectItem value="nash">Nashville</SelectItem>
-                    <SelectItem value="miami">Miami</SelectItem>
-                    <SelectItem value="chicago">Chicago</SelectItem>
-                    <SelectItem value="austin">Austin</SelectItem>
-                    <SelectItem value="remote">Remote Only</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedExperience} onValueChange={setSelectedExperience}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Experience Level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="expert">Expert</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Select value={collaborationStatus} onValueChange={setCollaborationStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Collaboration Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open to Collaborate</SelectItem>
-                    <SelectItem value="busy">Currently Busy</SelectItem>
-                    <SelectItem value="limited">Limited Availability</SelectItem>
-                    <SelectItem value="any">Any Status</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
@@ -273,44 +247,6 @@ const Browse = () => {
                       }}
                     />
                     <Label htmlFor="availableOnly">Available for projects</Label>
-                  </div>
-                  
-                  <div className="pt-2">
-                    <Label className="mb-2 block">Project Types</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="typeShort" 
-                          checked={projectTypes.includes('short')} 
-                          onCheckedChange={() => handleProjectTypeChange('short')}
-                        />
-                        <Label htmlFor="typeShort">Short-term</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="typeLong" 
-                          checked={projectTypes.includes('long')} 
-                          onCheckedChange={() => handleProjectTypeChange('long')}
-                        />
-                        <Label htmlFor="typeLong">Long-term</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="typeRemote" 
-                          checked={projectTypes.includes('remote')} 
-                          onCheckedChange={() => handleProjectTypeChange('remote')}
-                        />
-                        <Label htmlFor="typeRemote">Remote work</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="typeInPerson" 
-                          checked={projectTypes.includes('inPerson')} 
-                          onCheckedChange={() => handleProjectTypeChange('inPerson')}
-                        />
-                        <Label htmlFor="typeInPerson">In-person</Label>
-                      </div>
-                    </div>
                   </div>
                 </div>
                 
@@ -471,7 +407,7 @@ const Browse = () => {
                         View Profile
                       </Button>
                       <Button variant="outline" className="flex-1">
-                        Message
+                        Connect
                       </Button>
                     </div>
                   </CardContent>

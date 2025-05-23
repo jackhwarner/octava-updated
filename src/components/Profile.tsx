@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,11 @@ const Profile = () => {
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900">Alex Rodriguez</h1>
                     <p className="text-xl text-gray-600">@alex_producer</p>
+                    
+                    <div className="flex items-center text-gray-600 mt-2 text-lg">
+                      <MapPin className="w-5 h-5 mr-2" />
+                      Los Angeles, CA
+                    </div>
                   </div>
                   <Button variant="outline">
                     <Edit className="w-4 h-4 mr-2" />
@@ -48,16 +54,11 @@ const Profile = () => {
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-purple-100 text-purple-700 px-3 py-1">Producer</Badge>
-                  <Badge variant="outline">Hip-Hop</Badge>
-                  <Badge variant="outline">R&B</Badge>
-                  <Badge variant="outline">Pop</Badge>
-                </div>
-
-                <div className="flex items-center text-gray-600">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Los Angeles, CA
+                <div className="flex flex-wrap gap-3">
+                  <Badge className="bg-purple-100 text-purple-700 px-4 py-1.5 text-base">Producer</Badge>
+                  <Badge variant="outline" className="px-3 py-1">Hip-Hop</Badge>
+                  <Badge variant="outline" className="px-3 py-1">R&B</Badge>
+                  <Badge variant="outline" className="px-3 py-1">Pop</Badge>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
@@ -108,32 +109,25 @@ const Profile = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h3 className="font-semibold mb-2">Experience Level</h3>
-                    <p className="text-gray-600">Professional (10+ years)</p>
+                    <h3 className="font-semibold mb-3">Experience Level</h3>
+                    <Badge className="bg-purple-100 text-purple-700 px-4 py-1.5 text-base">Professional (10+ years)</Badge>
                   </div>
 
                   <div>
-                    <h3 className="font-semibold mb-2">Instruments</h3>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">Piano</Badge>
-                      <Badge variant="outline">Guitar</Badge>
-                      <Badge variant="outline">Drums</Badge>
+                    <h3 className="font-semibold mb-3">Instruments</h3>
+                    <div className="flex flex-wrap gap-3">
+                      <Badge variant="outline" className="px-3 py-1.5 text-base">Piano</Badge>
+                      <Badge variant="outline" className="px-3 py-1.5 text-base">Guitar</Badge>
+                      <Badge variant="outline" className="px-3 py-1.5 text-base">Drums</Badge>
                     </div>
                   </div>
 
                   <div>
-                    <h3 className="font-semibold mb-2">Primary Genres</h3>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">Hip-Hop</Badge>
-                      <Badge variant="outline">R&B</Badge>
-                      <Badge variant="outline">Pop</Badge>
-                      <Badge variant="outline">Soul</Badge>
+                    <h3 className="font-semibold mb-3 text-xl">Location</h3>
+                    <div className="flex items-center text-gray-600 text-lg">
+                      <MapPin className="w-5 h-5 mr-2" />
+                      Los Angeles, CA
                     </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold mb-2">Location</h3>
-                    <p className="text-gray-600">Los Angeles, CA (90210)</p>
                   </div>
                 </div>
               </CardContent>
