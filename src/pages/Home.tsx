@@ -39,7 +39,7 @@ const Home = () => {
         </p>
         <Button 
           size="lg" 
-          className="text-lg px-16 py-10 rounded-full"
+          className="text-lg px-10 py-8 rounded-full"
           style={{
             background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%)",
             boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -5px rgba(217, 70, 239, 0.2)"
