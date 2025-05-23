@@ -44,19 +44,19 @@ const Profile = () => {
   };
 
   return (
-    <div className="p-10">
+    <div className="p-12">
       <div className="max-w-4xl mx-auto">
         {/* Profile Header */}
         <Card className="mb-8">
-          <CardContent className="p-8">
+          <CardContent className="p-10">
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
               <div className="w-28 h-28 bg-gray-300 rounded-full flex-shrink-0"></div>
               
               <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Alex Rodriguez</h1>
-                    <p className="text-lg text-gray-600 mt-1">@alex_producer</p>
+                    <h1 className="text-xl font-bold text-gray-900">Alex Rodriguez</h1>
+                    <p className="text-lg text-gray-600 mt-2">@alex_producer</p>
                   </div>
                   <Button variant="outline" onClick={() => setShowEditDialog(true)}>
                     <Edit className="w-4 h-4 mr-2" />
@@ -64,7 +64,7 @@ const Profile = () => {
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 mt-3">
+                <div className="flex flex-wrap justify-between items-center">
                   <div className="flex flex-wrap gap-2">
                     <Badge className="bg-purple-100 text-purple-700 px-3 py-1.5 text-sm">Producer</Badge>
                     <Badge variant="outline" className="px-3 py-1.5 text-sm">Hip-Hop</Badge>
@@ -72,7 +72,7 @@ const Profile = () => {
                     <Badge variant="outline" className="px-3 py-1.5 text-sm">Pop</Badge>
                   </div>
                   
-                  <div className="inline-flex items-center text-gray-900 px-4 py-1.5 border border-gray-300 rounded">
+                  <div className="inline-flex items-center text-gray-900 px-5 py-2 border border-gray-300 rounded ml-auto mt-3 md:mt-0">
                     <MapPin className="w-4 h-4 mr-2 text-gray-900" />
                     Los Angeles, CA
                   </div>
@@ -84,7 +84,7 @@ const Profile = () => {
 
         {/* Profile Stats */}
         <Card className="mb-8">
-          <CardContent className="py-4">
+          <CardContent className="py-6 px-8">
             <div className="grid grid-cols-4 gap-4 text-center">
               <div>
                 <div className="text-xl font-bold text-gray-900">127</div>
@@ -120,7 +120,7 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle>About Me</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 p-6">
                 <div>
                   <h3 className="font-semibold mb-2">Bio</h3>
                   <p className="text-gray-600">
@@ -133,15 +133,15 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-semibold mb-3">Experience Level</h3>
-                    <Badge className="bg-purple-100 text-purple-700 px-4 py-1.5 text-sm">Professional (10+ years)</Badge>
+                    <Badge className="bg-purple-100 text-purple-700 px-4 py-2 text-xs">Professional (10+ years)</Badge>
                   </div>
 
                   <div>
                     <h3 className="font-semibold mb-3">Instruments</h3>
                     <div className="flex flex-wrap gap-3">
-                      <Badge variant="outline" className="px-4 py-1.5 text-sm">Piano</Badge>
-                      <Badge variant="outline" className="px-4 py-1.5 text-sm">Guitar</Badge>
-                      <Badge variant="outline" className="px-4 py-1.5 text-sm">Drums</Badge>
+                      <Badge variant="outline" className="px-4 py-2 text-xs">Piano</Badge>
+                      <Badge variant="outline" className="px-4 py-2 text-xs">Guitar</Badge>
+                      <Badge variant="outline" className="px-4 py-2 text-xs">Drums</Badge>
                     </div>
                   </div>
                 </div>
@@ -152,12 +152,7 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle>Availability</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center mb-3">
-                  <Calendar className="w-5 h-5 mr-2 text-purple-600" />
-                  <h3 className="font-medium text-lg">Weekly Availability</h3>
-                </div>
-
+              <CardContent className="space-y-4 p-6">
                 <div className="grid grid-cols-7 gap-2 text-center">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
                     <div key={day} className="space-y-2">
@@ -181,7 +176,7 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle>My Tracks</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   {tracks.map((track) => (
                     <div key={track.id} className="flex items-center justify-between p-5 border rounded-lg hover:bg-gray-50">
@@ -225,7 +220,7 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle>Public Projects</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card className="hover:shadow-lg transition-shadow">
                     <div className="h-28 bg-purple-100 relative"></div>
@@ -268,7 +263,7 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle>Social & Streaming Links</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {socialLinks.map((link) => (
                     <div key={link.platform} className="flex items-center justify-between p-5 border rounded-lg">
@@ -295,7 +290,7 @@ const Profile = () => {
 
       {/* Edit Profile Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
             <DialogDescription>

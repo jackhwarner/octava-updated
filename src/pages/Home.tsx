@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
@@ -8,13 +7,12 @@ const Home = () => {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="w-full p-5 md:p-6 flex justify-between items-center bg-white shadow-sm">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <img 
-            src="/lovable-uploads/473e0e70-6ce1-470c-989b-502bc6fc4f4e.png" 
+            src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
             alt="Octava Logo" 
-            className="w-10 h-10" 
+            className="h-10" 
           />
-          <span className="font-bold text-xl text-purple-600">Octava</span>
         </div>
         <nav className="hidden md:flex space-x-8">
           <a href="#features" className="text-gray-700 hover:text-gray-900">Features</a>
@@ -32,7 +30,7 @@ const Home = () => {
       </header>
       
       {/* Hero section */}
-      <section className="py-24 md:py-32 px-8 md:px-12 max-w-7xl mx-auto text-center">
+      <section className="py-24 md:py-32 px-12 md:px-16 max-w-7xl mx-auto text-center">
         <h1 className="text-4xl md:text-6xl font-bold mb-8 max-w-4xl mx-auto">
           Spend less time <span className="text-purple-600">networking</span> and more time <span className="text-purple-600">creating music</span>
         </h1>
@@ -41,7 +39,7 @@ const Home = () => {
         </p>
         <Button 
           size="lg" 
-          className="text-lg px-12 py-8 rounded-full shadow-lg text-white"
+          className="text-lg px-16 py-10 rounded-full"
           style={{
             background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%)",
             boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -5px rgba(217, 70, 239, 0.2)"
@@ -62,7 +60,7 @@ const Home = () => {
       </section>
       
       {/* Features section */}
-      <section id="features" className="py-20 px-8 md:px-16 bg-gray-50">
+      <section id="features" className="py-20 px-12 md:px-20 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold mb-24 text-center">Why Choose Octava?</h2>
           
@@ -153,7 +151,7 @@ const Home = () => {
       </section>
       
       {/* Pricing section */}
-      <section id="pricing" className="py-20 px-8 md:px-12">
+      <section id="pricing" className="py-20 px-12 md:px-12">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-center">Simple, Transparent Pricing</h2>
           <p className="text-gray-600 mb-20 text-center max-w-2xl mx-auto text-lg">
@@ -234,7 +232,7 @@ const Home = () => {
       </section>
       
       {/* About Us section */}
-      <section id="about" className="py-20 px-8 md:px-12 bg-gray-50">
+      <section id="about" className="py-20 px-12 md:px-16 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold mb-10 text-center">About Us</h2>
           <div className="max-w-4xl mx-auto text-center">
@@ -251,7 +249,7 @@ const Home = () => {
       </section>
       
       {/* CTA section */}
-      <section className="py-20 px-8 md:px-12 bg-purple-900 text-white">
+      <section className="py-20 px-12 md:px-16 bg-purple-900 text-white">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Transform Your Music Collaboration?</h2>
           <p className="text-xl mb-12 opacity-80 max-w-2xl mx-auto">
@@ -259,11 +257,8 @@ const Home = () => {
           </p>
           <Button 
             size="lg" 
-            className="text-lg px-12 py-8 rounded-full shadow-lg"
-            style={{
-              background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%)",
-              boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.5), 0 8px 10px -5px rgba(219, 39, 119, 0.2)"
-            }}
+            className="text-lg px-16 py-8 rounded-full"
+            variant="outline"
             asChild
           >
             <Link to="/signup">Start Your Free Trial</Link>
