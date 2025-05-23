@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
 import Browse from '@/components/Browse';

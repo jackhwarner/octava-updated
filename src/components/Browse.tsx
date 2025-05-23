@@ -1,13 +1,15 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Music, Star, Filter } from 'lucide-react';
+import { Search, MapPin, Music, Star, Filter, Clock, Award, Tag } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Browse = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,6 +21,10 @@ const Browse = () => {
   const [experienceRange, setExperienceRange] = useState([1]);
   const [hasSearched, setHasSearched] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
+  const [ratingFilter, setRatingFilter] = useState([3]);
+  const [collaborationStatus, setCollaborationStatus] = useState('');
+  const [projectTypes, setProjectTypes] = useState<string[]>([]);
 
   const profiles = [
     {
@@ -120,6 +126,14 @@ const Browse = () => {
     setHasSearched(true);
   };
 
+  const handleProjectTypeChange = (type: string) => {
+    setProjectTypes(current =>
+      current.includes(type) 
+        ? current.filter(t => t !== type) 
+        : [...current, type]
+    );
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -130,6 +144,15 @@ const Browse = () => {
       {/* Search and Filters */}
       <Card className="mb-8">
         <CardContent className="p-6">
+          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="musicians">Musicians</TabsTrigger>
+              <TabsTrigger value="projects">Projects</TabsTrigger>
+              <TabsTrigger value="studios">Studios</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div className="relative md:col-span-2">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -158,8 +181,8 @@ const Browse = () => {
             </Select>
 
             <div className="flex space-x-2">
-              <Select value={selectedGenre} onValueChange={setSelectedGenre} className="flex-1">
-                <SelectTrigger>
+              <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+                <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Genre" />
                 </SelectTrigger>
                 <SelectContent>
@@ -175,7 +198,7 @@ const Browse = () => {
               </Select>
 
               <Button 
-                className="bg-purple-600 hover:bg-purple-700 px-4"
+                className="bg-purple-600 hover:bg-purple-700"
                 onClick={handleSearch}
                 size="icon"
               >
@@ -197,53 +220,129 @@ const Browse = () => {
           </div>
 
           {showAdvancedFilters && (
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ny">New York</SelectItem>
-                  <SelectItem value="la">Los Angeles</SelectItem>
-                  <SelectItem value="nash">Nashville</SelectItem>
-                  <SelectItem value="miami">Miami</SelectItem>
-                  <SelectItem value="chicago">Chicago</SelectItem>
-                  <SelectItem value="austin">Austin</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="mt-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ny">New York</SelectItem>
+                    <SelectItem value="la">Los Angeles</SelectItem>
+                    <SelectItem value="nash">Nashville</SelectItem>
+                    <SelectItem value="miami">Miami</SelectItem>
+                    <SelectItem value="chicago">Chicago</SelectItem>
+                    <SelectItem value="austin">Austin</SelectItem>
+                    <SelectItem value="remote">Remote Only</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={selectedExperience} onValueChange={setSelectedExperience}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Experience Level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="professional">Professional</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="availableOnly" 
-                  checked={availableOnly} 
-                  onCheckedChange={(checked) => {
-                    if (typeof checked === 'boolean') setAvailableOnly(checked);
-                  }}
-                />
-                <Label htmlFor="availableOnly">Available for projects</Label>
+                <Select value={selectedExperience} onValueChange={setSelectedExperience}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Experience Level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="professional">Professional</SelectItem>
+                    <SelectItem value="expert">Expert</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={collaborationStatus} onValueChange={setCollaborationStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Collaboration Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">Open to Collaborate</SelectItem>
+                    <SelectItem value="busy">Currently Busy</SelectItem>
+                    <SelectItem value="limited">Limited Availability</SelectItem>
+                    <SelectItem value="any">Any Status</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
-              <div className="space-y-2">
-                <Label>Years of Experience (1-20+)</Label>
-                <Slider 
-                  value={experienceRange} 
-                  min={1} 
-                  max={20} 
-                  step={1} 
-                  onValueChange={setExperienceRange} 
-                />
-                <div className="text-sm text-gray-500 text-right">{experienceRange[0]}+ years</div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="availableOnly" 
+                      checked={availableOnly} 
+                      onCheckedChange={(checked) => {
+                        if (typeof checked === 'boolean') setAvailableOnly(checked);
+                      }}
+                    />
+                    <Label htmlFor="availableOnly">Available for projects</Label>
+                  </div>
+                  
+                  <div className="pt-2">
+                    <Label className="mb-2 block">Project Types</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="typeShort" 
+                          checked={projectTypes.includes('short')} 
+                          onCheckedChange={() => handleProjectTypeChange('short')}
+                        />
+                        <Label htmlFor="typeShort">Short-term</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="typeLong" 
+                          checked={projectTypes.includes('long')} 
+                          onCheckedChange={() => handleProjectTypeChange('long')}
+                        />
+                        <Label htmlFor="typeLong">Long-term</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="typeRemote" 
+                          checked={projectTypes.includes('remote')} 
+                          onCheckedChange={() => handleProjectTypeChange('remote')}
+                        />
+                        <Label htmlFor="typeRemote">Remote work</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="typeInPerson" 
+                          checked={projectTypes.includes('inPerson')} 
+                          onCheckedChange={() => handleProjectTypeChange('inPerson')}
+                        />
+                        <Label htmlFor="typeInPerson">In-person</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label>Years of Experience</Label>
+                      <span className="text-sm text-gray-500">{experienceRange[0]}+ years</span>
+                    </div>
+                    <Slider 
+                      value={experienceRange} 
+                      min={1} 
+                      max={20} 
+                      step={1} 
+                      onValueChange={setExperienceRange} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label>Minimum Rating</Label>
+                      <span className="text-sm text-gray-500">{ratingFilter[0]}+ stars</span>
+                    </div>
+                    <Slider 
+                      value={ratingFilter} 
+                      min={1} 
+                      max={5} 
+                      step={1} 
+                      onValueChange={setRatingFilter} 
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}

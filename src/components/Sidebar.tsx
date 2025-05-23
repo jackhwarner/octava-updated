@@ -8,7 +8,6 @@ import {
   HelpCircle,
   User,
   ChevronDown,
-  Disc,
   Bell
 } from 'lucide-react';
 import { useState } from 'react';
@@ -42,14 +41,18 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   ];
 
   return (
-    <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-6">
+    <div className="w-24 bg-white border-r border-gray-200 flex flex-col items-center py-6">
       {/* Logo */}
       <div className="mb-8">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <button className="p-2" onClick={() => setActiveTab('dashboard')}>
-                <Disc className="w-10 h-10 text-purple-600" />
+                <img 
+                  src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
+                  alt="Octava Logo" 
+                  className="w-12 h-12" 
+                />
               </button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -60,7 +63,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
       </div>
       
       {/* Divider */}
-      <div className="w-12 h-px bg-gray-200 mb-8"></div>
+      <div className="w-16 h-px bg-gray-200 mb-8"></div>
 
       {/* Main Navigation */}
       <nav className="flex-1 flex flex-col items-center space-y-8">
@@ -79,7 +82,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                     }`}
                     aria-label={item.label}
                   >
-                    <Icon className="w-6 h-6" />
+                    <Icon className="w-7 h-7" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right">
@@ -101,7 +104,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                 onClick={() => {}}
                 aria-label="Notifications"
               >
-                <Bell className="w-6 h-6" />
+                <Bell className="w-7 h-7" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -119,7 +122,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
                   <button 
-                    className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center"
+                    className="w-14 h-14 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all"
                     aria-label="User menu"
                   >
                   </button>
@@ -129,26 +132,26 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                 <p>User Profile</p>
               </TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align="end" className="w-64 p-2">
-              <div className="flex items-center p-2 mb-2">
-                <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+            <DropdownMenuContent align="end" className="w-72 p-3">
+              <div className="flex items-center p-3 mb-2">
+                <div className="w-14 h-14 bg-gray-300 rounded-full mr-4"></div>
                 <div>
-                  <p className="font-medium">Alex Rodriguez</p>
-                  <p className="text-xs text-gray-500">@alex_producer</p>
+                  <p className="font-medium text-base">Alex Rodriguez</p>
+                  <p className="text-sm text-gray-500">@alex_producer</p>
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setActiveTab('profile')} className="py-2">
-                <User className="w-4 h-4 mr-3" />
+              <DropdownMenuItem onClick={() => setActiveTab('profile')} className="py-3 cursor-pointer">
+                <User className="w-5 h-5 mr-3" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('settings')} className="py-2">
-                <Settings className="w-4 h-4 mr-3" />
+              <DropdownMenuItem onClick={() => setActiveTab('settings')} className="py-3 cursor-pointer">
+                <Settings className="w-5 h-5 mr-3" />
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setActiveTab('support')} className="py-2">
-                <HelpCircle className="w-4 h-4 mr-3" />
+              <DropdownMenuItem onClick={() => setActiveTab('support')} className="py-3 cursor-pointer">
+                <HelpCircle className="w-5 h-5 mr-3" />
                 <span>Support</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
