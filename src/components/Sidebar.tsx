@@ -7,7 +7,8 @@ import {
   Settings, 
   HelpCircle,
   User,
-  ChevronDown
+  ChevronDown,
+  Disc
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -17,6 +18,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface SidebarProps {
   activeTab: string;
@@ -34,51 +41,69 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-6">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-purple-600">Octava</h1>
-        <p className="text-sm text-gray-500 mt-1">Music Industry Network</p>
+      <div className="mb-8">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button className="p-2" onClick={() => setActiveTab('dashboard')}>
+              <Disc className="w-8 h-8 text-purple-600" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Octava</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
+      
+      {/* Divider */}
+      <div className="w-8 h-px bg-gray-200 mb-8"></div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {mainMenuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.id}>
+      <nav className="flex-1 flex flex-col items-center space-y-6">
+        {mainMenuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Tooltip key={item.id}>
+              <TooltipTrigger asChild>
                 <button
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center px-4 py-3 rounded-lg text-left transition-colors ${
+                  className={`p-2 rounded-lg transition-colors ${
                     activeTab === item.id
-                      ? 'bg-purple-100 text-purple-700 font-medium'
+                      ? 'bg-purple-100 text-purple-700'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
+                  aria-label={item.label}
                 >
-                  <Icon className="w-5 h-5 mr-3" />
-                  {item.label}
+                  <Icon className="w-5 h-5" />
                 </button>
-              </li>
-            );
-          })}
-        </ul>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>{item.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
       </nav>
 
       {/* User Menu - Bottom of Sidebar */}
-      <div className="p-4 border-t border-gray-200 mt-auto">
+      <div className="mt-auto">
         <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
-          <DropdownMenuTrigger asChild>
-            <button className="w-full flex items-center px-4 py-2 rounded-lg text-left hover:bg-gray-50">
-              <div className="w-8 h-8 bg-gray-300 rounded-full mr-3"></div>
-              <div className="flex-1 text-left">
-                <p className="text-sm font-medium text-gray-900">Alex Rodriguez</p>
-                <p className="text-xs text-gray-500">@alex_producer</p>
-              </div>
-              <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center"
+                  aria-label="User menu"
+                >
+                </button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>User Profile</p>
+            </TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem onClick={() => setActiveTab('profile')}>
               <User className="w-4 h-4 mr-2" />
               <span>Profile</span>
