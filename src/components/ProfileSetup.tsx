@@ -1,0 +1,157 @@
+
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { CheckCircle } from 'lucide-react';
+import AboutYouStep from './ProfileSetup/AboutYouStep';
+import UploadFilesStep from './ProfileSetup/UploadFilesStep';
+import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
+
+const ProfileSetup = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [profileData, setProfileData] = useState({
+    name: '',
+    username: '',
+    bio: '',
+    location: '',
+    genres: [] as string[],
+    experience: '',
+    instruments: [] as string[],
+    profilePic: null as File | null,
+    musicFiles: [] as File[],
+    socialLinks: {
+      spotify: '',
+      appleMusic: '',
+      youtube: '',
+      soundcloud: '',
+      instagram: '',
+      tiktok: '',
+    }
+  });
+
+  const steps = [
+    { id: 1, title: 'About You', description: 'Tell us about yourself' },
+    { id: 2, title: 'Upload Files', description: 'Add your profile picture and music' },
+    { id: 3, title: 'Link Accounts', description: 'Connect your social platforms' },
+  ];
+
+  const handleNext = () => {
+    if (currentStep < steps.length) {
+      setCompletedSteps(prev => [...prev, currentStep]);
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleComplete = () => {
+    setCompletedSteps(prev => [...prev, currentStep]);
+    // Here you would typically save the profile data
+    console.log('Profile setup completed:', profileData);
+    // Navigate to dashboard or profile page
+  };
+
+  const isStepCompleted = (stepId: number) => completedSteps.includes(stepId);
+  const progressPercentage = (completedSteps.length / steps.length) * 100;
+
+  const updateProfileData = (newData: Partial<typeof profileData>) => {
+    setProfileData(prev => ({ ...prev, ...newData }));
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <AboutYouStep 
+            data={profileData} 
+            onUpdate={updateProfileData}
+            onNext={handleNext}
+          />
+        );
+      case 2:
+        return (
+          <UploadFilesStep 
+            data={profileData} 
+            onUpdate={updateProfileData}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        );
+      case 3:
+        return (
+          <LinkAccountsStep 
+            data={profileData} 
+            onUpdate={updateProfileData}
+            onComplete={handleComplete}
+            onBack={handleBack}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 p-6">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Profile</h1>
+          <p className="text-gray-600">Let's set up your musical profile in just a few steps</p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <Progress value={progressPercentage} className="h-2 mb-4" />
+          <div className="flex justify-between">
+            {steps.map((step) => (
+              <div key={step.id} className="flex items-center space-x-2">
+                {isStepCompleted(step.id) ? (
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                ) : (
+                  <div 
+                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-sm font-medium ${
+                      currentStep === step.id 
+                        ? 'border-purple-600 bg-purple-600 text-white' 
+                        : 'border-gray-300 text-gray-500'
+                    }`}
+                  >
+                    {step.id}
+                  </div>
+                )}
+                <div className="hidden md:block">
+                  <p className={`text-sm font-medium ${
+                    currentStep === step.id ? 'text-purple-600' : 'text-gray-500'
+                  }`}>
+                    {step.title}
+                  </p>
+                  <p className="text-xs text-gray-400">{step.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Step Content */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">
+              Step {currentStep}: {steps[currentStep - 1].title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {renderStepContent()}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default ProfileSetup;

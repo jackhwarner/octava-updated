@@ -40,9 +40,9 @@ const Signup = () => {
       setTimeout(() => {
         toast({
           title: "Account created successfully",
-          description: "Welcome to Octava! Redirecting to your dashboard..."
+          description: "Welcome to Octava! Let's set up your profile..."
         });
-        navigate("/dashboard");
+        navigate("/profile-setup");
       }, 1000);
     } catch (error) {
       toast({
@@ -62,9 +62,9 @@ const Signup = () => {
     setTimeout(() => {
       toast({
         title: "Google signup successful",
-        description: "Redirecting to your dashboard..."
+        description: "Let's set up your profile..."
       });
-      navigate("/dashboard");
+      navigate("/profile-setup");
     }, 1000);
   };
 
