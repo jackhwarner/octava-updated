@@ -17,15 +17,19 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const Projects = () => {
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
+  const [showAddToFolderDialog, setShowAddToFolderDialog] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [projectName, setProjectName] = useState('');
   const [projectGenre, setProjectGenre] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [searchCollaborator, setSearchCollaborator] = useState('');
+  const [newFolderName, setNewFolderName] = useState('');
 
   const folders = [
     { id: 'pop', name: 'Pop Projects', count: 5, type: 'folder' },
@@ -82,7 +86,6 @@ const Projects = () => {
     }
   };
 
-  // Combine folders and projects when showing the root folder
   const displayItems = currentFolderId === null 
     ? [...folders, ...projects] 
     : projects.filter(project => project.folder === currentFolderId);
@@ -98,15 +101,22 @@ const Projects = () => {
   };
 
   const handleCreateProject = () => {
-    // Here we would typically save the project
-    // For now, just close the dialog
     setShowNewProjectDialog(false);
-    
-    // Reset the form
     setProjectName('');
     setProjectGenre('');
     setProjectDescription('');
     setSearchCollaborator('');
+  };
+
+  const handleAddToFolder = (projectId: number) => {
+    setSelectedProjectId(projectId);
+    setShowAddToFolderDialog(true);
+  };
+
+  const handleSaveToFolder = () => {
+    setShowAddToFolderDialog(false);
+    setSelectedProjectId(null);
+    setNewFolderName('');
   };
 
   const renderBreadcrumb = () => {
@@ -134,7 +144,6 @@ const Projects = () => {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
-          <p className="text-gray-600">Manage your music collaborations</p>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -142,17 +151,15 @@ const Projects = () => {
         </Button>
       </div>
 
-      {/* Search Bar */}
       <div className="mb-6 flex items-center space-x-4">
         <Input placeholder="Search projects..." className="max-w-sm" />
         <Button variant="outline">Filter</Button>
       </div>
 
-      {/* Breadcrumb Navigation - Only show when in a folder */}
       {renderBreadcrumb()}
 
-      {/* Projects and Folders Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Projects and Folders Grid - 4 columns on xl screens */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {currentFolderId === null && folders.map((folder) => (
           <Card 
             key={folder.id} 
@@ -183,9 +190,21 @@ const Projects = () => {
                   <CardTitle className="text-lg">{project.title}</CardTitle>
                   <p className="text-sm text-gray-500 mt-1">{project.description}</p>
                 </div>
-                <Button variant="ghost" size="sm">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>Edit Project</DropdownMenuItem>
+                    <DropdownMenuItem>Share</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddToFolder(project.id)}>
+                      Add to Folder
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -321,6 +340,58 @@ const Projects = () => {
               onClick={handleCreateProject}
             >
               Create Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to Folder Dialog */}
+      <Dialog open={showAddToFolderDialog} onOpenChange={setShowAddToFolderDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Add to Folder</DialogTitle>
+            <DialogDescription>
+              Choose a folder for this project or create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Existing Folders</Label>
+              <div className="space-y-2">
+                {folders.map((folder) => (
+                  <Button 
+                    key={folder.id}
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={handleSaveToFolder}
+                  >
+                    <Folder className="w-4 h-4 mr-2" />
+                    {folder.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="new-folder">Create New Folder</Label>
+              <Input 
+                id="new-folder"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Enter folder name"
+                className="w-full"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddToFolderDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={handleSaveToFolder}
+            >
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>

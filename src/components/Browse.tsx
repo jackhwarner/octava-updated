@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Star, Music, Search, Users, Clock } from 'lucide-react';
+import { MapPin, Music, Search, Users, Clock } from 'lucide-react';
 
 const Browse = () => {
   const [selectedRole, setSelectedRole] = useState('');
@@ -58,7 +58,6 @@ const Browse = () => {
       genres: ['Classical', 'Jazz'],
       location: 'New York, NY',
       experience: 'Professional',
-      rating: 4.9,
       completedProjects: 23,
       avatar: null,
     },
@@ -70,7 +69,6 @@ const Browse = () => {
       genres: ['Pop', 'Soul'],
       location: 'Miami, FL',
       experience: 'Professional',
-      rating: 4.8,
       completedProjects: 31,
       avatar: null,
     },
@@ -82,7 +80,6 @@ const Browse = () => {
       genres: ['Hip-Hop', 'R&B'],
       location: 'Chicago, IL',
       experience: 'Intermediate',
-      rating: 4.7,
       completedProjects: 15,
       avatar: null,
     },
@@ -94,7 +91,6 @@ const Browse = () => {
       genres: ['Electronic', 'Dance'],
       location: 'Seattle, WA',
       experience: 'Professional',
-      rating: 4.9,
       completedProjects: 28,
       avatar: null,
     },
@@ -106,7 +102,6 @@ const Browse = () => {
       genres: ['Rock', 'Metal'],
       location: 'Portland, OR',
       experience: 'Expert',
-      rating: 5.0,
       completedProjects: 45,
       avatar: null,
     },
@@ -118,7 +113,6 @@ const Browse = () => {
       genres: ['Classical', 'Orchestral'],
       location: 'Boston, MA',
       experience: 'Professional',
-      rating: 4.8,
       completedProjects: 19,
       avatar: null,
     },
@@ -361,7 +355,7 @@ const Browse = () => {
           {/* Suggested Collaborators */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-5">Suggested Collaborators</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {suggestedCollaborators.map((profile) => (
                 <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardContent className="p-6">
@@ -385,17 +379,12 @@ const Browse = () => {
                         ))}
                       </div>
 
-                      <div className="flex items-center text-sm text-gray-500">
-                        <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-                        <span className="truncate">{profile.location}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between text-sm text-gray-500">
                         <div className="flex items-center">
-                          <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                          <span className="font-medium">{profile.rating}</span>
+                          <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span className="truncate">{profile.location}</span>
                         </div>
-                        <span className="text-gray-500">{profile.completedProjects} projects</span>
+                        <span>{profile.completedProjects} projects</span>
                       </div>
 
                       <Button className="w-full bg-purple-600 hover:bg-purple-700">

@@ -11,11 +11,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const Availability = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showAddAvailabilityDialog, setShowAddAvailabilityDialog] = useState(false);
-  const [selectedTab, setSelectedTab] = useState("schedule");
+  const [availabilityType, setAvailabilityType] = useState("free");
   
   const availabilities = [
     {
@@ -24,6 +25,7 @@ const Availability = () => {
       timeSlot: "10:00 AM - 2:00 PM",
       location: "Home Studio",
       type: "Recording",
+      status: "free",
     },
     {
       id: 2,
@@ -31,6 +33,7 @@ const Availability = () => {
       timeSlot: "3:00 PM - 7:00 PM",
       location: "Downtown Music Center",
       type: "Collaboration",
+      status: "scheduled",
     },
     {
       id: 3,
@@ -38,6 +41,7 @@ const Availability = () => {
       timeSlot: "1:00 PM - 4:00 PM",
       location: "Remote",
       type: "Mixing",
+      status: "free",
     }
   ];
 
@@ -64,7 +68,6 @@ const Availability = () => {
     <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Availability</h1>
-        <p className="text-gray-600">Manage your schedule and set your available times</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -80,6 +83,7 @@ const Availability = () => {
               selected={date}
               onSelect={setDate}
               className="w-full max-w-xl rounded-md border shadow-sm p-3 pointer-events-auto"
+              numberOfMonths={window.innerWidth < 768 ? 1 : 2}
             />
           </CardContent>
           <CardContent className="pt-0">
@@ -109,7 +113,14 @@ const Availability = () => {
                                 <MapPin className="w-3 h-3 mr-1" /> {availability.location}
                               </div>
                             </div>
-                            <Badge variant="outline">{availability.type}</Badge>
+                            <div className="flex gap-2">
+                              <Badge 
+                                className={availability.status === 'free' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                              >
+                                {availability.status === 'free' ? 'Free' : 'Scheduled'}
+                              </Badge>
+                              <Badge variant="outline">{availability.type}</Badge>
+                            </div>
                           </div>
                         ))}
                     </div>
@@ -142,7 +153,14 @@ const Availability = () => {
                         <MapPin className="w-3 h-3 mr-1" /> {availability.location}
                       </div>
                     </div>
-                    <Badge variant="outline">{availability.type}</Badge>
+                    <div className="flex flex-col gap-1">
+                      <Badge 
+                        className={availability.status === 'free' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                      >
+                        {availability.status === 'free' ? 'Free' : 'Scheduled'}
+                      </Badge>
+                      <Badge variant="outline">{availability.type}</Badge>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -185,10 +203,25 @@ const Availability = () => {
           <DialogHeader>
             <DialogTitle>Set Availability</DialogTitle>
             <DialogDescription>
-              Let others know when you're available for collaboration.
+              Let others know when you're available or when you have something scheduled.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            {/* Availability Type Selection */}
+            <div className="space-y-3">
+              <Label>Type</Label>
+              <RadioGroup value={availabilityType} onValueChange={setAvailabilityType}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="free" id="free" />
+                  <Label htmlFor="free">Free Time - Available for collaboration</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="scheduled" id="scheduled" />
+                  <Label htmlFor="scheduled">Scheduled Time - Already have something planned</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             <Tabs defaultValue="onetime" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="onetime">One-time</TabsTrigger>
@@ -237,7 +270,7 @@ const Availability = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="type">Availability Type</Label>
+                  <Label htmlFor="type">Activity Type</Label>
                   <Select defaultValue="recording">
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select type" />

@@ -48,9 +48,10 @@ const Home = () => {
             className="h-10" 
           />
         </div>
-        <nav className="hidden md:flex space-x-8">
+        <nav className="hidden md:flex space-x-8 absolute left-1/2 transform -translate-x-1/2">
           <a href="#features" className="text-gray-700 hover:text-gray-900">Features</a>
           <a href="#pricing" className="text-gray-700 hover:text-gray-900">Pricing</a>
+          <a href="#testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</a>
           <a href="#about" className="text-gray-700 hover:text-gray-900">About Us</a>
         </nav>
         <div className="flex gap-4">
@@ -185,7 +186,7 @@ const Home = () => {
       </section>
 
       {/* Reviews section */}
-      <section className="py-20 px-12 md:px-16 bg-white overflow-hidden">
+      <section id="testimonials" className="py-20 px-12 md:px-16 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold mb-16 text-center">What Our Users Say</h2>
           <div className="relative">
@@ -367,8 +368,8 @@ const Home = () => {
           <div>
             <h3 className="font-medium text-white mb-4">Legal</h3>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-white">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
+              <li><Link to="/terms" className="hover:text-white">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="hover:text-white">Privacy Policy</Link></li>
               <li><a href="#" className="hover:text-white">Cookie Policy</a></li>
             </ul>
           </div>
