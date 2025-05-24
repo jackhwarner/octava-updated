@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Music, MessageCircle, Calendar, HelpCircle, Search } from 'lucide-react';
+import { Plus, Users, Music, MessageCircle, Calendar, HelpCircle, Search, Settings, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -146,14 +146,14 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mb-8">
+      {/* Quick Actions and Online Collaborators Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 New Project
@@ -166,13 +166,22 @@ const Dashboard = () => {
                 <HelpCircle className="w-4 h-4 mr-2" />
                 Support
               </Button>
+              <Button variant="outline" onClick={() => navigate('/settings')}>
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/profile')}>
+                <FileText className="w-4 h-4 mr-2" />
+                My Profile
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/projects')}>
+                <Music className="w-4 h-4 mr-2" />
+                All Projects
+              </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Online Collaborators */}
-      <div className="mb-8">
         <Card>
           <CardHeader>
             <CardTitle>Online Collaborators</CardTitle>
@@ -246,11 +255,11 @@ const Dashboard = () => {
             <CardTitle>Suggested Collaborators</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {suggestedCollaborators.map((collaborator) => (
-                <div key={collaborator.id} className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                <div key={collaborator.id} className="flex items-center justify-between p-4 rounded-lg border hover:shadow-sm transition-shadow">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
                     <div>
                       <h4 className="font-medium">{collaborator.name}</h4>
                       <div className="flex items-center gap-2">
