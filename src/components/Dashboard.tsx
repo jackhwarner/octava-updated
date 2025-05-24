@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Bell, MessageCircle, Music, Users, Plus, Folder, Clock } from 'lucide-react';
+import { Calendar, Bell, MessageCircle, Music, Users, Plus, Folder, Clock, User } from 'lucide-react';
 import NotificationsPanel from './NotificationsPanel';
 
 const Dashboard = () => {
@@ -40,8 +40,21 @@ const Dashboard = () => {
     { id: 3, name: 'Emma Chen', role: 'Songwriter', avatar: null },
   ];
 
+  const suggestedCollaborators = [
+    { id: 4, name: 'David Kim', role: 'Pianist', avatar: null },
+    { id: 5, name: 'Sophia Martinez', role: 'Vocalist', avatar: null },
+    { id: 6, name: 'Jackson Lee', role: 'Producer', avatar: null },
+    { id: 7, name: 'Alex Thompson', role: 'Drummer', avatar: null },
+    { id: 8, name: 'Maya Patel', role: 'Violinist', avatar: null },
+  ];
+
   const handleViewAllNotifications = () => {
     setShowNotificationsPanel(true);
+  };
+
+  const handleConnectCollaborator = (collaborator: any) => {
+    // This would open a new message with the selected collaborator
+    console.log('Connect with:', collaborator.name);
   };
 
   const getStatusColor = (status: string) => {
@@ -116,35 +129,70 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Recent Projects */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Projects</CardTitle>
-              <CardDescription>Projects you've been working on</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentProjects.map((project) => (
-                  <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium">{project.title}</h3>
-                      <p className="text-sm text-gray-500">{project.description}</p>
-                      <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                        <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-1" />
-                          {project.collaborators} collaborators
+          {/* Recent Projects and Suggested Collaborators Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Projects */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Projects</CardTitle>
+                <CardDescription>Projects you've been working on</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentProjects.map((project) => (
+                    <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h3 className="font-medium">{project.title}</h3>
+                        <p className="text-sm text-gray-500">{project.description}</p>
+                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <Users className="w-4 h-4 mr-1" />
+                            {project.collaborators} collaborators
+                          </div>
+                          <div>Updated {project.lastUpdated}</div>
                         </div>
-                        <div>Updated {project.lastUpdated}</div>
                       </div>
+                      <Badge className={getStatusColor(project.status)}>
+                        {project.status}
+                      </Badge>
                     </div>
-                    <Badge className={getStatusColor(project.status)}>
-                      {project.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Suggested Collaborators */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Suggested Collaborators</CardTitle>
+                <CardDescription>Connect with new musicians</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {suggestedCollaborators.map((collaborator) => (
+                    <div key={collaborator.id} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{collaborator.name}</p>
+                          <p className="text-xs text-gray-500">{collaborator.role}</p>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        className="bg-purple-600 hover:bg-purple-700 text-xs px-3"
+                        onClick={() => handleConnectCollaborator(collaborator)}
+                      >
+                        Connect
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Sidebar */}
@@ -172,7 +220,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </div>
         </div>
       </div>
 

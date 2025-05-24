@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Music, Search, Users, Clock } from 'lucide-react';
+import { MapPin, Music, Search, Users, Clock, Star } from 'lucide-react';
 
 const Browse = () => {
   const [selectedRole, setSelectedRole] = useState('');
@@ -81,6 +81,39 @@ const Browse = () => {
       location: 'Chicago, IL',
       experience: 'Intermediate',
       completedProjects: 15,
+      avatar: null,
+    },
+    {
+      id: 7,
+      name: 'Maya Patel',
+      username: '@maya_violin',
+      role: 'Violinist',
+      genres: ['Classical', 'World'],
+      location: 'San Francisco, CA',
+      experience: 'Professional',
+      completedProjects: 27,
+      avatar: null,
+    },
+    {
+      id: 8,
+      name: 'Alex Thompson',
+      username: '@alex_drums',
+      role: 'Drummer',
+      genres: ['Rock', 'Jazz'],
+      location: 'Portland, OR',
+      experience: 'Intermediate',
+      completedProjects: 19,
+      avatar: null,
+    },
+    {
+      id: 9,
+      name: 'Zoe Wang',
+      username: '@zoe_synth',
+      role: 'Producer',
+      genres: ['Electronic', 'Ambient'],
+      location: 'Seattle, WA',
+      experience: 'Professional',
+      completedProjects: 42,
       avatar: null,
     },
   ];
@@ -273,13 +306,16 @@ const Browse = () => {
         <div className="space-y-10">
           {/* Spotlight Projects */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-5">Spotlight Projects</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center">
+              <Star className="w-6 h-6 mr-2 text-yellow-500" />
+              Spotlight Projects
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {spotlightProjects.map((project) => (
                 <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardHeader>
                     <CardTitle className="text-lg">{project.title}</CardTitle>
-                    <Badge variant="secondary" className="w-fit bg-purple-100 text-purple-700">
+                    <Badge variant="outline" className="w-fit">
                       {project.genre}
                     </Badge>
                   </CardHeader>
@@ -288,7 +324,7 @@ const Browse = () => {
                       <p className="text-sm font-medium text-gray-700 mb-2">Looking for:</p>
                       <div className="flex flex-wrap gap-2">
                         {project.lookingFor.map((role) => (
-                          <Badge key={role} variant="outline" className="text-xs">
+                          <Badge key={role} className="text-xs bg-purple-600 hover:bg-purple-700">
                             {role}
                           </Badge>
                         ))}
@@ -331,14 +367,14 @@ const Browse = () => {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-lg truncate">{profile.name}</h3>
                         <p className="text-sm text-gray-500">{profile.username}</p>
-                        <Badge variant="secondary" className="mt-1 bg-purple-100 text-purple-700">
-                          {profile.role}
-                        </Badge>
                       </div>
                     </div>
                     
                     <div className="space-y-3">
                       <div className="flex flex-wrap gap-2">
+                        <Badge className="bg-purple-600 hover:bg-purple-700 text-xs">
+                          {profile.role}
+                        </Badge>
                         {profile.genres.map((genre) => (
                           <Badge key={genre} variant="outline" className="text-xs">
                             {genre}
@@ -349,9 +385,9 @@ const Browse = () => {
                       <div className="flex items-center justify-between text-sm text-gray-500">
                         <div className="flex items-center">
                           <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-                          <span className="truncate">{profile.location}</span>
+                          <span className="truncate mr-2">{profile.location}</span>
+                          <span>{profile.completedProjects} projects</span>
                         </div>
-                        <span>{profile.completedProjects} projects</span>
                       </div>
 
                       <Button className="w-full bg-purple-600 hover:bg-purple-700">
