@@ -1,8 +1,42 @@
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Check } from "lucide-react";
+import { Check, Star } from "lucide-react";
 
 const Home = () => {
+  const reviews = [
+    {
+      name: "Sarah Johnson",
+      role: "Producer",
+      rating: 5,
+      text: "Octava has completely transformed how I collaborate with artists. The platform is intuitive and the quality of connections is amazing."
+    },
+    {
+      name: "Marcus Williams",
+      role: "Guitarist",
+      rating: 5,
+      text: "Found my dream collaborators through Octava. The project management tools make working remotely feel seamless."
+    },
+    {
+      name: "Emma Chen",
+      role: "Songwriter",
+      rating: 4,
+      text: "Great platform for finding talented musicians. The communication tools are top-notch."
+    },
+    {
+      name: "David Kim",
+      role: "Pianist",
+      rating: 5,
+      text: "As a classical musician, I never thought I'd find jazz collaborators so easily. Octava opened up a whole new world for me."
+    },
+    {
+      name: "Lisa Rodriguez",
+      role: "Vocalist",
+      rating: 5,
+      text: "The quality of projects and professionals on Octava is outstanding. Highly recommend!"
+    }
+  ];
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -11,7 +45,7 @@ const Home = () => {
           <img 
             src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
             alt="Octava Logo" 
-            className="h-10 w-[172px]" 
+            className="h-10" 
           />
         </div>
         <nav className="hidden md:flex space-x-8">
@@ -79,7 +113,7 @@ const Home = () => {
                 </li>
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
-                  <span className="text-lg">Verified professional profiles</span>
+                  <span className="text-lg">Real-time collaboration tools</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
@@ -103,15 +137,15 @@ const Home = () => {
               <ul className="space-y-4">
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
-                  <span className="text-lg">Real-time collaboration tools</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-6 h-6 text-green-500 mr-3" />
                   <span className="text-lg">Version control and file history</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
                   <span className="text-lg">Feedback and approval workflows</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-6 h-6 text-green-500 mr-3" />
+                  <span className="text-lg">Cloud storage and sync</span>
                 </li>
               </ul>
             </div>
@@ -139,12 +173,40 @@ const Home = () => {
                 </li>
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
-                  <span className="text-lg">Distribution opportunities</span>
+                  <span className="text-lg">Professional networking</span>
                 </li>
               </ul>
             </div>
             <div className="md:w-1/2 bg-gray-200 rounded-md aspect-video flex items-center justify-center">
               <div className="text-gray-400">Project Management Image</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews section */}
+      <section className="py-20 px-12 md:px-16 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl md:text-5xl font-bold mb-16 text-center">What Our Users Say</h2>
+          <div className="relative">
+            <div className="flex animate-scroll space-x-8">
+              {[...reviews, ...reviews].map((review, index) => (
+                <div key={index} className="bg-gray-50 p-6 rounded-xl min-w-[350px] max-w-[350px] flex-shrink-0">
+                  <div className="flex items-center mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                      />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 mb-4 text-sm leading-relaxed">"{review.text}"</p>
+                  <div>
+                    <p className="font-medium text-gray-900">{review.name}</p>
+                    <p className="text-sm text-gray-500">{review.role}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -257,8 +319,7 @@ const Home = () => {
           </p>
           <Button 
             size="lg" 
-            className="text-lg px-16 py-8 rounded-full"
-            variant="outline"
+            className="text-lg px-16 py-8 rounded-full bg-white text-purple-900 hover:bg-gray-100"
             asChild
           >
             <Link to="/signup">Start Your Free Trial</Link>

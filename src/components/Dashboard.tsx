@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Music, MessageCircle, Calendar, HelpCircle, Search } from 'lucide-react';
+import { Plus, Users, Music, MessageCircle, Calendar, HelpCircle, Search, UserPlus, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -146,14 +146,14 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mb-8">
+      {/* Quick Actions and Online Collaborators */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 New Project
@@ -162,17 +162,18 @@ const Dashboard = () => {
                 <Search className="w-4 h-4 mr-2" />
                 Find Collaborators
               </Button>
-              <Button variant="outline" onClick={handleGoToSupport}>
-                <HelpCircle className="w-4 h-4 mr-2" />
-                Support
+              <Button variant="outline" onClick={() => navigate('/messages')}>
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Messages
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/settings')}>
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
               </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Online Collaborators */}
-      <div className="mb-8">
         <Card>
           <CardHeader>
             <CardTitle>Online Collaborators</CardTitle>
@@ -180,7 +181,7 @@ const Dashboard = () => {
           <CardContent>
             {onlineCollaborators.length > 0 ? (
               <div className="space-y-4">
-                {onlineCollaborators.map((collaborator) => (
+                {onlineCollaborators.slice(0, 3).map((collaborator) => (
                   <div key={collaborator.id} className="flex items-center justify-between p-3 rounded-lg border">
                     <div className="flex items-center space-x-3">
                       <div className="relative">
@@ -188,18 +189,18 @@ const Dashboard = () => {
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                       </div>
                       <div>
-                        <h4 className="font-medium">{collaborator.name}</h4>
+                        <h4 className="font-medium text-sm">{collaborator.name}</h4>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500">{collaborator.role}</span>
+                          <span className="text-xs text-gray-500">{collaborator.role}</span>
                           <Badge variant="outline" className="text-xs">
                             {collaborator.genres[0]}
                           </Badge>
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">Message</Button>
-                      <Button size="sm" variant="outline">Invite</Button>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="outline" className="text-xs px-2">Message</Button>
+                      <Button size="sm" variant="outline" className="text-xs px-2">Invite</Button>
                     </div>
                   </div>
                 ))}

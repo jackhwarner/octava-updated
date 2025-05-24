@@ -22,25 +22,16 @@ const Settings = () => {
               <CardTitle>Account Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" defaultValue="Alex" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" defaultValue="Rodriguez" />
-                </div>
-              </div>
-              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" defaultValue="alex@example.com" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input id="username" defaultValue="alex_producer" />
+                <Label htmlFor="password">Reset Password</Label>
+                <Button variant="outline" className="w-full">
+                  Send Password Reset Email
+                </Button>
               </div>
 
               <Button className="bg-purple-600 hover:bg-purple-700">

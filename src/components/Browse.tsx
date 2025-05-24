@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Star, Music, Search } from 'lucide-react';
+import { MapPin, Star, Music, Search, Users, Clock } from 'lucide-react';
 
 const Browse = () => {
   const [selectedRole, setSelectedRole] = useState('');
@@ -58,6 +58,8 @@ const Browse = () => {
       genres: ['Classical', 'Jazz'],
       location: 'New York, NY',
       experience: 'Professional',
+      rating: 4.9,
+      completedProjects: 23,
       avatar: null,
     },
     {
@@ -68,6 +70,8 @@ const Browse = () => {
       genres: ['Pop', 'Soul'],
       location: 'Miami, FL',
       experience: 'Professional',
+      rating: 4.8,
+      completedProjects: 31,
       avatar: null,
     },
     {
@@ -78,6 +82,8 @@ const Browse = () => {
       genres: ['Hip-Hop', 'R&B'],
       location: 'Chicago, IL',
       experience: 'Intermediate',
+      rating: 4.7,
+      completedProjects: 15,
       avatar: null,
     },
     {
@@ -88,6 +94,8 @@ const Browse = () => {
       genres: ['Electronic', 'Dance'],
       location: 'Seattle, WA',
       experience: 'Professional',
+      rating: 4.9,
+      completedProjects: 28,
       avatar: null,
     },
     {
@@ -98,6 +106,8 @@ const Browse = () => {
       genres: ['Rock', 'Metal'],
       location: 'Portland, OR',
       experience: 'Expert',
+      rating: 5.0,
+      completedProjects: 45,
       avatar: null,
     },
     {
@@ -108,7 +118,39 @@ const Browse = () => {
       genres: ['Classical', 'Orchestral'],
       location: 'Boston, MA',
       experience: 'Professional',
+      rating: 4.8,
+      completedProjects: 19,
       avatar: null,
+    },
+  ];
+
+  const spotlightProjects = [
+    {
+      id: 1,
+      title: 'Indie Pop Album',
+      genre: 'Indie Pop',
+      lookingFor: ['Vocalist', 'Guitarist'],
+      collaborators: 3,
+      deadline: '2 weeks',
+      budget: '$500-1000',
+    },
+    {
+      id: 2,
+      title: 'Electronic EP',
+      genre: 'Electronic',
+      lookingFor: ['Producer', 'Vocalist'],
+      collaborators: 2,
+      deadline: '1 month',
+      budget: '$300-600',
+    },
+    {
+      id: 3,
+      title: 'Jazz Fusion Track',
+      genre: 'Jazz',
+      lookingFor: ['Saxophonist', 'Bassist'],
+      collaborators: 4,
+      deadline: '3 weeks',
+      budget: '$200-400',
     },
   ];
 
@@ -217,11 +259,11 @@ const Browse = () => {
                 className="flex-grow"
               />
               <Button 
-                className="bg-purple-600 hover:bg-purple-700 p-3 h-auto"
+                className="bg-purple-600 hover:bg-purple-700 px-6 h-auto"
                 onClick={handleSearch}
                 aria-label="Search"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-6 h-6" />
               </Button>
             </div>
           </div>
@@ -266,41 +308,100 @@ const Browse = () => {
           ))}
         </div>
       ) : (
-        /* Suggested Collaborators */
+        /* Spotlight Projects and Suggested Collaborators */
         <div className="space-y-10">
+          {/* Spotlight Projects */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-5">Suggested Collaborators</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
-              {suggestedCollaborators.map((profile) => (
-                <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader className="text-center p-4">
-                    <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-2"></div>
-                    <CardTitle className="text-sm mb-1">{profile.name}</CardTitle>
-                    <p className="text-xs text-gray-500 mb-2">{profile.username}</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-5">Spotlight Projects</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {spotlightProjects.map((project) => (
+                <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{project.title}</CardTitle>
+                    <Badge variant="secondary" className="w-fit bg-purple-100 text-purple-700">
+                      {project.genre}
+                    </Badge>
                   </CardHeader>
-                  <CardContent className="space-y-3 p-4">
-                    <div className="text-center">
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-xs">
-                        {profile.role}
-                      </Badge>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-2">Looking for:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {project.lookingFor.map((role) => (
+                          <Badge key={role} variant="outline" className="text-xs">
+                            {role}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                     
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {profile.genres.map((genre, i) => (
-                        <Badge key={genre} variant="outline" className="text-xs">
-                          {genre}
-                        </Badge>
-                      ))}
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        {project.collaborators} collaborators
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {project.deadline}
+                      </div>
                     </div>
-
-                    <div className="flex items-center justify-center text-xs text-gray-500 mt-2">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      {profile.location}
+                    
+                    <div className="text-sm text-gray-600">
+                      Budget: {project.budget}
                     </div>
-
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-7 text-xs mt-2">
-                      Connect
+                    
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                      Apply to Project
                     </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Suggested Collaborators */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-5">Suggested Collaborators</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {suggestedCollaborators.map((profile) => (
+                <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4 mb-4">
+                      <div className="w-16 h-16 bg-gray-300 rounded-full flex-shrink-0"></div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-lg truncate">{profile.name}</h3>
+                        <p className="text-sm text-gray-500">{profile.username}</p>
+                        <Badge variant="secondary" className="mt-1 bg-purple-100 text-purple-700">
+                          {profile.role}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2">
+                        {profile.genres.map((genre) => (
+                          <Badge key={genre} variant="outline" className="text-xs">
+                            {genre}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center text-sm text-gray-500">
+                        <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">{profile.location}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                          <span className="font-medium">{profile.rating}</span>
+                        </div>
+                        <span className="text-gray-500">{profile.completedProjects} projects</span>
+                      </div>
+
+                      <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                        Connect
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
