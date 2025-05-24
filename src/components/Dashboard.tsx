@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Bell, MessageCircle, Music, Users, Plus, Folder, Clock, User } from 'lucide-react';
 import NotificationsPanel from './NotificationsPanel';
+import NewMessageDialog from './NewMessageDialog';
 
 const Dashboard = () => {
   const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
+  const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
+  const [selectedCollaborator, setSelectedCollaborator] = useState<any>(null);
 
   const recentProjects = [
     {
@@ -26,12 +29,6 @@ const Dashboard = () => {
       lastUpdated: '1 week ago',
       status: 'Review',
     },
-  ];
-
-  const notifications = [
-    { id: 1, message: 'Sarah Johnson wants to collaborate on "Summer Vibes"', time: '2h', unread: true },
-    { id: 2, message: 'Marcus Williams uploaded new files', time: '5h', unread: true },
-    { id: 3, message: 'Emma Chen sent you a message', time: '1d', unread: false },
   ];
 
   const onlineCollaborators = [
@@ -53,8 +50,8 @@ const Dashboard = () => {
   };
 
   const handleConnectCollaborator = (collaborator: any) => {
-    // This would open a new message with the selected collaborator
-    console.log('Connect with:', collaborator.name);
+    setSelectedCollaborator(collaborator);
+    setShowNewMessageDialog(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -129,8 +126,8 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Recent Projects and Suggested Collaborators Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Projects Row */}
+          <div className="grid grid-cols-1 gap-6">
             {/* Recent Projects */}
             <Card>
               <CardHeader>
@@ -155,38 +152,6 @@ const Dashboard = () => {
                       <Badge className={getStatusColor(project.status)}>
                         {project.status}
                       </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Suggested Collaborators */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Suggested Collaborators</CardTitle>
-                <CardDescription>Connect with new musicians</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {suggestedCollaborators.map((collaborator) => (
-                    <div key={collaborator.id} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                          <User className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{collaborator.name}</p>
-                          <p className="text-xs text-gray-500">{collaborator.role}</p>
-                        </div>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        className="bg-purple-600 hover:bg-purple-700 text-xs px-3"
-                        onClick={() => handleConnectCollaborator(collaborator)}
-                      >
-                        Connect
-                      </Button>
                     </div>
                   ))}
                 </div>
@@ -220,13 +185,51 @@ const Dashboard = () => {
                 </div>
               </div>
             </CardContent>
-          </div>
+          </Card>
+
+          {/* Suggested Collaborators */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Suggested Collaborators</CardTitle>
+              <CardDescription>Connect with new musicians</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {suggestedCollaborators.slice(0, 5).map((collaborator) => (
+                  <div key={collaborator.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{collaborator.name}</p>
+                        <p className="text-xs text-gray-500">{collaborator.role}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="bg-purple-600 hover:bg-purple-700 text-xs px-3"
+                      onClick={() => handleConnectCollaborator(collaborator)}
+                    >
+                      Connect
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       <NotificationsPanel 
         isOpen={showNotificationsPanel} 
         onClose={() => setShowNotificationsPanel(false)} 
+      />
+      
+      <NewMessageDialog 
+        isOpen={showNewMessageDialog}
+        onClose={() => setShowNewMessageDialog(false)}
+        selectedCollaborator={selectedCollaborator}
       />
     </div>
   );
