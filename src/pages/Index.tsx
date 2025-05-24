@@ -10,6 +10,7 @@ import Profile from '@/components/Profile';
 import Settings from '@/components/Settings';
 import Support from '@/components/Support';
 import Availability from '@/components/Availability';
+import AuthWrapper from '@/components/AuthWrapper';
 
 const Index = () => {
   const location = useLocation();
@@ -65,14 +66,16 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex">
-      <div className="fixed top-0 left-0 h-screen z-10">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+    <AuthWrapper>
+      <div className="min-h-screen bg-white flex">
+        <div className="fixed top-0 left-0 h-screen z-10">
+          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
+        <main className="flex-1 ml-[90px] overflow-auto">
+          {renderContent()}
+        </main>
       </div>
-      <main className="flex-1 ml-[90px] overflow-auto">
-        {renderContent()}
-      </main>
-    </div>
+    </AuthWrapper>
   );
 };
 
