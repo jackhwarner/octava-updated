@@ -37,10 +37,14 @@ const Index = () => {
     }
   }, [location.pathname]);
 
+  const handleNavigate = (tab: string) => {
+    setActiveTab(tab);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onNavigate={handleNavigate} />;
       case 'browse':
         return <Browse />;
       case 'messages':
@@ -56,7 +60,7 @@ const Index = () => {
       case 'support':
         return <Support />;
       default:
-        return <Dashboard />;
+        return <Dashboard onNavigate={handleNavigate} />;
     }
   };
 

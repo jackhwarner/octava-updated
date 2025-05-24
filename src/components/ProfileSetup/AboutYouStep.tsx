@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,26 +58,29 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
     onUpdate({ instruments: data.instruments.filter((i: string) => i !== instrument) });
   };
 
-  const handleZipCodeChange = async (zipCode: string) => {
-    onUpdate({ location: zipCode });
-    
-    if (zipCode.length === 5 && /^\d{5}$/.test(zipCode)) {
-      try {
-        // Mock API call - in real app, you'd use a service like Zippopotam.us
-        const response = await fetch(`https://api.zippopotam.us/us/${zipCode}`);
-        if (response.ok) {
-          const data = await response.json();
-          const city = data.places[0]['place name'];
-          const state = data.places[0]['state abbreviation'];
-          setDetectedCity(`(${city}, ${state})`);
-        } else {
+  const handleZipCodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    if (value.length <= 5) {
+      onUpdate({ location: value });
+      
+      if (value.length === 5) {
+        try {
+          // Mock API call - in real app, you'd use a service like Zippopotam.us
+          const response = await fetch(`https://api.zippopotam.us/us/${value}`);
+          if (response.ok) {
+            const data = await response.json();
+            const city = data.places[0]['place name'];
+            const state = data.places[0]['state abbreviation'];
+            setDetectedCity(`(${city}, ${state})`);
+          } else {
+            setDetectedCity('');
+          }
+        } catch (error) {
           setDetectedCity('');
         }
-      } catch (error) {
+      } else {
         setDetectedCity('');
       }
-    } else {
-      setDetectedCity('');
     }
   };
 
@@ -137,9 +139,11 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
               id="location"
               placeholder="12345"
               value={data.location}
-              onChange={(e) => handleZipCodeChange(e.target.value)}
+              onChange={handleZipCodeChange}
               maxLength={5}
               className="w-32"
+              inputMode="numeric"
+              pattern="[0-9]*"
             />
             {detectedCity && (
               <span className="text-gray-600 text-sm">{detectedCity}</span>
