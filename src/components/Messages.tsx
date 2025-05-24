@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Search, Plus } from 'lucide-react';
+import { Send, Search, Plus, Paperclip, Calendar } from 'lucide-react';
 import NewMessageDialog from './NewMessageDialog';
 
 const Messages = () => {
@@ -62,6 +61,16 @@ const Messages = () => {
       isMe: false,
     },
   ];
+
+  const handleSendFile = () => {
+    // Handle file sending logic
+    console.log('Send file clicked');
+  };
+
+  const handleScheduleEvent = () => {
+    // Handle event scheduling logic
+    console.log('Schedule event clicked');
+  };
 
   return (
     <div className="p-10 h-screen flex flex-col">
@@ -158,7 +167,7 @@ const Messages = () => {
             </ScrollArea>
             
             <div className="p-4 border-t">
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 mb-3">
                 <Input
                   placeholder="Type a message..."
                   value={newMessage}
@@ -167,6 +176,26 @@ const Messages = () => {
                 />
                 <Button className="bg-purple-600 hover:bg-purple-700">
                   <Send className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSendFile}
+                  className="flex-1"
+                >
+                  <Paperclip className="w-4 h-4 mr-2" />
+                  Send File
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleScheduleEvent}
+                  className="flex-1"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Schedule Event
                 </Button>
               </div>
             </div>
