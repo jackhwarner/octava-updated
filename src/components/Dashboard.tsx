@@ -73,9 +73,6 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
         case 'find-collaborators':
           onNavigate('browse');
           break;
-        case 'browse-projects':
-          onNavigate('browse');
-          break;
         case 'set-availability':
           onNavigate('availability');
           break;
@@ -139,14 +136,6 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                 >
                   <Users className="w-4 h-4 mr-2" />
                   Find Collaborators
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => handleQuickAction('browse-projects')}
-                >
-                  <Folder className="w-4 h-4 mr-2" />
-                  Browse Projects
                 </Button>
                 <Button 
                   variant="outline" 
