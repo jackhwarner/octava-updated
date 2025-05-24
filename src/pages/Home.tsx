@@ -1,47 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Check, Star } from "lucide-react";
+import { Check } from "lucide-react";
 
 const Home = () => {
-  const reviews = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      role: "Producer",
-      rating: 5,
-      review: "Octava has completely transformed how I collaborate with musicians. The platform is intuitive and the quality of connections is amazing."
-    },
-    {
-      id: 2,
-      name: "Marcus Williams",
-      role: "Guitarist",
-      rating: 5,
-      review: "I've found incredible collaborators through Octava. The project management tools make working together seamless."
-    },
-    {
-      id: 3,
-      name: "Emma Chen",
-      role: "Songwriter",
-      rating: 4,
-      review: "Great platform for connecting with other musicians. The cloud collaboration features are exactly what I needed."
-    },
-    {
-      id: 4,
-      name: "David Kim",
-      role: "Pianist",
-      rating: 5,
-      review: "Octava helped me find the perfect team for my album. Highly recommend to any serious musician."
-    },
-    {
-      id: 5,
-      name: "Lisa Martinez",
-      role: "Vocalist",
-      rating: 5,
-      review: "The best platform for music collaboration I've ever used. Professional, reliable, and full of talented people."
-    }
-  ];
-
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -50,7 +11,7 @@ const Home = () => {
           <img 
             src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
             alt="Octava Logo" 
-            className="h-10 w-auto" 
+            className="h-10 w-[172px]" 
           />
         </div>
         <nav className="hidden md:flex space-x-8">
@@ -98,38 +59,8 @@ const Home = () => {
         </div>
       </section>
       
-      {/* Reviews section */}
-      <section className="py-20 px-12 md:px-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold mb-16 text-center">What Musicians Say</h2>
-          
-          <div className="overflow-hidden">
-            <div className="flex animate-scroll space-x-8">
-              {/* Duplicate reviews for seamless scrolling */}
-              {[...reviews, ...reviews].map((review, index) => (
-                <div key={`${review.id}-${index}`} className="flex-shrink-0 w-80 bg-white rounded-lg p-6 shadow-sm">
-                  <div className="flex items-center mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
-                      />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 mb-4 text-sm leading-relaxed">"{review.review}"</p>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{review.name}</h4>
-                    <p className="text-sm text-gray-500">{review.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-      
       {/* Features section */}
-      <section id="features" className="py-20 px-16 md:px-24">
+      <section id="features" className="py-20 px-12 md:px-20 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold mb-24 text-center">Why Choose Octava?</h2>
           
@@ -148,7 +79,7 @@ const Home = () => {
                 </li>
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
-                  <span className="text-lg">Global network of talented musicians</span>
+                  <span className="text-lg">Verified professional profiles</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
@@ -208,7 +139,7 @@ const Home = () => {
                 </li>
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
-                  <span className="text-lg">Community feedback and support</span>
+                  <span className="text-lg">Distribution opportunities</span>
                 </li>
               </ul>
             </div>
@@ -326,7 +257,8 @@ const Home = () => {
           </p>
           <Button 
             size="lg" 
-            className="text-lg px-16 py-8 rounded-full bg-white text-purple-900 hover:bg-gray-100"
+            className="text-lg px-16 py-8 rounded-full"
+            variant="outline"
             asChild
           >
             <Link to="/signup">Start Your Free Trial</Link>

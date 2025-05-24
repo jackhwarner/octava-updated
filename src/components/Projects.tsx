@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Folder, Music, Users, ChevronRight, Home } from 'lucide-react';
+import { Plus, Folder, Music, Users, MoreHorizontal, ChevronRight, Home } from 'lucide-react';
 import { 
   Breadcrumb, 
   BreadcrumbItem, 
@@ -16,7 +17,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import ProjectMenu from './ProjectMenu';
 
 const Projects = () => {
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -134,6 +134,7 @@ const Projects = () => {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
+          <p className="text-gray-600">Manage your music collaborations</p>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -182,7 +183,9 @@ const Projects = () => {
                   <CardTitle className="text-lg">{project.title}</CardTitle>
                   <p className="text-sm text-gray-500 mt-1">{project.description}</p>
                 </div>
-                <ProjectMenu projectId={project.id} />
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

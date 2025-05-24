@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Star, Music, Search, Clock } from 'lucide-react';
+import { MapPin, Star, Music, Search } from 'lucide-react';
 
 const Browse = () => {
   const [selectedRole, setSelectedRole] = useState('');
@@ -111,36 +112,6 @@ const Browse = () => {
     },
   ];
 
-  const spotlightProjects = [
-    {
-      id: 1,
-      title: "Summer Pop Hit",
-      genre: "Pop",
-      creator: "Sarah Johnson",
-      description: "Looking for a talented vocalist to complete this summer anthem",
-      deadline: "2 weeks",
-      collaborators: 2,
-    },
-    {
-      id: 2,
-      title: "Jazz Fusion Album",
-      genre: "Jazz",
-      creator: "David Kim",
-      description: "Seeking saxophone and trumpet players for fusion project",
-      deadline: "1 month",
-      collaborators: 3,
-    },
-    {
-      id: 3,
-      title: "Electronic Dance Track",
-      genre: "Electronic",
-      creator: "Emily Wilson",
-      description: "Need a producer to help finish this club-ready track",
-      deadline: "3 weeks",
-      collaborators: 1,
-    },
-  ];
-
   const handleSearch = () => {
     setHasSearched(true);
   };
@@ -154,7 +125,7 @@ const Browse = () => {
       {/* Filters */}
       <Card className="mb-8">
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger>
@@ -202,7 +173,9 @@ const Browse = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
                 <SelectTrigger>
@@ -220,9 +193,7 @@ const Browse = () => {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
                 <SelectTrigger>
@@ -246,11 +217,11 @@ const Browse = () => {
                 className="flex-grow"
               />
               <Button 
-                className="bg-purple-600 hover:bg-purple-700 px-6 h-auto py-3"
+                className="bg-purple-600 hover:bg-purple-700 p-3 h-auto"
                 onClick={handleSearch}
                 aria-label="Search"
               >
-                <Search className="w-6 h-6" />
+                <Search className="w-5 h-5" />
               </Button>
             </div>
           </div>
@@ -295,89 +266,41 @@ const Browse = () => {
           ))}
         </div>
       ) : (
-        /* Default Content */
+        /* Suggested Collaborators */
         <div className="space-y-10">
-          {/* Spotlight Projects */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Spotlight Projects</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {spotlightProjects.map((project) => (
-                <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg mb-2">{project.title}</CardTitle>
-                        <p className="text-sm text-gray-500">by {project.creator}</p>
-                      </div>
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                        {project.genre}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-600">{project.description}</p>
-                    
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {project.deadline}
-                      </div>
-                      <div className="flex items-center">
-                        <Music className="w-4 h-4 mr-1" />
-                        {project.collaborators} collaborators
-                      </div>
-                    </div>
-
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                      View Project
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          {/* Suggested Collaborators */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Suggested Collaborators</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-5">Suggested Collaborators</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
               {suggestedCollaborators.map((profile) => (
                 <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4 mb-4">
-                      <div className="w-16 h-16 bg-gray-300 rounded-full flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg truncate">{profile.name}</h3>
-                        <p className="text-sm text-gray-500 mb-2">{profile.username}</p>
-                        <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-xs">
-                          {profile.role}
-                        </Badge>
-                      </div>
+                  <CardHeader className="text-center p-4">
+                    <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-2"></div>
+                    <CardTitle className="text-sm mb-1">{profile.name}</CardTitle>
+                    <p className="text-xs text-gray-500 mb-2">{profile.username}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-3 p-4">
+                    <div className="text-center">
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-xs">
+                        {profile.role}
+                      </Badge>
                     </div>
                     
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {profile.genres.map((genre) => (
-                          <Badge key={genre} variant="outline" className="text-xs">
-                            {genre}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <div className="flex items-center text-sm text-gray-500">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {profile.location}
-                      </div>
-
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Star className="w-4 h-4 mr-1" />
-                        {profile.experience}
-                      </div>
-
-                      <Button className="w-full bg-purple-600 hover:bg-purple-700 mt-4">
-                        Connect
-                      </Button>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {profile.genres.map((genre, i) => (
+                        <Badge key={genre} variant="outline" className="text-xs">
+                          {genre}
+                        </Badge>
+                      ))}
                     </div>
+
+                    <div className="flex items-center justify-center text-xs text-gray-500 mt-2">
+                      <MapPin className="w-3 h-3 mr-1" />
+                      {profile.location}
+                    </div>
+
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-7 text-xs mt-2">
+                      Connect
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
