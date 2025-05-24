@@ -149,31 +149,6 @@ const Dashboard = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Notifications */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Notifications</CardTitle>
-                <Button variant="ghost" size="sm" onClick={handleViewAllNotifications}>
-                  View all
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {notifications.slice(0, 3).map((notification) => (
-                  <div key={notification.id} className="flex items-start space-x-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${notification.unread ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-                    <div className="flex-1">
-                      <p className="text-sm">{notification.message}</p>
-                      <p className="text-xs text-gray-500">{notification.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Today's Schedule */}
           <Card>
             <CardHeader>

@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Search, Plus } from 'lucide-react';
+import NewMessageDialog from './NewMessageDialog';
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState(1);
   const [newMessage, setNewMessage] = useState('');
+  const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
 
   const chats = [
     {
@@ -65,7 +67,10 @@ const Messages = () => {
     <div className="p-10 h-screen flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
-        <Button className="bg-purple-600 hover:bg-purple-700">
+        <Button 
+          className="bg-purple-600 hover:bg-purple-700"
+          onClick={() => setShowNewMessageDialog(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Message
         </Button>
@@ -168,6 +173,11 @@ const Messages = () => {
           </CardContent>
         </Card>
       </div>
+
+      <NewMessageDialog 
+        isOpen={showNewMessageDialog} 
+        onClose={() => setShowNewMessageDialog(false)} 
+      />
     </div>
   );
 };

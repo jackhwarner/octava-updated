@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,8 +85,8 @@ const Projects = () => {
     }
   };
 
-  const displayItems = currentFolderId === null 
-    ? [...folders, ...projects] 
+  const displayProjects = currentFolderId === null 
+    ? projects 
     : projects.filter(project => project.folder === currentFolderId);
 
   const handleFolderClick = (folderId: string, folderName: string) => {
@@ -158,83 +157,94 @@ const Projects = () => {
 
       {renderBreadcrumb()}
 
-      {/* Projects and Folders Grid - 4 columns on xl screens */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {currentFolderId === null && folders.map((folder) => (
-          <Card 
-            key={folder.id} 
-            className="hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => handleFolderClick(folder.id, folder.name)}
-          >
-            <CardContent className="p-6 flex items-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                <Folder className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium text-gray-900">{folder.name}</h3>
-                <div className="flex items-center text-sm text-gray-500">
-                  <Music className="w-4 h-4 mr-1" />
-                  {folder.count} projects
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </CardContent>
-          </Card>
-        ))}
+      {/* Folders Section */}
+      {currentFolderId === null && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Folders</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {folders.map((folder) => (
+              <Card 
+                key={folder.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => handleFolderClick(folder.id, folder.name)}
+              >
+                <CardContent className="p-6 flex items-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                    <Folder className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{folder.name}</h3>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Music className="w-4 h-4 mr-1" />
+                      {folder.count} projects
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
-        {displayItems.filter(item => item.type === 'project').map((project: any) => (
-          <Card key={project.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">{project.title}</CardTitle>
-                  <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+      {/* Projects Section */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Projects</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {displayProjects.map((project: any) => (
+            <Card key={project.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{project.title}</CardTitle>
+                    <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem>Edit Project</DropdownMenuItem>
+                      <DropdownMenuItem>Share</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAddToFolder(project.id)}>
+                        Add to Folder
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem>Edit Project</DropdownMenuItem>
-                    <DropdownMenuItem>Share</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAddToFolder(project.id)}>
-                      Add to Folder
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Badge variant="outline">{project.genre}</Badge>
-                <Badge className={getStatusColor(project.status)}>
-                  {project.status}
-                </Badge>
-              </div>
-
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
-                <div className="flex items-center">
-                  <Users className="w-4 h-4 mr-1" />
-                  {project.collaborators} collaborators
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline">{project.genre}</Badge>
+                  <Badge className={getStatusColor(project.status)}>
+                    {project.status}
+                  </Badge>
                 </div>
-                <div>Updated {project.lastUpdated}</div>
-              </div>
 
-              <div className="flex space-x-2">
-                <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
-                  <Music className="w-4 h-4 mr-2" />
-                  Open
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  Share
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <Users className="w-4 h-4 mr-1" />
+                    {project.collaborators} collaborators
+                  </div>
+                  <div>Updated {project.lastUpdated}</div>
+                </div>
+
+                <div className="flex space-x-2">
+                  <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
+                    <Music className="w-4 h-4 mr-2" />
+                    Open
+                  </Button>
+                  <Button variant="outline" className="flex-1">
+                    Share
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* New Project Dialog */}

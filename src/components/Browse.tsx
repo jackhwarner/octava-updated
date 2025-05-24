@@ -83,39 +83,6 @@ const Browse = () => {
       completedProjects: 15,
       avatar: null,
     },
-    {
-      id: 7,
-      name: 'Emily Wilson',
-      username: '@emily_keys',
-      role: 'Keyboardist',
-      genres: ['Electronic', 'Dance'],
-      location: 'Seattle, WA',
-      experience: 'Professional',
-      completedProjects: 28,
-      avatar: null,
-    },
-    {
-      id: 8,
-      name: 'Michael Johnson',
-      username: '@mike_drums',
-      role: 'Drummer',
-      genres: ['Rock', 'Metal'],
-      location: 'Portland, OR',
-      experience: 'Expert',
-      completedProjects: 45,
-      avatar: null,
-    },
-    {
-      id: 9,
-      name: 'Lisa Chen',
-      username: '@lisa_violin',
-      role: 'Violinist',
-      genres: ['Classical', 'Orchestral'],
-      location: 'Boston, MA',
-      experience: 'Professional',
-      completedProjects: 19,
-      avatar: null,
-    },
   ];
 
   const spotlightProjects = [
@@ -355,11 +322,11 @@ const Browse = () => {
           {/* Suggested Collaborators */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-5">Suggested Collaborators</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {suggestedCollaborators.map((profile) => (
                 <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardContent className="p-6">
-                    <div className="flex items-start space-x-4 mb-4">
+                    <div className="flex items-center space-x-4 mb-4">
                       <div className="w-16 h-16 bg-gray-300 rounded-full flex-shrink-0"></div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-lg truncate">{profile.name}</h3>

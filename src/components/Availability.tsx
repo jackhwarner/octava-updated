@@ -17,6 +17,9 @@ const Availability = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showAddAvailabilityDialog, setShowAddAvailabilityDialog] = useState(false);
   const [availabilityType, setAvailabilityType] = useState("free");
+  const [timeSelection, setTimeSelection] = useState("morning");
+  const [customStartTime, setCustomStartTime] = useState("");
+  const [customEndTime, setCustomEndTime] = useState("");
   
   const availabilities = [
     {
@@ -240,7 +243,7 @@ const Availability = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="time">Time</Label>
-                    <Select defaultValue="morning">
+                    <Select value={timeSelection} onValueChange={setTimeSelection}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select time" />
                       </SelectTrigger>
@@ -253,6 +256,31 @@ const Availability = () => {
                     </Select>
                   </div>
                 </div>
+                
+                {timeSelection === "custom" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="start-time">Start Time</Label>
+                      <Input 
+                        id="start-time" 
+                        type="time" 
+                        value={customStartTime}
+                        onChange={(e) => setCustomStartTime(e.target.value)}
+                        className="w-full" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="end-time">End Time</Label>
+                      <Input 
+                        id="end-time" 
+                        type="time" 
+                        value={customEndTime}
+                        onChange={(e) => setCustomEndTime(e.target.value)}
+                        className="w-full" 
+                      />
+                    </div>
+                  </div>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
