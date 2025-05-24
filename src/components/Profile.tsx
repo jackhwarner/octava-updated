@@ -362,7 +362,7 @@ const Profile = () => {
 
         {/* Edit Profile Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
+          <DialogContent className="sm:max-w-[800px] max-h-[80vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>Edit Profile</DialogTitle>
               <DialogDescription>
