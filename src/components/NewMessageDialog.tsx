@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +10,10 @@ import { Search, User } from 'lucide-react';
 interface NewMessageDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  selectedCollaborator?: any;
 }
 
-const NewMessageDialog = ({ isOpen, onClose }: NewMessageDialogProps) => {
+const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [message, setMessage] = useState('');
@@ -23,6 +24,23 @@ const NewMessageDialog = ({ isOpen, onClose }: NewMessageDialogProps) => {
     { id: 3, name: 'Emma Chen', username: '@emma_writes', role: 'Songwriter' },
     { id: 4, name: 'David Kim', username: '@david_keys', role: 'Pianist' },
   ];
+
+  // Set the selected user when selectedCollaborator is provided
+  useEffect(() => {
+    if (selectedCollaborator && isOpen) {
+      setSelectedUser(selectedCollaborator);
+      setSearchTerm('');
+    }
+  }, [selectedCollaborator, isOpen]);
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedUser(null);
+      setMessage('');
+      setSearchTerm('');
+    }
+  }, [isOpen]);
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -104,7 +122,7 @@ const NewMessageDialog = ({ isOpen, onClose }: NewMessageDialogProps) => {
                 </div>
                 <div>
                   <div className="font-medium">{selectedUser.name}</div>
-                  <div className="text-sm text-gray-500">{selectedUser.username}</div>
+                  <div className="text-sm text-gray-500">{selectedUser.username || selectedUser.role}</div>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)}>
                   Change
