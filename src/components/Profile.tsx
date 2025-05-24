@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,6 +82,13 @@ const Profile = () => {
     }));
   };
 
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8 flex justify-between items-center">
@@ -150,7 +158,7 @@ const Profile = () => {
 
       {/* Edit Profile Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
             <DialogDescription>
@@ -207,7 +215,7 @@ const Profile = () => {
                 <Label htmlFor="experience">Experience</Label>
                 <Select 
                   value={formData.experience}
-                  onValueChange={(value) => handleChange({ target: { name: 'experience', value } } as any)}
+                  onValueChange={(value) => handleSelectChange('experience', value)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select experience" />
@@ -225,7 +233,7 @@ const Profile = () => {
               <Label htmlFor="role">Role</Label>
               <Select
                 value={formData.role}
-                onValueChange={(value) => handleChange({ target: { name: 'role', value } as any})}
+                onValueChange={(value) => handleSelectChange('role', value)}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select role" />
