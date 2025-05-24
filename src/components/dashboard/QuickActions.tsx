@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Users, Calendar } from 'lucide-react';
 
 interface QuickActionsProps {
   onNavigate: (tab: string) => void;
@@ -12,6 +12,9 @@ const QuickActions = ({ onNavigate }: QuickActionsProps) => {
     switch (action) {
       case 'new-project':
         onNavigate('projects');
+        break;
+      case 'find-collaborators':
+        onNavigate('browse');
         break;
       case 'set-availability':
         onNavigate('availability');
@@ -33,6 +36,14 @@ const QuickActions = ({ onNavigate }: QuickActionsProps) => {
         >
           <Plus className="w-4 h-4 mr-2" />
           New Project
+        </Button>
+        <Button 
+          variant="outline" 
+          className="w-full justify-start"
+          onClick={() => handleQuickAction('find-collaborators')}
+        >
+          <Users className="w-4 h-4 mr-2" />
+          Find Collaborators
         </Button>
         <Button 
           variant="outline" 
