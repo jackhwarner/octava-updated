@@ -9,7 +9,8 @@ export interface Availability {
   date: string;
   start_time: string;
   end_time: string;
-  status: 'available' | 'busy' | 'partially_available';
+  category: string;
+  title?: string;
   notes?: string;
   created_at: string;
 }

@@ -1,34 +1,35 @@
+
 import { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, MapPin, LogOut } from 'lucide-react';
+import { Plus, MapPin, LogOut, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAvailability } from '@/hooks/useAvailability';
 import { useSessions } from '@/hooks/useSessions';
+import SessionCreationDialog from './SessionCreationDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 const Availability = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showAddAvailabilityDialog, setShowAddAvailabilityDialog] = useState(false);
-  const [availabilityType, setAvailabilityType] = useState("available");
+  const [showCreateSessionDialog, setShowCreateSessionDialog] = useState(false);
+  const [category, setCategory] = useState("open");
+  const [title, setTitle] = useState("");
   const [timeSelection, setTimeSelection] = useState("morning");
   const [customStartTime, setCustomStartTime] = useState("");
   const [customEndTime, setCustomEndTime] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("studio");
   const [notes, setNotes] = useState("");
   
-  const { availabilities, loading: availabilityLoading, addAvailability, deleteAvailability } = useAvailability();
-  const { sessions, loading: sessionsLoading, deleteSession } = useSessions();
+  const { availabilities, loading: availabilityLoading, addAvailability, deleteAvailability, refetch: refetchAvailability } = useAvailability();
+  const { sessions, loading: sessionsLoading, deleteSession, refetch: refetchSessions } = useSessions();
   const { toast } = useToast();
 
   const handleSignOut = async () => {
@@ -82,16 +83,19 @@ const Availability = () => {
         date: selectedDate,
         start_time: startTime,
         end_time: endTime,
-        status: availabilityType as 'available' | 'busy' | 'partially_available',
+        category: category,
+        title: title || undefined,
         notes: notes || undefined
       });
       
       setShowAddAvailabilityDialog(false);
       setSelectedDate("");
+      setTitle("");
       setCustomStartTime("");
       setCustomEndTime("");
       setNotes("");
       setTimeSelection("morning");
+      setCategory("open");
     } catch (error) {
       // Error handling is done in the hook
     }
@@ -123,6 +127,16 @@ const Availability = () => {
       hour12: true 
     });
     return `${startStr} - ${endStr}`;
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'open': return 'bg-green-100 text-green-800';
+      case 'recording': return 'bg-purple-100 text-purple-800';
+      case 'relaxing': return 'bg-blue-100 text-blue-800';
+      case 'practice': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -165,7 +179,7 @@ const Availability = () => {
                     }}
                     className="bg-purple-600 hover:bg-purple-700"
                   >
-                    <Plus className="w-4 h-4 mr-2" /> Add Availability
+                    <Plus className="w-4 h-4 mr-2" /> Add Free Time
                   </Button>
                 </div>
                 <div>
@@ -178,25 +192,22 @@ const Availability = () => {
                         .map(availability => (
                           <div key={availability.id} className="p-3 border rounded-md flex justify-between items-center mb-3">
                             <div>
-                              <div className="font-medium">
+                              <div className="font-medium flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
                                 {formatTimeRange(availability.start_time, availability.end_time)}
+                                {availability.title && <span className="text-sm text-gray-600">- {availability.title}</span>}
                               </div>
                               {availability.notes && (
-                                <div className="text-sm text-gray-500">{availability.notes}</div>
+                                <div className="text-sm text-gray-500 mt-1">{availability.notes}</div>
                               )}
                             </div>
                             <div className="flex gap-2">
-                              <Badge 
-                                className={
-                                  availability.status === 'available' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : availability.status === 'busy'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }
-                              >
-                                {availability.status === 'available' ? 'Available' : 
-                                 availability.status === 'busy' ? 'Busy' : 'Partially Available'}
+                              <Badge className={getCategoryColor(availability.category)}>
+                                {availability.category === 'open' ? 'Open' :
+                                 availability.category === 'recording' ? 'Recording Available' :
+                                 availability.category === 'relaxing' ? 'Relaxing' :
+                                 availability.category === 'practice' ? 'Practice Time' :
+                                 availability.category}
                               </Badge>
                               <Button
                                 variant="outline"
@@ -221,60 +232,24 @@ const Availability = () => {
           </CardContent>
         </Card>
 
-        {/* Sidebar with Sessions */}
+        {/* Sidebar with Sessions and Availability */}
         <div className="lg:w-2/5">
+          {/* Upcoming Sessions */}
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Your Availability</CardTitle>
-              <CardDescription>Times you've marked as available</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {availabilityLoading ? (
-                <div className="text-center py-4">Loading...</div>
-              ) : (
-                <div className="space-y-4">
-                  {availabilities.slice(0, 5).map(availability => (
-                    <div key={availability.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <div className="font-medium">
-                          {new Date(availability.date).toLocaleDateString('en-US', { 
-                            month: 'long', 
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {formatTimeRange(availability.start_time, availability.end_time)}
-                        </div>
-                      </div>
-                      <Badge 
-                        className={
-                          availability.status === 'available' 
-                            ? 'bg-green-100 text-green-800' 
-                            : availability.status === 'busy'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }
-                      >
-                        {availability.status === 'available' ? 'Available' : 
-                         availability.status === 'busy' ? 'Busy' : 'Partially Available'}
-                      </Badge>
-                    </div>
-                  ))}
-                  {availabilities.length === 0 && (
-                    <div className="text-center py-4 text-gray-500">
-                      No availability set yet
-                    </div>
-                  )}
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Upcoming Sessions</CardTitle>
+                  <CardDescription>Scheduled sessions with collaborators</CardDescription>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Sessions</CardTitle>
-              <CardDescription>Scheduled sessions with collaborators</CardDescription>
+                <Button 
+                  size="sm" 
+                  onClick={() => setShowCreateSessionDialog(true)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Plus className="w-4 h-4 mr-1" /> New
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {sessionsLoading ? (
@@ -286,7 +261,7 @@ const Availability = () => {
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="font-medium">{session.title}</div>
-                          <div className="text-sm text-gray-500">Type: {session.type}</div>
+                          <div className="text-sm text-gray-500 capitalize">Type: {session.type}</div>
                         </div>
                         <div className="flex gap-2">
                           <Badge className="bg-purple-600">
@@ -326,6 +301,51 @@ const Availability = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Your Free Time */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Free Time</CardTitle>
+              <CardDescription>When you're available for collaboration</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {availabilityLoading ? (
+                <div className="text-center py-4">Loading...</div>
+              ) : (
+                <div className="space-y-4">
+                  {availabilities.slice(0, 5).map(availability => (
+                    <div key={availability.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <div className="font-medium">
+                          {new Date(availability.date).toLocaleDateString('en-US', { 
+                            month: 'long', 
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                          {availability.title && <span className="text-sm text-gray-600 ml-2">- {availability.title}</span>}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {formatTimeRange(availability.start_time, availability.end_time)}
+                        </div>
+                      </div>
+                      <Badge className={getCategoryColor(availability.category)}>
+                        {availability.category === 'open' ? 'Open' :
+                         availability.category === 'recording' ? 'Recording' :
+                         availability.category === 'relaxing' ? 'Relaxing' :
+                         availability.category === 'practice' ? 'Practice' :
+                         availability.category}
+                      </Badge>
+                    </div>
+                  ))}
+                  {availabilities.length === 0 && (
+                    <div className="text-center py-4 text-gray-500">
+                      No availability set yet
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -333,29 +353,35 @@ const Availability = () => {
       <Dialog open={showAddAvailabilityDialog} onOpenChange={setShowAddAvailabilityDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Set Availability</DialogTitle>
+            <DialogTitle>Add Free Time</DialogTitle>
             <DialogDescription>
-              Let others know when you're available or when you have something scheduled.
+              Let others know when you're free and available for collaboration.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {/* Availability Type Selection */}
-            <div className="space-y-3">
-              <Label>Status</Label>
-              <RadioGroup value={availabilityType} onValueChange={setAvailabilityType}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="available" id="available" />
-                  <Label htmlFor="available">Available - Free for collaboration</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="busy" id="busy" />
-                  <Label htmlFor="busy">Busy - Already have something planned</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="partially_available" id="partially_available" />
-                  <Label htmlFor="partially_available">Partially Available - Limited availability</Label>
-                </div>
-              </RadioGroup>
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="open">Open (General availability)</SelectItem>
+                  <SelectItem value="recording">Recording Available</SelectItem>
+                  <SelectItem value="relaxing">Relaxing Time</SelectItem>
+                  <SelectItem value="practice">Practice Time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="title">Title (Optional)</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., 'Open for vocals', 'Chill session'"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -414,7 +440,7 @@ const Availability = () => {
               <Label htmlFor="notes">Notes (Optional)</Label>
               <Textarea 
                 id="notes"
-                placeholder="Add any additional details"
+                placeholder="Any additional details"
                 className="w-full"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -431,6 +457,16 @@ const Availability = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Session Creation Dialog */}
+      <SessionCreationDialog
+        open={showCreateSessionDialog}
+        onOpenChange={setShowCreateSessionDialog}
+        onSessionCreated={() => {
+          refetchSessions();
+          refetchAvailability();
+        }}
+      />
     </div>
   );
 };
