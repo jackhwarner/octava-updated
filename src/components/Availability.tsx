@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAvailability } from '@/hooks/useAvailability';
 import { useSessions } from '@/hooks/useSessions';
 import SessionCreationDialog from './SessionCreationDialog';
+import SessionDetailsDialog from './SessionDetailsDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,6 +21,8 @@ const Availability = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showAddAvailabilityDialog, setShowAddAvailabilityDialog] = useState(false);
   const [showCreateSessionDialog, setShowCreateSessionDialog] = useState(false);
+  const [showSessionDetailsDialog, setShowSessionDetailsDialog] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
   const [category, setCategory] = useState("open");
   const [title, setTitle] = useState("");
   const [timeSelection, setTimeSelection] = useState("morning");
@@ -34,6 +37,11 @@ const Availability = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+  };
+
+  const handleSessionClick = (session: any) => {
+    setSelectedSession(session);
+    setShowSessionDetailsDialog(true);
   };
 
   const handleAddAvailability = async () => {
@@ -234,7 +242,7 @@ const Availability = () => {
 
         {/* Sidebar with Sessions and Availability */}
         <div className="lg:w-2/5">
-          {/* Upcoming Sessions */}
+          {/* Upcoming Sessions - Moved to top */}
           <Card className="mb-6">
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -257,24 +265,19 @@ const Availability = () => {
               ) : (
                 <div className="space-y-4">
                   {sessions.slice(0, 5).map(session => (
-                    <div key={session.id} className="p-3 border rounded-lg">
+                    <div 
+                      key={session.id} 
+                      className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSessionClick(session)}
+                    >
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="font-medium">{session.title}</div>
                           <div className="text-sm text-gray-500 capitalize">Type: {session.type}</div>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge className="bg-purple-600">
-                            {formatSessionTime(session.start_time, session.end_time)}
-                          </Badge>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteSession(session.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                        <Badge className="bg-purple-600">
+                          {formatSessionTime(session.start_time, session.end_time)}
+                        </Badge>
                       </div>
                       <div className="mt-2 text-sm text-gray-500">
                         <div>
@@ -370,6 +373,8 @@ const Availability = () => {
                   <SelectItem value="recording">Recording Available</SelectItem>
                   <SelectItem value="relaxing">Relaxing Time</SelectItem>
                   <SelectItem value="practice">Practice Time</SelectItem>
+                  <SelectItem value="nothing">Doing Nothing</SelectItem>
+                  <SelectItem value="creative">Creative Time</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -465,6 +470,21 @@ const Availability = () => {
         onSessionCreated={() => {
           refetchSessions();
           refetchAvailability();
+        }}
+      />
+
+      {/* Session Details Dialog */}
+      <SessionDetailsDialog
+        session={selectedSession}
+        open={showSessionDetailsDialog}
+        onOpenChange={setShowSessionDetailsDialog}
+        onSessionUpdated={() => {
+          refetchSessions();
+          setSelectedSession(null);
+        }}
+        onSessionDeleted={(sessionId) => {
+          refetchSessions();
+          setSelectedSession(null);
         }}
       />
     </div>

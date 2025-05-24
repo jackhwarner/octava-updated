@@ -28,7 +28,21 @@ export const useAvailability = () => {
         .order('date', { ascending: true });
 
       if (error) throw error;
-      setAvailabilities(data || []);
+      
+      // Map the data to match our interface
+      const mappedData = (data || []).map(item => ({
+        id: item.id,
+        user_id: item.user_id,
+        date: item.date,
+        start_time: item.start_time,
+        end_time: item.end_time,
+        category: item.category || 'open',
+        title: item.title,
+        notes: item.notes,
+        created_at: item.created_at
+      }));
+      
+      setAvailabilities(mappedData);
     } catch (error) {
       console.error('Error fetching availabilities:', error);
       toast({
@@ -54,12 +68,24 @@ export const useAvailability = () => {
 
       if (error) throw error;
 
-      setAvailabilities(prev => [...prev, data]);
+      const mappedData = {
+        id: data.id,
+        user_id: data.user_id,
+        date: data.date,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        category: data.category || 'open',
+        title: data.title,
+        notes: data.notes,
+        created_at: data.created_at
+      };
+
+      setAvailabilities(prev => [...prev, mappedData]);
       toast({
         title: "Success",
         description: "Availability added successfully",
       });
-      return data;
+      return mappedData;
     } catch (error) {
       console.error('Error adding availability:', error);
       toast({

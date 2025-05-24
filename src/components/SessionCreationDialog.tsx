@@ -18,7 +18,7 @@ interface SessionCreationDialogProps {
 const SessionCreationDialog = ({ open, onOpenChange, onSessionCreated }: SessionCreationDialogProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState('recording');
+  const [type, setType] = useState<'recording' | 'meeting' | 'rehearsal' | 'mixing' | 'mastering' | 'writing' | 'other'>('recording');
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -46,7 +46,7 @@ const SessionCreationDialog = ({ open, onOpenChange, onSessionCreated }: Session
 
       const { error } = await supabase
         .from('sessions')
-        .insert([{
+        .insert({
           title,
           description,
           type,
@@ -54,7 +54,7 @@ const SessionCreationDialog = ({ open, onOpenChange, onSessionCreated }: Session
           start_time: startDateTime,
           end_time: endDateTime,
           created_by: user.id
-        }]);
+        });
 
       if (error) throw error;
 
@@ -109,7 +109,7 @@ const SessionCreationDialog = ({ open, onOpenChange, onSessionCreated }: Session
           
           <div className="space-y-2">
             <Label htmlFor="type">Type</Label>
-            <Select value={type} onValueChange={setType}>
+            <Select value={type} onValueChange={(value: 'recording' | 'meeting' | 'rehearsal' | 'mixing' | 'mastering' | 'writing' | 'other') => setType(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
