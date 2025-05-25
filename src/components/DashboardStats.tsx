@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Music, Users, MessageSquare } from 'lucide-react';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -57,7 +58,7 @@ const DashboardStats = ({
         <CardContent>
           <div className="text-2xl font-bold">{stats.unreadMessages}</div>
           <p className="text-xs text-muted-foreground">
-            unread
+            unread messages
           </p>
         </CardContent>
       </Card>
