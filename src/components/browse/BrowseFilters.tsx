@@ -1,10 +1,8 @@
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search } from 'lucide-react';
-
 interface BrowseFiltersProps {
   selectedRole: string;
   setSelectedRole: (value: string) => void;
@@ -20,7 +18,6 @@ interface BrowseFiltersProps {
   setLocation: (value: string) => void;
   onSearch: () => void;
 }
-
 const BrowseFilters = ({
   selectedRole,
   setSelectedRole,
@@ -36,8 +33,7 @@ const BrowseFilters = ({
   setLocation,
   onSearch
 }: BrowseFiltersProps) => {
-  return (
-    <Card className="mb-8">
+  return <Card className="mb-8">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
@@ -124,24 +120,13 @@ const BrowseFilters = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <Input 
-              placeholder="City or Location" 
-              value={location} 
-              onChange={e => setLocation(e.target.value)} 
-              className="flex-grow" 
-            />
-            <Button 
-              className="bg-purple-600 hover:bg-purple-700 px-6 h-auto" 
-              onClick={onSearch} 
-              aria-label="Search"
-            >
+            <Input placeholder="City or Location" value={location} onChange={e => setLocation(e.target.value)} className="flex-grow" />
+            <Button onClick={onSearch} aria-label="Search" className="bg-purple-600 hover:bg-purple-700 p-2.5">
               <Search className="w-6 h-6" />
             </Button>
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default BrowseFilters;
