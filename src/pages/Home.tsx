@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Check, Star } from "lucide-react";
@@ -67,7 +66,7 @@ const Home = () => {
         </Button>
         <div className="mt-16">
           <div className="bg-gray-200 rounded-md max-w-4xl mx-auto aspect-[16/9] flex items-center justify-center relative overflow-hidden">
-            <img src="/lovable-uploads/bbc2aa1e-fc0b-471d-8bcb-dd79522521d5.png" alt="Platform preview" className="w-full h-full object-cover rounded-md shadow-lg" />
+            <img alt="Platform preview" src="/lovable-uploads/00e0e220-eb35-4790-aa98-b33b36c4fdbc.png" className="h-full rounded-md shadow-lg object-scale-down" />
             {/* Fade out gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white pointer-events-none"></div>
           </div>
