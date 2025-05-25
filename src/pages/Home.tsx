@@ -158,7 +158,7 @@ const Home = () => {
               </ul>
             </div>
             <div className="md:w-1/2">
-              <img src="/placeholder.svg" alt="Project Management" className="w-full rounded-md aspect-video object-cover" />
+              <img alt="Project Management" className="h-full rounded-md object-scale-down" src="/lovable-uploads/d1f0c748-09c2-436e-a4de-20dce3d4e0a9.png" />
             </div>
           </div>
         </div>
