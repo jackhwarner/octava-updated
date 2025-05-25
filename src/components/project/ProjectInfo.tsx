@@ -1,7 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Target, Clock, DollarSign, Calendar, Users, TrendingUp, Activity } from 'lucide-react';
 
 interface ProjectInfoProps {
   project: any;
@@ -11,6 +12,10 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
+
+  const progressPercentage = project.status === 'completed' ? 100 : 
+                            project.status === 'active' ? 65 : 
+                            project.status === 'on_hold' ? 30 : 15;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -24,6 +29,37 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
             <p className="text-gray-700 leading-relaxed">
               {project.description || 'No description provided.'}
             </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Project Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Overall Progress</span>
+                <span className="text-sm text-gray-500">{progressPercentage}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">4</div>
+                  <div className="text-sm text-gray-500">Files Uploaded</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">12</div>
+                  <div className="text-sm text-gray-500">Messages Sent</div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -56,6 +92,14 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
                   <p className="text-xs text-gray-500">3 files added to project</p>
                 </div>
               </div>
+
+              <div className="flex items-start space-x-3">
+                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                <div>
+                  <p className="text-sm text-gray-900">Sarah Johnson joined</p>
+                  <p className="text-xs text-gray-500">2 days ago</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -75,6 +119,26 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
                 <p className="text-sm text-gray-600">{project.genre || 'Not specified'}</p>
               </div>
             </div>
+
+            {project.deadline && (
+              <div className="flex items-center space-x-3">
+                <Calendar className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-sm font-medium">Deadline</p>
+                  <p className="text-sm text-gray-600">{new Date(project.deadline).toLocaleDateString()}</p>
+                </div>
+              </div>
+            )}
+
+            {project.budget && (
+              <div className="flex items-center space-x-3">
+                <DollarSign className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-sm font-medium">Budget</p>
+                  <p className="text-sm text-gray-600">${project.budget}</p>
+                </div>
+              </div>
+            )}
             
             <div className="flex items-center space-x-3">
               <Target className="w-4 h-4 text-gray-500" />
@@ -88,38 +152,18 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Collaboration</CardTitle>
+            <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Total Collaborators</span>
-                <span className="text-sm text-gray-600">
-                  {project.collaborators?.length || 0}
-                </span>
-              </div>
-              
-              {project.collaborators && project.collaborators.length > 0 && (
-                <div className="space-y-2">
-                  {project.collaborators.slice(0, 3).map((collaborator, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-purple-700">
-                          {getInitials(collaborator.name)}
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-700">{collaborator.name}</span>
-                    </div>
-                  ))}
-                  
-                  {project.collaborators.length > 3 && (
-                    <p className="text-xs text-gray-500">
-                      +{project.collaborators.length - 3} more
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+          <CardContent className="space-y-3">
+            <Button className="w-full bg-purple-600 hover:bg-purple-700">
+              Schedule Session
+            </Button>
+            <Button variant="outline" className="w-full">
+              Export Project
+            </Button>
+            <Button variant="outline" className="w-full">
+              Share Project
+            </Button>
           </CardContent>
         </Card>
 
@@ -136,6 +180,10 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Messages</span>
                 <Badge variant="outline">12</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Sessions</span>
+                <Badge variant="outline">3</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Status</span>

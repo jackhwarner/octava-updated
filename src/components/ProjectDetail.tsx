@@ -4,9 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File } from 'lucide-react';
 import { useFakeProjects } from '@/hooks/useFakeProjects';
+import Sidebar from './Sidebar';
 import ProjectFiles from './project/ProjectFiles';
 import ProjectChat from './project/ProjectChat';
 import ProjectCollaborators from './project/ProjectCollaborators';
@@ -18,6 +18,32 @@ const ProjectDetail = () => {
   const { projects } = useFakeProjects();
   const [project, setProject] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [mainActiveTab, setMainActiveTab] = useState('projects');
+
+  // Sample recent files for demonstration
+  const recentFiles = [
+    {
+      id: '1',
+      name: 'demo-track.mp3',
+      type: 'audio/mp3',
+      uploadedAt: '2024-01-20T10:30:00Z',
+      uploadedBy: 'Sarah Johnson'
+    },
+    {
+      id: '2',
+      name: 'album-cover.jpg',
+      type: 'image/jpeg',
+      uploadedAt: '2024-01-19T14:15:00Z',
+      uploadedBy: 'Marcus Williams'
+    },
+    {
+      id: '3',
+      name: 'lyrics.txt',
+      type: 'text/plain',
+      uploadedAt: '2024-01-18T09:45:00Z',
+      uploadedBy: 'Sarah Johnson'
+    }
+  ];
 
   useEffect(() => {
     const foundProject = projects.find(p => p.id === projectId);
@@ -26,15 +52,20 @@ const ProjectDetail = () => {
 
   if (!project) {
     return (
-      <div className="p-8">
-        <div className="flex items-center space-x-4 mb-6">
-          <Button variant="ghost" onClick={() => navigate('/projects')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Projects
-          </Button>
+      <div className="min-h-screen bg-white flex">
+        <div className="fixed top-0 left-0 h-screen z-10">
+          <Sidebar activeTab={mainActiveTab} setActiveTab={setMainActiveTab} />
         </div>
-        <div className="text-center">
-          <p className="text-gray-500">Project not found</p>
+        <div className="flex-1 ml-[90px] p-8">
+          <div className="flex items-center space-x-4 mb-6">
+            <Button variant="ghost" onClick={() => navigate('/projects')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Projects
+            </Button>
+          </div>
+          <div className="text-center">
+            <p className="text-gray-500">Project not found</p>
+          </div>
         </div>
       </div>
     );
@@ -87,6 +118,28 @@ const ProjectDetail = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const getFileIcon = (type: string) => {
+    if (type.startsWith('audio/')) {
+      return (
+        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+          <Play className="w-4 h-4 text-purple-700" />
+        </div>
+      );
+    }
+    if (type.startsWith('image/')) {
+      return (
+        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+          <ImageIcon className="w-4 h-4 text-purple-700" />
+        </div>
+      );
+    }
+    return (
+      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+        <File className="w-4 h-4 text-purple-700" />
+      </div>
+    );
+  };
+
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: Info },
     { id: 'files', label: 'Files', icon: FileText },
@@ -123,8 +176,13 @@ const ProjectDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <div className="w-[280px] bg-white border-r border-gray-200 flex flex-col">
+      {/* Main Navigation Sidebar */}
+      <div className="fixed top-0 left-0 h-screen z-20">
+        <Sidebar activeTab={mainActiveTab} setActiveTab={setMainActiveTab} />
+      </div>
+
+      {/* Project Sidebar */}
+      <div className="w-[320px] ml-[90px] bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
         <div className="p-6 border-b">
           <Button variant="ghost" onClick={() => navigate('/projects')} className="mb-4 -ml-2">
@@ -152,7 +210,7 @@ const ProjectDetail = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4">
+        <nav className="p-4 border-b">
           <ul className="space-y-2">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
@@ -175,6 +233,32 @@ const ProjectDetail = () => {
           </ul>
         </nav>
 
+        {/* Recent Activity */}
+        <div className="flex-1 p-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Activity</h3>
+          <div className="space-y-3">
+            {recentFiles.map((file) => (
+              <div key={file.id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  {getFileIcon(file.type)}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                    <p className="text-xs text-gray-500">by {file.uploadedBy}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Download className="w-3 h-3" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Project Stats */}
         <div className="p-4 border-t">
           <div className="space-y-3 text-sm">
@@ -187,8 +271,12 @@ const ProjectDetail = () => {
               <span className="text-gray-900">{new Date(project.updated_at).toLocaleDateString()}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-500">Collaborators</span>
-              <span className="text-gray-900">{project.collaborators?.length || 0}</span>
+              <span className="text-gray-500">Files</span>
+              <span className="text-gray-900">4</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500">Team Size</span>
+              <span className="text-gray-900">{(project.collaborators?.length || 0) + 1}</span>
             </div>
           </div>
         </div>
@@ -210,7 +298,7 @@ const ProjectDetail = () => {
               {/* Collaborator Avatars */}
               {project.collaborators && project.collaborators.length > 0 && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500 mr-2">Team:</span>
+                  <span className="text-sm text-gray-500">Team:</span>
                   <div className="flex -space-x-2">
                     {/* Project Owner */}
                     <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
