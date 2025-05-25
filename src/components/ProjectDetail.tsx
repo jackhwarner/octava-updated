@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File, Paperclip } from 'lucide-react';
 import { useFakeProjects } from '@/hooks/useFakeProjects';
 import Sidebar from './Sidebar';
 import ProjectFiles from './project/ProjectFiles';
@@ -50,11 +49,15 @@ const ProjectDetail = () => {
     setProject(foundProject);
   }, [projectId, projects]);
 
+  const handleMainNavigation = (tab: string) => {
+    navigate(`/${tab}`);
+  };
+
   if (!project) {
     return (
       <div className="min-h-screen bg-white flex">
         <div className="fixed top-0 left-0 h-screen z-10">
-          <Sidebar activeTab={mainActiveTab} setActiveTab={setMainActiveTab} />
+          <Sidebar activeTab={mainActiveTab} setActiveTab={handleMainNavigation} />
         </div>
         <div className="flex-1 ml-[90px] p-8">
           <div className="flex items-center space-x-4 mb-6">
@@ -178,7 +181,7 @@ const ProjectDetail = () => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Main Navigation Sidebar */}
       <div className="fixed top-0 left-0 h-screen z-20">
-        <Sidebar activeTab={mainActiveTab} setActiveTab={setMainActiveTab} />
+        <Sidebar activeTab={mainActiveTab} setActiveTab={handleMainNavigation} />
       </div>
 
       {/* Project Sidebar */}

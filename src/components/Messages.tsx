@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -243,35 +242,23 @@ const Messages = () => {
             </ScrollArea>
             
             <div className="p-4 border-t">
-              <div className="flex space-x-2 mb-3">
+              <div className="flex items-center space-x-2">
                 <Input
                   placeholder="Type a message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   className="flex-1"
                 />
-                <Button className="bg-purple-600 hover:bg-purple-700">
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="flex space-x-2">
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
                   size="sm" 
                   onClick={handleSendFile}
-                  className="flex-1"
+                  className="h-10 w-10 p-0"
                 >
-                  <Paperclip className="w-4 h-4 mr-2" />
-                  Send File
+                  <Paperclip className="w-4 h-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleScheduleEvent}
-                  className="flex-1"
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Schedule Event
+                <Button className="bg-purple-600 hover:bg-purple-700">
+                  <Send className="w-4 h-4" />
                 </Button>
               </div>
             </div>
