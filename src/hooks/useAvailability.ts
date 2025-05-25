@@ -6,11 +6,11 @@ import { useToast } from '@/hooks/use-toast';
 export interface Availability {
   id: string;
   user_id: string;
-  day_of_week: number;
+  day_of_week: number; // 0-6 (Sunday-Saturday)
   period: 'morning' | 'afternoon' | 'evening' | 'custom';
   start_time?: string;
   end_time?: string;
-  availability_type: string;
+  availability_type: string; // e.g. "Available to record", "Available for mixing"
   is_active?: boolean;
   created_at: string;
 }
@@ -25,6 +25,7 @@ export const useAvailability = () => {
       const { data, error } = await supabase
         .from('user_availability')
         .select('*')
+        .eq('is_active', true)
         .order('day_of_week', { ascending: true });
 
       if (error) throw error;
