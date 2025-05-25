@@ -81,9 +81,11 @@ const ProfileSetup = () => {
       setCompletedSteps(prev => [...prev, currentStep]);
       toast({
         title: "Profile setup complete!",
-        description: "Welcome to Octava! Your profile has been created successfully.",
+        description: "Now let's set up your subscription to get started.",
       });
-      navigate('/dashboard');
+      
+      // Redirect to subscription page instead of dashboard
+      navigate('/subscription');
     } catch (error: any) {
       toast({
         title: "Error",
