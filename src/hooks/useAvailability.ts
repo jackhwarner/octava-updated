@@ -6,13 +6,17 @@ import { useToast } from '@/hooks/use-toast';
 export interface Availability {
   id: string;
   user_id: string;
-  day_of_week: number; // 0-6 (Sunday-Saturday)
+  day_of_week?: number; // 0-6 (Sunday-Saturday) for recurring
   period: 'morning' | 'afternoon' | 'evening' | 'custom';
   start_time?: string;
   end_time?: string;
   availability_type: string; // e.g. "Available to record", "Available for mixing"
   is_active?: boolean;
   created_at: string;
+  is_recurring?: boolean; // New field to distinguish between recurring and one-time
+  specific_date?: string; // For one-time availability
+  title?: string; // For one-time events
+  notes?: string; // Additional notes
 }
 
 export const useAvailability = () => {

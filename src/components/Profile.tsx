@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MapPin, Clock, MessageCircle, UserPlus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MapPin, Clock, MessageCircle, UserPlus, Music, User, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import ProfileEditDialog from './ProfileEditDialog';
@@ -236,66 +237,108 @@ const Profile = () => {
         </CardContent>
       </Card>
 
-      {/* Skills and Genres */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {profile.skills && profile.skills.length > 0 && (
+      {/* Tabbed Content */}
+      <Tabs defaultValue="about" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="about" className="flex items-center gap-2">
+            <User className="w-4 h-4" />
+            About
+          </TabsTrigger>
+          <TabsTrigger value="portfolio" className="flex items-center gap-2">
+            <Music className="w-4 h-4" />
+            Portfolio
+          </TabsTrigger>
+          <TabsTrigger value="availability" className="flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            Availability
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="about" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {profile.skills && profile.skills.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Skills</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.map((skill: string, index: number) => (
+                      <Badge key={index} variant="outline">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {profile.genres && profile.genres.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Genres</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.genres.map((genre: string, index: number) => (
+                      <Badge key={index} variant="outline">
+                        {genre}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="portfolio" className="mt-6">
+          {profile.portfolio_urls && profile.portfolio_urls.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Portfolio</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {profile.portfolio_urls.map((url: string, index: number) => (
+                    <a
+                      key={index}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-purple-600 hover:underline"
+                    >
+                      {url}
+                    </a>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Music className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No portfolio items yet</h3>
+                <p className="text-gray-600">
+                  {isOwnProfile ? "Upload some of your work to showcase your talent!" : "This user hasn't uploaded any portfolio items yet."}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="availability" className="mt-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Skills</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {profile.skills.map((skill: string, index: number) => (
-                  <Badge key={index} variant="outline">
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
+            <CardContent className="p-8 text-center">
+              <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Availability</h3>
+              <p className="text-gray-600">
+                {isOwnProfile ? "Set your availability to let others know when you're free to collaborate." : "This user's availability information will be shown here."}
+              </p>
             </CardContent>
           </Card>
-        )}
-
-        {profile.genres && profile.genres.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Genres</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {profile.genres.map((genre: string, index: number) => (
-                  <Badge key={index} variant="outline">
-                    {genre}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Portfolio */}
-      {profile.portfolio_urls && profile.portfolio_urls.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Portfolio</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {profile.portfolio_urls.map((url: string, index: number) => (
-                <a
-                  key={index}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-purple-600 hover:underline"
-                >
-                  {url}
-                </a>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        </TabsContent>
+      </Tabs>
 
       {isOwnProfile && (
         <ProfileEditDialog
