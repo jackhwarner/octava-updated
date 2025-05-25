@@ -23,10 +23,22 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
   const [editUsername, setEditUsername] = useState('');
   const [editBio, setEditBio] = useState('');
   const [editLocation, setEditLocation] = useState('');
+  const [editRole, setEditRole] = useState('');
   const [editExperience, setEditExperience] = useState('');
   const [editGenres, setEditGenres] = useState<string[]>([]);
   const [editSkills, setEditSkills] = useState<string[]>([]);
   const [detectedCity, setDetectedCity] = useState('');
+
+  const roles = [
+    { value: 'musician', label: 'Musician' },
+    { value: 'producer', label: 'Producer' },
+    { value: 'songwriter', label: 'Songwriter' },
+    { value: 'vocalist', label: 'Vocalist' },
+    { value: 'instrumentalist', label: 'Instrumentalist' },
+    { value: 'composer', label: 'Composer' },
+    { value: 'engineer', label: 'Audio Engineer' },
+    { value: 'dj', label: 'DJ' },
+  ];
 
   const experienceLevels = [
     { value: 'beginner', label: 'Beginner (0-2 years)' },
@@ -56,6 +68,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
       setEditUsername(profile.username || '');
       setEditBio(profile.bio || '');
       setEditLocation(profile.zip_code || '');
+      setEditRole(profile.role || 'musician');
       setEditExperience(profile.experience || 'beginner');
       setEditGenres(profile.genres || []);
       setEditSkills(profile.skills || []);
@@ -115,6 +128,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
         username: editUsername,
         bio: editBio,
         zip_code: editLocation,
+        role: editRole,
         experience: editExperience,
         genres: editGenres,
         skills: editSkills,
@@ -167,32 +181,50 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-location" className="flex items-center space-x-1">
-                <span>Zip Code</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="w-4 h-4 text-gray-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Your zip code won't be public and is only used to determine your general area</p>
-                  </TooltipContent>
-                </Tooltip>
-              </Label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  id="edit-location"
-                  placeholder="12345"
-                  value={editLocation}
-                  onChange={handleZipCodeChange}
-                  maxLength={5}
-                  className="w-32"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                />
-                {detectedCity && (
-                  <span className="text-gray-600 text-sm">{detectedCity}</span>
-                )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-location" className="flex items-center space-x-1">
+                  <span>Zip Code</span>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="w-4 h-4 text-gray-400" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Your zip code won't be public and is only used to determine your general area</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="edit-location"
+                    placeholder="12345"
+                    value={editLocation}
+                    onChange={handleZipCodeChange}
+                    maxLength={5}
+                    className="w-32"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                  />
+                  {detectedCity && (
+                    <span className="text-gray-600 text-sm">{detectedCity}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select value={editRole} onValueChange={setEditRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

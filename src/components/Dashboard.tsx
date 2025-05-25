@@ -27,6 +27,11 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     setShowNewMessageDialog(true);
   };
 
+  const handleNewMessage = () => {
+    setSelectedCollaborator(null);
+    setShowNewMessageDialog(true);
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -38,10 +43,12 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
       <DashboardStats onNavigate={onNavigate || (() => {})} />
 
       <div className="space-y-8">
-        {/* Quick Actions and Recent Projects Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <QuickActions onNavigate={onNavigate || (() => {})} />
-          <RecentProjects onNavigate={onNavigate || (() => {})} />
+        {/* Quick Actions and Recent Projects Row with adjusted spacing */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <QuickActions onNavigate={onNavigate || (() => {})} onNewMessage={handleNewMessage} />
+          <div className="lg:col-span-2">
+            <RecentProjects onNavigate={onNavigate || (() => {})} />
+          </div>
         </div>
 
         {/* Online Collaborators and Suggested Collaborators Row */}

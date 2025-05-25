@@ -7,7 +7,6 @@ export interface DashboardStats {
   totalProjects: number;
   activeProjects: number;
   totalCollaborations: number;
-  upcomingSessions: number;
   totalMessages: number;
   unreadMessages: number;
 }
@@ -17,7 +16,6 @@ export const useDashboardStats = () => {
     totalProjects: 0,
     activeProjects: 0,
     totalCollaborations: 0,
-    upcomingSessions: 0,
     totalMessages: 0,
     unreadMessages: 0,
   });
@@ -77,21 +75,6 @@ export const useDashboardStats = () => {
         setStats(prev => ({
           ...prev,
           totalCollaborations,
-        }));
-      }
-
-      // Fetch upcoming sessions - fix the OR syntax
-      const { data: sessions, error: sessionsError } = await supabase
-        .from('sessions')
-        .select('id')
-        .eq('created_by', user.id)
-        .gte('start_time', new Date().toISOString());
-
-      if (!sessionsError) {
-        const upcomingSessions = sessions?.length || 0;
-        setStats(prev => ({
-          ...prev,
-          upcomingSessions,
         }));
       }
 

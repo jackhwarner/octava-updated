@@ -12,6 +12,11 @@ interface ProfileHeaderProps {
 }
 
 export const ProfileHeader = ({ profile, cityName, onEditClick }: ProfileHeaderProps) => {
+  const formatRole = (role: string | undefined) => {
+    if (!role) return 'Musician';
+    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+  };
+
   return (
     <Card className="mb-8">
       <CardContent className="p-10">
@@ -37,7 +42,7 @@ export const ProfileHeader = ({ profile, cityName, onEditClick }: ProfileHeaderP
             <div className="flex flex-wrap justify-between items-center">
               <div className="flex flex-wrap gap-2">
                 <Badge className="bg-purple-100 text-purple-700 px-3 py-1.5 text-sm">
-                  {profile?.role || 'Musician'}
+                  {formatRole(profile?.role)}
                 </Badge>
                 {profile?.genres?.slice(0, 3).map((genre) => (
                   <Badge key={genre} variant="outline" className="px-3 py-1.5 text-sm">

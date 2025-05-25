@@ -1,13 +1,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, MessageSquare } from 'lucide-react';
 
 interface QuickActionsProps {
   onNavigate: (tab: string) => void;
+  onNewMessage: () => void;
 }
 
-const QuickActions = ({ onNavigate }: QuickActionsProps) => {
+const QuickActions = ({ onNavigate, onNewMessage }: QuickActionsProps) => {
   const handleQuickAction = (action: string) => {
     switch (action) {
       case 'new-project':
@@ -15,6 +16,9 @@ const QuickActions = ({ onNavigate }: QuickActionsProps) => {
         break;
       case 'find-collaborators':
         onNavigate('browse');
+        break;
+      case 'new-message':
+        onNewMessage();
         break;
       default:
         break;
@@ -41,6 +45,14 @@ const QuickActions = ({ onNavigate }: QuickActionsProps) => {
         >
           <Users className="w-4 h-4 mr-2" />
           Find Collaborators
+        </Button>
+        <Button 
+          variant="outline" 
+          className="w-full justify-start"
+          onClick={() => handleQuickAction('new-message')}
+        >
+          <MessageSquare className="w-4 h-4 mr-2" />
+          New Message
         </Button>
       </CardContent>
     </Card>

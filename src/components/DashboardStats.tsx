@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Music, Users, Calendar, MessageSquare } from 'lucide-react';
+import { Music, Users, MessageSquare } from 'lucide-react';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 interface DashboardStatsProps {
@@ -12,8 +12,8 @@ const DashboardStats = ({ onNavigate }: DashboardStatsProps) => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {[...Array(3)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
               <div className="h-16 bg-gray-200 rounded"></div>
@@ -25,7 +25,7 @@ const DashboardStats = ({ onNavigate }: DashboardStatsProps) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <Card 
         className="hover:shadow-lg transition-shadow cursor-pointer" 
         onClick={() => onNavigate('projects')}
@@ -51,22 +51,6 @@ const DashboardStats = ({ onNavigate }: DashboardStatsProps) => {
           <div className="text-2xl font-bold">{stats.totalCollaborations}</div>
           <p className="text-xs text-muted-foreground">
             active partnerships
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card 
-        className="hover:shadow-lg transition-shadow cursor-pointer" 
-        onClick={() => onNavigate('availability')}
-      >
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Upcoming Sessions</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.upcomingSessions}</div>
-          <p className="text-xs text-muted-foreground">
-            this week
           </p>
         </CardContent>
       </Card>
