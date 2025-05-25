@@ -15,7 +15,6 @@ import Privacy from "./pages/Privacy";
 import Subscription from "./pages/Subscription";
 import ProfileSetup from "./components/ProfileSetup";
 import AuthWrapper from "./components/AuthWrapper";
-import SubscriptionGuard from "./components/SubscriptionGuard";
 
 const queryClient = new QueryClient();
 
@@ -34,13 +33,13 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/profile-setup" element={<AuthWrapper><ProfileSetup /></AuthWrapper>} />
             <Route path="/subscription" element={<AuthWrapper><Subscription /></AuthWrapper>} />
-            <Route path="/dashboard" element={<AuthWrapper><SubscriptionGuard><Index /></SubscriptionGuard></AuthWrapper>} />
-            <Route path="/browse" element={<AuthWrapper><SubscriptionGuard><Index /></SubscriptionGuard></AuthWrapper>} />
-            <Route path="/messages" element={<AuthWrapper><SubscriptionGuard><Index /></SubscriptionGuard></AuthWrapper>} />
-            <Route path="/projects" element={<AuthWrapper><SubscriptionGuard><Index /></SubscriptionGuard></AuthWrapper>} />
-            <Route path="/profile" element={<AuthWrapper><SubscriptionGuard><Index /></SubscriptionGuard></AuthWrapper>} />
-            <Route path="/settings" element={<AuthWrapper><SubscriptionGuard><Index /></SubscriptionGuard></AuthWrapper>} />
-            <Route path="/support" element={<AuthWrapper><SubscriptionGuard><Index /></SubscriptionGuard></AuthWrapper>} />
+            <Route path="/dashboard" element={<AuthWrapper><Index /></AuthWrapper>} />
+            <Route path="/browse" element={<AuthWrapper><Index /></AuthWrapper>} />
+            <Route path="/messages" element={<AuthWrapper><Index /></AuthWrapper>} />
+            <Route path="/projects" element={<AuthWrapper><Index /></AuthWrapper>} />
+            <Route path="/profile" element={<AuthWrapper><Index /></AuthWrapper>} />
+            <Route path="/settings" element={<AuthWrapper><Index /></AuthWrapper>} />
+            <Route path="/support" element={<AuthWrapper><Index /></AuthWrapper>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
