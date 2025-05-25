@@ -35,17 +35,22 @@ const ProfileSetup = () => {
       soundcloud: '',
       instagram: '',
       tiktok: '',
-    }
+    },
+    role: '' // Store the role from signup
   });
 
   useEffect(() => {
-    // Check if user is authenticated
+    // Check if user is authenticated and get their role
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) {
         navigate('/login');
         return;
       }
       setUser(user);
+      
+      // Get the role from user metadata
+      const userRole = user.user_metadata?.primary_role || '';
+      setProfileData(prev => ({ ...prev, role: userRole }));
     });
   }, [navigate]);
 
@@ -68,12 +73,80 @@ const ProfileSetup = () => {
     }
   };
 
+  const uploadProfilePicture = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/profile-picture.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        return null;
+      }
+
+      const { data } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      return null;
+    }
+  };
+
+  const uploadMusicFiles = async (files: File[]): Promise<string[]> => {
+    if (!user || files.length === 0) return [];
+    
+    const uploadPromises = files.map(async (file, index) => {
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/music-${index}-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('profiles')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          return null;
+        }
+
+        const { data } = supabase.storage
+          .from('profiles')
+          .getPublicUrl(fileName);
+
+        return data.publicUrl;
+      } catch (error) {
+        console.error('Error uploading music file:', error);
+        return null;
+      }
+    });
+
+    const results = await Promise.all(uploadPromises);
+    return results.filter(url => url !== null) as string[];
+  };
+
   const handleComplete = async () => {
     if (!user) return;
     
     setCompletedSteps(prev => [...prev, currentStep]);
     
     try {
+      // Upload profile picture if provided
+      let avatarUrl = null;
+      if (profileData.profilePic) {
+        avatarUrl = await uploadProfilePicture(profileData.profilePic);
+      }
+
+      // Upload music files if provided
+      const musicUrls = await uploadMusicFiles(profileData.musicFiles);
+
       // Update the user's profile in the database
       const { error } = await supabase
         .from('profiles')
@@ -86,6 +159,9 @@ const ProfileSetup = () => {
           experience_level: profileData.experience,
           genres: profileData.genres,
           skills: profileData.instruments,
+          primary_role: profileData.role,
+          avatar_url: avatarUrl,
+          portfolio_urls: musicUrls.length > 0 ? musicUrls : null,
         });
 
       if (error) {
@@ -166,6 +242,9 @@ const ProfileSetup = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Profile</h1>
           <p className="text-gray-600">Let's set up your musical profile in just a few steps</p>
+          {profileData.role && (
+            <p className="text-sm text-purple-600 mt-2">Setting up as: {profileData.role}</p>
+          )}
         </div>
 
         {/* Progress Bar */}

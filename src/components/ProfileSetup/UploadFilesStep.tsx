@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Upload, X, Music, User } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface UploadFilesStepProps {
   data: any;
@@ -14,17 +15,66 @@ interface UploadFilesStepProps {
 const UploadFilesStep = ({ data, onUpdate, onNext, onBack }: UploadFilesStepProps) => {
   const profilePicRef = useRef<HTMLInputElement>(null);
   const musicFilesRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const handleProfilePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: "Profile picture must be under 5MB"
+        });
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: "destructive",
+          title: "Invalid file type",
+          description: "Please upload an image file (JPG, PNG, etc.)"
+        });
+        return;
+      }
+      
       onUpdate({ profilePic: file });
     }
   };
 
   const handleMusicFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    onUpdate({ musicFiles: [...data.musicFiles, ...files] });
+    
+    // Validate files
+    const validFiles = files.filter(file => {
+      // Check file size (50MB limit per file)
+      if (file.size > 50 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: `${file.name} is too large. Music files must be under 50MB each.`
+        });
+        return false;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('audio/')) {
+        toast({
+          variant: "destructive",
+          title: "Invalid file type",
+          description: `${file.name} is not an audio file. Please upload MP3, WAV, or other audio formats.`
+        });
+        return false;
+      }
+      
+      return true;
+    });
+    
+    if (validFiles.length > 0) {
+      onUpdate({ musicFiles: [...data.musicFiles, ...validFiles] });
+    }
   };
 
   const removeMusicFile = (index: number) => {
