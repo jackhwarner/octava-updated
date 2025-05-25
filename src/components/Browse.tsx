@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Music, Search, Users, Clock, Star } from 'lucide-react';
-
 const Browse = () => {
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
@@ -15,145 +13,124 @@ const Browse = () => {
   const [selectedAvailability, setSelectedAvailability] = useState('');
   const [location, setLocation] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
-
-  const profiles = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      username: '@sarah_beats',
-      role: 'Producer',
-      genres: ['Pop', 'R&B'],
-      location: 'Los Angeles, CA',
-      experience: 'Professional',
-      avatar: null,
-    },
-    {
-      id: 2,
-      name: 'Marcus Williams',
-      username: '@marcus_guitar',
-      role: 'Instrumentalist',
-      genres: ['Rock', 'Blues'],
-      location: 'Nashville, TN',
-      experience: 'Professional',
-      avatar: null,
-    },
-    {
-      id: 3,
-      name: 'Emma Chen',
-      username: '@emma_writes',
-      role: 'Songwriter',
-      genres: ['Indie', 'Folk'],
-      location: 'Austin, TX',
-      experience: 'Intermediate',
-      avatar: null,
-    },
-  ];
-
-  const suggestedCollaborators = [
-    {
-      id: 4,
-      name: 'David Kim',
-      username: '@david_keys',
-      role: 'Pianist',
-      genres: ['Classical', 'Jazz'],
-      location: 'New York, NY',
-      experience: 'Professional',
-      completedProjects: 23,
-      avatar: null,
-    },
-    {
-      id: 5,
-      name: 'Sophia Martinez',
-      username: '@sophia_voice',
-      role: 'Vocalist',
-      genres: ['Pop', 'Soul'],
-      location: 'Miami, FL',
-      experience: 'Professional',
-      completedProjects: 31,
-      avatar: null,
-    },
-    {
-      id: 6,
-      name: 'Jackson Lee',
-      username: '@j_producer',
-      role: 'Producer',
-      genres: ['Hip-Hop', 'R&B'],
-      location: 'Chicago, IL',
-      experience: 'Intermediate',
-      completedProjects: 15,
-      avatar: null,
-    },
-    {
-      id: 7,
-      name: 'Maya Patel',
-      username: '@maya_violin',
-      role: 'Violinist',
-      genres: ['Classical', 'World'],
-      location: 'San Francisco, CA',
-      experience: 'Professional',
-      completedProjects: 27,
-      avatar: null,
-    },
-    {
-      id: 8,
-      name: 'Alex Thompson',
-      username: '@alex_drums',
-      role: 'Drummer',
-      genres: ['Rock', 'Jazz'],
-      location: 'Portland, OR',
-      experience: 'Intermediate',
-      completedProjects: 19,
-      avatar: null,
-    },
-    {
-      id: 9,
-      name: 'Zoe Wang',
-      username: '@zoe_synth',
-      role: 'Producer',
-      genres: ['Electronic', 'Ambient'],
-      location: 'Seattle, WA',
-      experience: 'Professional',
-      completedProjects: 42,
-      avatar: null,
-    },
-  ];
-
-  const spotlightProjects = [
-    {
-      id: 1,
-      title: 'Indie Pop Album',
-      genre: 'Indie Pop',
-      lookingFor: ['Vocalist', 'Guitarist'],
-      collaborators: 3,
-      deadline: '2 weeks',
-      budget: '$500-1000',
-    },
-    {
-      id: 2,
-      title: 'Electronic EP',
-      genre: 'Electronic',
-      lookingFor: ['Producer', 'Vocalist'],
-      collaborators: 2,
-      deadline: '1 month',
-      budget: '$300-600',
-    },
-    {
-      id: 3,
-      title: 'Jazz Fusion Track',
-      genre: 'Jazz',
-      lookingFor: ['Saxophonist', 'Bassist'],
-      collaborators: 4,
-      deadline: '3 weeks',
-      budget: '$200-400',
-    },
-  ];
-
+  const profiles = [{
+    id: 1,
+    name: 'Sarah Johnson',
+    username: '@sarah_beats',
+    role: 'Producer',
+    genres: ['Pop', 'R&B'],
+    location: 'Los Angeles, CA',
+    experience: 'Professional',
+    avatar: null
+  }, {
+    id: 2,
+    name: 'Marcus Williams',
+    username: '@marcus_guitar',
+    role: 'Instrumentalist',
+    genres: ['Rock', 'Blues'],
+    location: 'Nashville, TN',
+    experience: 'Professional',
+    avatar: null
+  }, {
+    id: 3,
+    name: 'Emma Chen',
+    username: '@emma_writes',
+    role: 'Songwriter',
+    genres: ['Indie', 'Folk'],
+    location: 'Austin, TX',
+    experience: 'Intermediate',
+    avatar: null
+  }];
+  const suggestedCollaborators = [{
+    id: 4,
+    name: 'David Kim',
+    username: '@david_keys',
+    role: 'Pianist',
+    genres: ['Classical', 'Jazz'],
+    location: 'New York, NY',
+    experience: 'Professional',
+    completedProjects: 23,
+    avatar: null
+  }, {
+    id: 5,
+    name: 'Sophia Martinez',
+    username: '@sophia_voice',
+    role: 'Vocalist',
+    genres: ['Pop', 'Soul'],
+    location: 'Miami, FL',
+    experience: 'Professional',
+    completedProjects: 31,
+    avatar: null
+  }, {
+    id: 6,
+    name: 'Jackson Lee',
+    username: '@j_producer',
+    role: 'Producer',
+    genres: ['Hip-Hop', 'R&B'],
+    location: 'Chicago, IL',
+    experience: 'Intermediate',
+    completedProjects: 15,
+    avatar: null
+  }, {
+    id: 7,
+    name: 'Maya Patel',
+    username: '@maya_violin',
+    role: 'Violinist',
+    genres: ['Classical', 'World'],
+    location: 'San Francisco, CA',
+    experience: 'Professional',
+    completedProjects: 27,
+    avatar: null
+  }, {
+    id: 8,
+    name: 'Alex Thompson',
+    username: '@alex_drums',
+    role: 'Drummer',
+    genres: ['Rock', 'Jazz'],
+    location: 'Portland, OR',
+    experience: 'Intermediate',
+    completedProjects: 19,
+    avatar: null
+  }, {
+    id: 9,
+    name: 'Zoe Wang',
+    username: '@zoe_synth',
+    role: 'Producer',
+    genres: ['Electronic', 'Ambient'],
+    location: 'Seattle, WA',
+    experience: 'Professional',
+    completedProjects: 42,
+    avatar: null
+  }];
+  const spotlightProjects = [{
+    id: 1,
+    title: 'Indie Pop Album',
+    genre: 'Indie Pop',
+    lookingFor: ['Vocalist', 'Guitarist'],
+    collaborators: 3,
+    deadline: '2 weeks',
+    budget: '$500-1000'
+  }, {
+    id: 2,
+    title: 'Electronic EP',
+    genre: 'Electronic',
+    lookingFor: ['Producer', 'Vocalist'],
+    collaborators: 2,
+    deadline: '1 month',
+    budget: '$300-600'
+  }, {
+    id: 3,
+    title: 'Jazz Fusion Track',
+    genre: 'Jazz',
+    lookingFor: ['Saxophonist', 'Bassist'],
+    collaborators: 4,
+    deadline: '3 weeks',
+    budget: '$200-400'
+  }];
   const handleSearch = () => {
     setHasSearched(true);
   };
-
-  return (
-    <div className="p-10">
+  return <div className="p-10">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Browse Musicians</h1>
       </div>
@@ -246,17 +223,8 @@ const Browse = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Input 
-                placeholder="City or Location" 
-                value={location} 
-                onChange={(e) => setLocation(e.target.value)} 
-                className="flex-grow"
-              />
-              <Button 
-                className="bg-purple-600 hover:bg-purple-700 px-6 h-auto"
-                onClick={handleSearch}
-                aria-label="Search"
-              >
+              <Input placeholder="City or Location" value={location} onChange={e => setLocation(e.target.value)} className="flex-grow" />
+              <Button className="bg-purple-600 hover:bg-purple-700 px-6 h-auto" onClick={handleSearch} aria-label="Search">
                 <Search className="w-6 h-6" />
               </Button>
             </div>
@@ -264,11 +232,9 @@ const Browse = () => {
         </CardContent>
       </Card>
 
-      {hasSearched ? (
-        /* Search Results */
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {profiles.map((profile) => (
-            <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+      {hasSearched ? (/* Search Results */
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {profiles.map(profile => <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="text-center p-3">
                 <div className="w-14 h-14 bg-gray-300 rounded-full mx-auto mb-3"></div>
                 <CardTitle className="text-base">{profile.name}</CardTitle>
@@ -282,11 +248,9 @@ const Browse = () => {
                 </div>
                 
                 <div className="flex flex-wrap gap-1 justify-center">
-                  {profile.genres.map((genre) => (
-                    <Badge key={genre} variant="outline" className="text-xs">
+                  {profile.genres.map(genre => <Badge key={genre} variant="outline" className="text-xs">
                       {genre}
-                    </Badge>
-                  ))}
+                    </Badge>)}
                 </div>
 
                 <div className="flex items-center justify-center text-xs text-gray-500">
@@ -298,21 +262,17 @@ const Browse = () => {
                   View Profile
                 </Button>
               </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        /* Spotlight Projects and Suggested Collaborators */
-        <div className="space-y-10">
+            </Card>)}
+        </div>) : (/* Spotlight Projects and Suggested Collaborators */
+    <div className="space-y-10">
           {/* Spotlight Projects */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center">
-              <Star className="w-6 h-6 mr-2 text-yellow-500" />
+              <Star className="w-6 h-6 mr-2 text-violet-600" />
               Spotlight Projects
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {spotlightProjects.map((project) => (
-                <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+              {spotlightProjects.map(project => <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardHeader>
                     <CardTitle className="text-lg">{project.title}</CardTitle>
                     <Badge variant="outline" className="w-fit">
@@ -323,11 +283,9 @@ const Browse = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-2">Looking for:</p>
                       <div className="flex flex-wrap gap-2">
-                        {project.lookingFor.map((role) => (
-                          <Badge key={role} className="text-xs bg-purple-600 hover:bg-purple-700">
+                        {project.lookingFor.map(role => <Badge key={role} className="text-xs bg-purple-600 hover:bg-purple-700">
                             {role}
-                          </Badge>
-                        ))}
+                          </Badge>)}
                       </div>
                     </div>
                     
@@ -350,8 +308,7 @@ const Browse = () => {
                       Apply to Project
                     </Button>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </div>
 
@@ -359,8 +316,7 @@ const Browse = () => {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-5">Suggested Collaborators</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {suggestedCollaborators.map((profile) => (
-                <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+              {suggestedCollaborators.map(profile => <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardContent className="p-6">
                     <div className="flex items-center space-x-4 mb-4">
                       <div className="w-16 h-16 bg-gray-300 rounded-full flex-shrink-0"></div>
@@ -375,11 +331,9 @@ const Browse = () => {
                         <Badge className="bg-purple-600 hover:bg-purple-700 text-xs">
                           {profile.role}
                         </Badge>
-                        {profile.genres.map((genre) => (
-                          <Badge key={genre} variant="outline" className="text-xs">
+                        {profile.genres.map(genre => <Badge key={genre} variant="outline" className="text-xs">
                             {genre}
-                          </Badge>
-                        ))}
+                          </Badge>)}
                       </div>
 
                       <div className="flex items-center justify-between text-sm text-gray-500">
@@ -395,14 +349,10 @@ const Browse = () => {
                       </Button>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        </div>)}
+    </div>;
 };
-
 export default Browse;
