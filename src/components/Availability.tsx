@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAvailability } from '@/hooks/useAvailability';
@@ -19,13 +19,12 @@ import { useToast } from '@/hooks/use-toast';
 const Availability = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showAddAvailabilityDialog, setShowAddAvailabilityDialog] = useState(false);
-  const [availabilityType, setAvailabilityType] = useState("available");
+  const [availabilityType, setAvailabilityType] = useState("Available to collaborate");
   const [timeSelection, setTimeSelection] = useState("morning");
   const [customStartTime, setCustomStartTime] = useState("");
   const [customEndTime, setCustomEndTime] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("studio");
-  const [notes, setNotes] = useState("");
+  const [selectedDayOfWeek, setSelectedDayOfWeek] = useState(0);
+  const [isRecurring, setIsRecurring] = useState(true);
   
   const { availabilities, loading: availabilityLoading, addAvailability, deleteAvailability } = useAvailability();
   const { sessions, loading: sessionsLoading, deleteSession } = useSessions();
@@ -36,17 +35,17 @@ const Availability = () => {
   };
 
   const handleAddAvailability = async () => {
-    if (!selectedDate) {
+    if (!isRecurring && selectedDayOfWeek === undefined) {
       toast({
         title: "Error",
-        description: "Please select a date",
+        description: "Please select a day of the week",
         variant: "destructive",
       });
       return;
     }
 
-    let startTime = "";
-    let endTime = "";
+    let startTime: string | undefined = undefined;
+    let endTime: string | undefined = undefined;
 
     if (timeSelection === "custom") {
       if (!customStartTime || !customEndTime) {
@@ -59,54 +58,52 @@ const Availability = () => {
       }
       startTime = customStartTime;
       endTime = customEndTime;
-    } else {
-      // Convert predefined time slots
-      switch (timeSelection) {
-        case "morning":
-          startTime = "09:00";
-          endTime = "12:00";
-          break;
-        case "afternoon":
-          startTime = "12:00";
-          endTime = "17:00";
-          break;
-        case "evening":
-          startTime = "17:00";
-          endTime = "22:00";
-          break;
-      }
     }
 
     try {
       await addAvailability({
-        date: selectedDate,
+        availability_type: availabilityType,
+        day_of_week: selectedDayOfWeek,
+        period: timeSelection as 'morning' | 'afternoon' | 'evening' | 'custom',
         start_time: startTime,
         end_time: endTime,
-        status: availabilityType as 'available' | 'busy' | 'partially_available',
-        notes: notes || undefined
+        is_active: true
       });
       
       setShowAddAvailabilityDialog(false);
-      setSelectedDate("");
+      setSelectedDayOfWeek(0);
       setCustomStartTime("");
       setCustomEndTime("");
-      setNotes("");
       setTimeSelection("morning");
     } catch (error) {
       // Error handling is done in the hook
     }
   };
 
-  const formatTimeRange = (startTime: string, endTime: string) => {
-    const formatTime = (time: string) => {
-      const [hours, minutes] = time.split(':');
-      const hour = parseInt(hours);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const displayHour = hour % 12 || 12;
-      return `${displayHour}:${minutes} ${ampm}`;
-    };
-    
-    return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+  const formatTimeRange = (startTime: string | null, endTime: string | null, period: string) => {
+    if (startTime && endTime) {
+      const formatTime = (time: string) => {
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+      };
+      
+      return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    }
+
+    // Fallback to period names
+    switch (period) {
+      case 'morning':
+        return '9:00 AM - 12:00 PM';
+      case 'afternoon':
+        return '12:00 PM - 5:00 PM';
+      case 'evening':
+        return '5:00 PM - 10:00 PM';
+      default:
+        return 'Custom time';
+    }
   };
 
   const formatSessionTime = (startTime: string, endTime: string) => {
@@ -125,6 +122,11 @@ const Availability = () => {
     return `${startStr} - ${endStr}`;
   };
 
+  const getDayName = (dayOfWeek: number) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[dayOfWeek];
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8 flex justify-between items-center">
@@ -140,7 +142,7 @@ const Availability = () => {
         <Card className="flex-grow lg:w-3/5">
           <CardHeader>
             <CardTitle>Your Schedule</CardTitle>
-            <CardDescription>Select a date to see or set your availability</CardDescription>
+            <CardDescription>Manage your recurring availability</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
             <Calendar
@@ -152,72 +154,52 @@ const Availability = () => {
             />
           </CardContent>
           <CardContent className="pt-0">
-            {date && (
-              <div className="mt-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">
-                    {date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                  </h3>
-                  <Button 
-                    onClick={() => {
-                      setSelectedDate(date.toISOString().split('T')[0]);
-                      setShowAddAvailabilityDialog(true);
-                    }}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Plus className="w-4 h-4 mr-2" /> Add Availability
-                  </Button>
-                </div>
-                <div>
-                  {availabilityLoading ? (
-                    <div className="text-center py-8">Loading...</div>
-                  ) : (
-                    <>
-                      {availabilities
-                        .filter(a => a.date === date.toISOString().split('T')[0])
-                        .map(availability => (
-                          <div key={availability.id} className="p-3 border rounded-md flex justify-between items-center mb-3">
-                            <div>
-                              <div className="font-medium">
-                                {formatTimeRange(availability.start_time, availability.end_time)}
-                              </div>
-                              {availability.notes && (
-                                <div className="text-sm text-gray-500">{availability.notes}</div>
-                              )}
-                            </div>
-                            <div className="flex gap-2">
-                              <Badge 
-                                className={
-                                  availability.status === 'available' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : availability.status === 'busy'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }
-                              >
-                                {availability.status === 'available' ? 'Available' : 
-                                 availability.status === 'busy' ? 'Busy' : 'Partially Available'}
-                              </Badge>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => deleteAvailability(availability.id)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      {availabilities.filter(a => a.date === date.toISOString().split('T')[0]).length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          No availability set for this day
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
+            <div className="mt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium">Weekly Availability</h3>
+                <Button 
+                  onClick={() => setShowAddAvailabilityDialog(true)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" /> Add Availability
+                </Button>
               </div>
-            )}
+              <div>
+                {availabilityLoading ? (
+                  <div className="text-center py-8">Loading...</div>
+                ) : (
+                  <>
+                    {availabilities.map(availability => (
+                      <div key={availability.id} className="p-3 border rounded-md flex justify-between items-center mb-3">
+                        <div>
+                          <div className="font-medium">
+                            {getDayName(availability.day_of_week)} - {formatTimeRange(availability.start_time, availability.end_time, availability.period)}
+                          </div>
+                          <div className="text-sm text-gray-500">{availability.availability_type}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className="bg-green-100 text-green-800">
+                            Active
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteAvailability(availability.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {availabilities.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        No availability set yet
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -226,7 +208,7 @@ const Availability = () => {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Your Availability</CardTitle>
-              <CardDescription>Times you've marked as available</CardDescription>
+              <CardDescription>Weekly recurring availability</CardDescription>
             </CardHeader>
             <CardContent>
               {availabilityLoading ? (
@@ -237,27 +219,14 @@ const Availability = () => {
                     <div key={availability.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <div className="font-medium">
-                          {new Date(availability.date).toLocaleDateString('en-US', { 
-                            month: 'long', 
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
+                          {getDayName(availability.day_of_week)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {formatTimeRange(availability.start_time, availability.end_time)}
+                          {formatTimeRange(availability.start_time, availability.end_time, availability.period)}
                         </div>
                       </div>
-                      <Badge 
-                        className={
-                          availability.status === 'available' 
-                            ? 'bg-green-100 text-green-800' 
-                            : availability.status === 'busy'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }
-                      >
-                        {availability.status === 'available' ? 'Available' : 
-                         availability.status === 'busy' ? 'Busy' : 'Partially Available'}
+                      <Badge className="bg-green-100 text-green-800">
+                        {availability.availability_type}
                       </Badge>
                     </div>
                   ))}
@@ -333,44 +302,42 @@ const Availability = () => {
       <Dialog open={showAddAvailabilityDialog} onOpenChange={setShowAddAvailabilityDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Set Availability</DialogTitle>
+            <DialogTitle>Set Weekly Availability</DialogTitle>
             <DialogDescription>
-              Let others know when you're available or when you have something scheduled.
+              Set your recurring weekly availability for collaboration.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {/* Availability Type Selection */}
-            <div className="space-y-3">
-              <Label>Status</Label>
-              <RadioGroup value={availabilityType} onValueChange={setAvailabilityType}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="available" id="available" />
-                  <Label htmlFor="available">Available - Free for collaboration</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="busy" id="busy" />
-                  <Label htmlFor="busy">Busy - Already have something planned</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="partially_available" id="partially_available" />
-                  <Label htmlFor="partially_available">Partially Available - Limited availability</Label>
-                </div>
-              </RadioGroup>
+            <div className="space-y-2">
+              <Label htmlFor="availability-type">Availability Type</Label>
+              <Input
+                id="availability-type"
+                placeholder="e.g. Available to record, Available for mixing"
+                value={availabilityType}
+                onChange={(e) => setAvailabilityType(e.target.value)}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input 
-                  id="date" 
-                  type="date" 
-                  className="w-full" 
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                />
+                <Label htmlFor="day">Day of Week</Label>
+                <Select value={selectedDayOfWeek.toString()} onValueChange={(value) => setSelectedDayOfWeek(parseInt(value))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Sunday</SelectItem>
+                    <SelectItem value="1">Monday</SelectItem>
+                    <SelectItem value="2">Tuesday</SelectItem>
+                    <SelectItem value="3">Wednesday</SelectItem>
+                    <SelectItem value="4">Thursday</SelectItem>
+                    <SelectItem value="5">Friday</SelectItem>
+                    <SelectItem value="6">Saturday</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="time">Time</Label>
+                <Label htmlFor="time">Time Period</Label>
                 <Select value={timeSelection} onValueChange={setTimeSelection}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select time" />
@@ -409,17 +376,6 @@ const Availability = () => {
                 </div>
               </div>
             )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Textarea 
-                id="notes"
-                placeholder="Add any additional details"
-                className="w-full"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddAvailabilityDialog(false)}>

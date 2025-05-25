@@ -6,11 +6,12 @@ import { useToast } from '@/hooks/use-toast';
 export interface Availability {
   id: string;
   user_id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: 'available' | 'busy' | 'partially_available';
-  notes?: string;
+  availability_type: string;
+  day_of_week: number;
+  period: 'morning' | 'afternoon' | 'evening' | 'custom';
+  start_time: string | null;
+  end_time: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -24,7 +25,7 @@ export const useAvailability = () => {
       const { data, error } = await supabase
         .from('user_availability')
         .select('*')
-        .order('date', { ascending: true });
+        .order('day_of_week', { ascending: true });
 
       if (error) throw error;
       setAvailabilities(data || []);
@@ -40,14 +41,25 @@ export const useAvailability = () => {
     }
   };
 
-  const addAvailability = async (availability: Omit<Availability, 'id' | 'user_id' | 'created_at'>) => {
+  const addAvailability = async (availability: {
+    availability_type: string;
+    day_of_week: number;
+    period: 'morning' | 'afternoon' | 'evening' | 'custom';
+    start_time?: string;
+    end_time?: string;
+    is_active?: boolean;
+  }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('user_availability')
-        .insert([{ ...availability, user_id: user.id }])
+        .insert([{ 
+          ...availability, 
+          user_id: user.id,
+          is_active: availability.is_active ?? true
+        }])
         .select()
         .single();
 
