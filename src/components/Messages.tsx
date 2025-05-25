@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Search, Plus, Paperclip, Calendar } from 'lucide-react';
+import { Send, Search, Plus, Paperclip, Calendar, MoreHorizontal, Trash2, Flag } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import NewMessageDialog from './NewMessageDialog';
 
 const Messages = () => {
@@ -19,6 +21,7 @@ const Messages = () => {
       time: '2 min ago',
       unread: 2,
       avatar: null,
+      isGroup: false,
     },
     {
       id: 2,
@@ -27,14 +30,16 @@ const Messages = () => {
       time: '1 hour ago',
       unread: 0,
       avatar: null,
+      isGroup: false,
     },
     {
       id: 3,
-      name: 'Emma Chen',
-      lastMessage: 'Thanks for the collaboration opportunity',
+      name: 'Project Team - Summer Vibes',
+      lastMessage: 'Emma: Thanks for the collaboration opportunity',
       time: '3 hours ago',
       unread: 1,
       avatar: null,
+      isGroup: true,
     },
   ];
 
@@ -63,14 +68,22 @@ const Messages = () => {
   ];
 
   const handleSendFile = () => {
-    // Handle file sending logic
     console.log('Send file clicked');
   };
 
   const handleScheduleEvent = () => {
-    // Handle event scheduling logic
     console.log('Schedule event clicked');
   };
+
+  const handleDeleteChat = () => {
+    console.log('Delete chat clicked');
+  };
+
+  const handleReportChat = () => {
+    console.log('Report chat clicked');
+  };
+
+  const selectedChatData = chats.find(chat => chat.id === selectedChat);
 
   return (
     <div className="p-10 h-screen flex flex-col">
@@ -105,7 +118,9 @@ const Messages = () => {
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                    <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                      {chat.isGroup && <span className="text-xs">👥</span>}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium truncate">{chat.name}</h4>
@@ -128,12 +143,35 @@ const Messages = () => {
         {/* Chat Window */}
         <Card className="lg:col-span-2 flex flex-col">
           <CardHeader className="border-b">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-              <div>
-                <CardTitle className="text-lg">Sarah Johnson</CardTitle>
-                <p className="text-sm text-gray-500">Producer • Online now</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                  {selectedChatData?.isGroup && <span className="text-xs">👥</span>}
+                </div>
+                <div>
+                  <CardTitle className="text-lg">{selectedChatData?.name}</CardTitle>
+                  <p className="text-sm text-gray-500">
+                    {selectedChatData?.isGroup ? '3 members' : 'Producer • Online now'}
+                  </p>
+                </div>
               </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleDeleteChat} className="text-red-600">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Chat
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleReportChat}>
+                    <Flag className="w-4 h-4 mr-2" />
+                    Report
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </CardHeader>
           

@@ -84,6 +84,42 @@ export const useConflicts = () => {
     }
   };
 
+  const updateConflict = async (id: string, updates: {
+    title?: string;
+    description?: string;
+    start_date?: string;
+    end_date?: string;
+    start_time?: string;
+    end_time?: string;
+    is_all_day?: boolean;
+  }) => {
+    try {
+      const { data, error } = await supabase
+        .from('conflicts')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setConflicts(prev => prev.map(item => item.id === id ? data : item));
+      toast({
+        title: "Success",
+        description: "Conflict updated successfully",
+      });
+      return data;
+    } catch (error) {
+      console.error('Error updating conflict:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update conflict",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const deleteConflict = async (id: string) => {
     try {
       const { error } = await supabase
@@ -116,6 +152,7 @@ export const useConflicts = () => {
     conflicts,
     loading,
     addConflict,
+    updateConflict,
     deleteConflict,
     refetch: fetchConflicts
   };
