@@ -283,7 +283,7 @@ const Browse = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-2">Looking for:</p>
                       <div className="flex flex-wrap gap-2">
-                        {project.lookingFor.map(role => <Badge key={role} className="text-xs bg-purple-600 hover:bg-purple-700">
+                        {project.lookingFor.map(role => <Badge key={role} className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-700">
                             {role}
                           </Badge>)}
                       </div>
@@ -328,7 +328,7 @@ const Browse = () => {
                     
                     <div className="space-y-3">
                       <div className="flex flex-wrap gap-2">
-                        <Badge className="bg-purple-600 hover:bg-purple-700 text-xs">
+                        <Badge className="bg-purple-100 hover:bg-purple-200 text-xs text-purple-700">
                           {profile.role}
                         </Badge>
                         {profile.genres.map(genre => <Badge key={genre} variant="outline" className="text-xs">
