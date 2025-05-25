@@ -299,8 +299,8 @@ const Home = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img src="/lovable-uploads/473e0e70-6ce1-470c-989b-502bc6fc4f4e.png" alt="Octava Logo" className="w-8 h-8" />
-              <span className="font-bold text-xl text-white">Octava</span>
+              <img alt="Octava Logo" src="/lovable-uploads/6c933b1f-4a8c-4a0f-94f0-6f39e012c213.png" className="h-8" />
+              
             </div>
             <p className="text-sm">
               Connecting musicians and creators worldwide.
