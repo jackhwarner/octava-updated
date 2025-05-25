@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import NewMessageDialog from './NewMessageDialog';
+import GroupAvatar from './GroupAvatar';
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState(1);
@@ -26,6 +27,7 @@ const Messages = () => {
       unread: 2,
       avatar: null,
       isGroup: false,
+      participants: [{ name: 'Sarah Johnson', username: '@sarah_beats' }],
     },
     {
       id: 2,
@@ -35,6 +37,7 @@ const Messages = () => {
       unread: 0,
       avatar: null,
       isGroup: false,
+      participants: [{ name: 'Marcus Williams', username: '@marcus_guitar' }],
     },
     {
       id: 3,
@@ -44,6 +47,11 @@ const Messages = () => {
       unread: 1,
       avatar: null,
       isGroup: true,
+      participants: [
+        { name: 'Emma Chen', username: '@emma_writes' },
+        { name: 'David Kim', username: '@david_keys' },
+        { name: 'Sophia Martinez', username: '@sophia_voice' }
+      ],
     },
   ];
 
@@ -136,9 +144,12 @@ const Messages = () => {
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                      {chat.isGroup && <span className="text-xs">👥</span>}
-                    </div>
+                    {chat.isGroup ? (
+                      <GroupAvatar participants={chat.participants} size="md" />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium truncate">{chat.name}</h4>
@@ -163,13 +174,16 @@ const Messages = () => {
           <CardHeader className="border-b">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                  {selectedChatData?.isGroup && <span className="text-xs">👥</span>}
-                </div>
+                {selectedChatData?.isGroup ? (
+                  <GroupAvatar participants={selectedChatData.participants} size="md" />
+                ) : (
+                  <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                  </div>
+                )}
                 <div>
                   <CardTitle className="text-lg">{selectedChatData?.name}</CardTitle>
                   <p className="text-sm text-gray-500">
-                    {selectedChatData?.isGroup ? '3 members' : 'Producer • Online now'}
+                    {selectedChatData?.isGroup ? `${selectedChatData.participants.length} members` : 'Producer • Online now'}
                   </p>
                 </div>
               </div>

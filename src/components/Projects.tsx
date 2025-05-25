@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,10 +17,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useProjects } from '@/hooks/useProjects';
+import { useFakeProjects } from '@/hooks/useFakeProjects';
 
 const Projects = () => {
-  const { projects, loading, addProject, deleteProject } = useProjects();
+  const { projects, loading, addProject, deleteProject } = useFakeProjects();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
@@ -103,7 +102,6 @@ const Projects = () => {
         description: projectDescription,
         genre: projectGenre,
         visibility: projectVisibility as 'public' | 'private' | 'connections_only',
-        deadline: projectDeadline || undefined,
       });
       
       setShowNewProjectDialog(false);

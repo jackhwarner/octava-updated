@@ -1,4 +1,5 @@
-import { Home, Search, MessageCircle, FolderOpen, Settings, HelpCircle, User, Bell, Calendar } from 'lucide-react';
+
+import { Home, Search, MessageCircle, FolderOpen, Settings, HelpCircle, User, Bell } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -31,10 +32,6 @@ const Sidebar = ({
     id: 'projects',
     label: 'Projects',
     icon: FolderOpen
-  }, {
-    id: 'availability',
-    label: 'Availability',
-    icon: Calendar
   }];
   const notifications = [{
     id: 1,
