@@ -7,12 +7,9 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
 import AboutYouStep from './ProfileSetup/AboutYouStep';
 import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
-
-type UserRole = Database['public']['Enums']['user_role'];
 
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -150,21 +147,24 @@ const ProfileSetup = () => {
       // Upload music files if provided
       const musicUrls = await uploadMusicFiles(profileData.musicFiles);
 
-      // Update the user's profile in the database
+      // Update the user's profile in the database using the new schema
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
           full_name: profileData.name,
+          name: profileData.name, // New field in updated schema
           username: profileData.username,
           bio: profileData.bio,
           location: profileData.location,
-          experience_level: profileData.experience,
+          experience: profileData.experience, // Updated field name
           genres: profileData.genres,
           skills: profileData.instruments,
-          primary_role: profileData.role as UserRole,
+          role: profileData.role, // Updated field name
           avatar_url: avatarUrl,
+          profile_picture_url: avatarUrl, // New field in updated schema
           portfolio_urls: musicUrls.length > 0 ? musicUrls : null,
+          visibility: 'public'
         });
 
       if (error) {

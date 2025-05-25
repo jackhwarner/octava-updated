@@ -6,12 +6,12 @@ import { useToast } from '@/hooks/use-toast';
 export interface Availability {
   id: string;
   user_id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  category: string;
-  title?: string;
-  notes?: string;
+  day_of_week: number;
+  period: 'morning' | 'afternoon' | 'evening' | 'custom';
+  start_time?: string;
+  end_time?: string;
+  availability_type: string;
+  is_active?: boolean;
   created_at: string;
 }
 
@@ -25,24 +25,11 @@ export const useAvailability = () => {
       const { data, error } = await supabase
         .from('user_availability')
         .select('*')
-        .order('date', { ascending: true });
+        .order('day_of_week', { ascending: true });
 
       if (error) throw error;
       
-      // Map the data to match our interface
-      const mappedData = (data || []).map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        date: item.date,
-        start_time: item.start_time,
-        end_time: item.end_time,
-        category: item.category || 'open',
-        title: item.title || undefined,
-        notes: item.notes || undefined,
-        created_at: item.created_at
-      }));
-      
-      setAvailabilities(mappedData);
+      setAvailabilities(data || []);
     } catch (error) {
       console.error('Error fetching availabilities:', error);
       toast({
@@ -68,24 +55,12 @@ export const useAvailability = () => {
 
       if (error) throw error;
 
-      const mappedData = {
-        id: data.id,
-        user_id: data.user_id,
-        date: data.date,
-        start_time: data.start_time,
-        end_time: data.end_time,
-        category: data.category || 'open',
-        title: data.title || undefined,
-        notes: data.notes || undefined,
-        created_at: data.created_at
-      };
-
-      setAvailabilities(prev => [...prev, mappedData]);
+      setAvailabilities(prev => [...prev, data]);
       toast({
         title: "Success",
         description: "Availability added successfully",
       });
-      return mappedData;
+      return data;
     } catch (error) {
       console.error('Error adding availability:', error);
       toast({

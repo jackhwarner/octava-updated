@@ -65,9 +65,17 @@ const Profile = () => {
       
       setProfile(profileData);
       
-      // Check if following (you would need a follows table for this)
-      // For now, we'll just set it to false
-      setIsFollowing(false);
+      // Check if following
+      if (currentUser) {
+        const { data: followData } = await supabase
+          .from('followers')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', profileUserId)
+          .single();
+        
+        setIsFollowing(!!followData);
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       toast({
@@ -81,11 +89,45 @@ const Profile = () => {
   };
 
   const handleFollow = async () => {
-    // Implement follow functionality
-    toast({
-      title: "Follow feature",
-      description: "Follow functionality will be implemented soon!"
-    });
+    if (!currentUser || !profile) return;
+    
+    try {
+      if (isFollowing) {
+        // Unfollow
+        await supabase
+          .from('followers')
+          .delete()
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', profile.id);
+        
+        setIsFollowing(false);
+        toast({
+          title: "Unfollowed",
+          description: `You are no longer following ${profile.full_name || profile.username}`
+        });
+      } else {
+        // Follow
+        await supabase
+          .from('followers')
+          .insert({
+            follower_id: currentUser.id,
+            following_id: profile.id
+          });
+        
+        setIsFollowing(true);
+        toast({
+          title: "Following",
+          description: `You are now following ${profile.full_name || profile.username}`
+        });
+      }
+    } catch (error) {
+      console.error('Error updating follow status:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update follow status"
+      });
+    }
   };
 
   const handleMessage = async () => {
@@ -129,9 +171,9 @@ const Profile = () => {
         <CardContent className="p-8">
           <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
             <Avatar className="w-24 h-24">
-              <AvatarImage src={profile.avatar_url} />
+              <AvatarImage src={profile.avatar_url || profile.profile_picture_url} />
               <AvatarFallback className="text-2xl">
-                {profile.full_name?.charAt(0) || profile.email?.charAt(0) || '?'}
+                {profile.full_name?.charAt(0) || profile.name?.charAt(0) || profile.email?.charAt(0) || '?'}
               </AvatarFallback>
             </Avatar>
             
@@ -139,14 +181,14 @@ const Profile = () => {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                    {profile.full_name || 'Unknown User'}
+                    {profile.full_name || profile.name || 'Unknown User'}
                   </h1>
                   {profile.username && (
                     <p className="text-lg text-gray-600">@{profile.username}</p>
                   )}
-                  {profile.primary_role && (
+                  {profile.role && (
                     <Badge variant="secondary" className="mt-2">
-                      {profile.primary_role}
+                      {profile.role}
                     </Badge>
                   )}
                 </div>
@@ -182,10 +224,10 @@ const Profile = () => {
                     {profile.location}
                   </div>
                 )}
-                {profile.experience_level && (
+                {profile.experience && (
                   <div className="flex items-center">
                     <Clock className="w-4 h-4 mr-1" />
-                    {profile.experience_level} experience
+                    {profile.experience} experience
                   </div>
                 )}
                 {profile.hourly_rate && (

@@ -9,35 +9,225 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      event_invites: {
+        Row: {
+          event_id: string
+          id: string
+          invited_at: string | null
+          invited_by: string
+          invited_user: string
+          responded_at: string | null
+          status: Database["public"]["Enums"]["collaboration_status"] | null
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          invited_at?: string | null
+          invited_by: string
+          invited_user: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["collaboration_status"] | null
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          invited_at?: string | null
+          invited_by?: string
+          invited_user?: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["collaboration_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_invites_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_invites_invited_user_fkey"
+            columns: ["invited_user"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          end_time: string
+          id: string
+          location: string | null
+          name: string
+          project_id: string | null
+          start_time: string
+          visibility: Database["public"]["Enums"]["visibility_type"] | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          end_time: string
+          id?: string
+          location?: string | null
+          name: string
+          project_id?: string | null
+          start_time: string
+          visibility?: Database["public"]["Enums"]["visibility_type"] | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          location?: string | null
+          name?: string
+          project_id?: string | null
+          start_time?: string
+          visibility?: Database["public"]["Enums"]["visibility_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      followers: {
+        Row: {
+          created_at: string | null
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followers_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followers_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_threads: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          id: string
+          is_group: boolean | null
+          name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_group?: boolean | null
+          name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_group?: boolean | null
+          name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
           created_at: string | null
+          event_invite_id: string | null
+          file_urls: string[] | null
           id: string
           project_id: string | null
           read_at: string | null
           recipient_id: string | null
           sender_id: string
+          thread_id: string | null
         }
         Insert: {
           content: string
           created_at?: string | null
+          event_invite_id?: string | null
+          file_urls?: string[] | null
           id?: string
           project_id?: string | null
           read_at?: string | null
           recipient_id?: string | null
           sender_id: string
+          thread_id?: string | null
         }
         Update: {
           content?: string
           created_at?: string | null
+          event_invite_id?: string | null
+          file_urls?: string[] | null
           id?: string
           project_id?: string | null
           read_at?: string | null
           recipient_id?: string | null
           sender_id?: string
+          thread_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_messages_event_invite"
+            columns: ["event_invite_id"]
+            isOneToOne: false
+            referencedRelation: "event_invites"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_project_id_fkey"
             columns: ["project_id"]
@@ -59,14 +249,22 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notifications: {
         Row: {
           created_at: string | null
           id: string
+          is_read: boolean | null
           message: string
-          read_at: string | null
+          payload: Json | null
           title: string
           type: string | null
           user_id: string
@@ -74,8 +272,9 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           message: string
-          read_at?: string | null
+          payload?: Json | null
           title: string
           type?: string | null
           user_id: string
@@ -83,8 +282,9 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           message?: string
-          read_at?: string | null
+          payload?: Json | null
           title?: string
           type?: string | null
           user_id?: string
@@ -105,51 +305,63 @@ export type Database = {
           bio: string | null
           created_at: string | null
           email: string | null
-          experience_level: string | null
+          experience: string | null
           full_name: string | null
           genres: string[] | null
           hourly_rate: number | null
           id: string
           location: string | null
+          name: string | null
           portfolio_urls: string[] | null
-          primary_role: Database["public"]["Enums"]["user_role"] | null
+          profile_picture_url: string | null
+          role: string | null
           skills: string[] | null
           updated_at: string | null
           username: string | null
+          visibility: Database["public"]["Enums"]["visibility_type"] | null
+          zip_code: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
-          experience_level?: string | null
+          experience?: string | null
           full_name?: string | null
           genres?: string[] | null
           hourly_rate?: number | null
           id: string
           location?: string | null
+          name?: string | null
           portfolio_urls?: string[] | null
-          primary_role?: Database["public"]["Enums"]["user_role"] | null
+          profile_picture_url?: string | null
+          role?: string | null
           skills?: string[] | null
           updated_at?: string | null
           username?: string | null
+          visibility?: Database["public"]["Enums"]["visibility_type"] | null
+          zip_code?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
-          experience_level?: string | null
+          experience?: string | null
           full_name?: string | null
           genres?: string[] | null
           hourly_rate?: number | null
           id?: string
           location?: string | null
+          name?: string | null
           portfolio_urls?: string[] | null
-          primary_role?: Database["public"]["Enums"]["user_role"] | null
+          profile_picture_url?: string | null
+          role?: string | null
           skills?: string[] | null
           updated_at?: string | null
           username?: string | null
+          visibility?: Database["public"]["Enums"]["visibility_type"] | null
+          zip_code?: string | null
         }
         Relationships: []
       }
@@ -191,6 +403,58 @@ export type Database = {
           },
           {
             foreignKeyName: "project_collaborators_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_editors: {
+        Row: {
+          accepted_at: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          project_id: string
+          status: Database["public"]["Enums"]["collaboration_status"] | null
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          project_id: string
+          status?: Database["public"]["Enums"]["collaboration_status"] | null
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          project_id?: string
+          status?: Database["public"]["Enums"]["collaboration_status"] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_editors_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_editors_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_editors_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -257,10 +521,12 @@ export type Database = {
           description: string | null
           genre: string | null
           id: string
+          name: string | null
           owner_id: string
           status: Database["public"]["Enums"]["project_status"] | null
-          title: string
+          title: string | null
           updated_at: string | null
+          visibility: Database["public"]["Enums"]["visibility_type"] | null
         }
         Insert: {
           budget?: number | null
@@ -269,10 +535,12 @@ export type Database = {
           description?: string | null
           genre?: string | null
           id?: string
+          name?: string | null
           owner_id: string
           status?: Database["public"]["Enums"]["project_status"] | null
-          title: string
+          title?: string | null
           updated_at?: string | null
+          visibility?: Database["public"]["Enums"]["visibility_type"] | null
         }
         Update: {
           budget?: number | null
@@ -281,10 +549,12 @@ export type Database = {
           description?: string | null
           genre?: string | null
           id?: string
+          name?: string | null
           owner_id?: string
           status?: Database["public"]["Enums"]["project_status"] | null
-          title?: string
+          title?: string | null
           updated_at?: string | null
+          visibility?: Database["public"]["Enums"]["visibility_type"] | null
         }
         Relationships: [
           {
@@ -389,41 +659,131 @@ export type Database = {
           },
         ]
       }
-      user_availability: {
+      songs: {
         Row: {
-          category: string | null
           created_at: string | null
-          date: string
-          end_time: string
+          duration: number | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string
           id: string
-          notes: string | null
-          start_time: string
-          status: Database["public"]["Enums"]["availability_status"] | null
-          title: string | null
+          project_id: string | null
+          title: string
+          user_id: string
+          visibility: Database["public"]["Enums"]["visibility_type"] | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration?: number | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          project_id?: string | null
+          title: string
+          user_id: string
+          visibility?: Database["public"]["Enums"]["visibility_type"] | null
+        }
+        Update: {
+          created_at?: string | null
+          duration?: number | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          project_id?: string | null
+          title?: string
+          user_id?: string
+          visibility?: Database["public"]["Enums"]["visibility_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "songs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "songs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thread_participants: {
+        Row: {
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          thread_id: string
           user_id: string
         }
         Insert: {
-          category?: string | null
-          created_at?: string | null
-          date: string
-          end_time: string
           id?: string
-          notes?: string | null
-          start_time: string
-          status?: Database["public"]["Enums"]["availability_status"] | null
-          title?: string | null
+          joined_at?: string | null
+          left_at?: string | null
+          thread_id: string
           user_id: string
         }
         Update: {
-          category?: string | null
-          created_at?: string | null
-          date?: string
-          end_time?: string
           id?: string
-          notes?: string | null
-          start_time?: string
-          status?: Database["public"]["Enums"]["availability_status"] | null
-          title?: string | null
+          joined_at?: string | null
+          left_at?: string | null
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_participants_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_availability: {
+        Row: {
+          availability_type: string
+          created_at: string | null
+          day_of_week: number
+          end_time: string | null
+          id: string
+          is_active: boolean | null
+          period: Database["public"]["Enums"]["availability_period"]
+          start_time: string | null
+          user_id: string
+        }
+        Insert: {
+          availability_type: string
+          created_at?: string | null
+          day_of_week: number
+          end_time?: string | null
+          id?: string
+          is_active?: boolean | null
+          period: Database["public"]["Enums"]["availability_period"]
+          start_time?: string | null
+          user_id: string
+        }
+        Update: {
+          availability_type?: string
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string | null
+          id?: string
+          is_active?: boolean | null
+          period?: Database["public"]["Enums"]["availability_period"]
+          start_time?: string | null
           user_id?: string
         }
         Relationships: [
@@ -436,16 +796,58 @@ export type Database = {
           },
         ]
       }
+      user_links: {
+        Row: {
+          created_at: string | null
+          id: string
+          label: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          label?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          label?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      are_mutual_followers: {
+        Args: { user1_id: string; user2_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      availability_period: "morning" | "afternoon" | "evening" | "custom"
       availability_status: "available" | "busy" | "partially_available"
       collaboration_status: "pending" | "accepted" | "declined" | "completed"
+      notification_type:
+        | "message"
+        | "follow"
+        | "project_invite"
+        | "event_invite"
+        | "collaboration_request"
       project_status: "active" | "completed" | "paused" | "cancelled"
       session_type:
         | "recording"
@@ -463,6 +865,7 @@ export type Database = {
         | "composer"
         | "engineer"
         | "other"
+      visibility_type: "public" | "private" | "unlisted"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -578,8 +981,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      availability_period: ["morning", "afternoon", "evening", "custom"],
       availability_status: ["available", "busy", "partially_available"],
       collaboration_status: ["pending", "accepted", "declined", "completed"],
+      notification_type: [
+        "message",
+        "follow",
+        "project_invite",
+        "event_invite",
+        "collaboration_request",
+      ],
       project_status: ["active", "completed", "paused", "cancelled"],
       session_type: [
         "recording",
@@ -599,6 +1010,7 @@ export const Constants = {
         "engineer",
         "other",
       ],
+      visibility_type: ["public", "private", "unlisted"],
     },
   },
 } as const
