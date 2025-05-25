@@ -17,9 +17,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useNavigate } from 'react-router-dom';
 import { useFakeProjects } from '@/hooks/useFakeProjects';
 
 const Projects = () => {
+  const navigate = useNavigate();
   const { projects, loading, addProject, deleteProject } = useFakeProjects();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
@@ -132,6 +134,10 @@ const Projects = () => {
     setShowAddToFolderDialog(false);
     setSelectedProjectId(null);
     setNewFolderName('');
+  };
+
+  const handleOpenProject = (projectId: string) => {
+    navigate(`/projects/${projectId}`);
   };
 
   const renderBreadcrumb = () => {
@@ -285,7 +291,10 @@ const Projects = () => {
                   </div>
 
                   <div className="flex space-x-2">
-                    <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
+                    <Button 
+                      className="flex-1 bg-purple-600 hover:bg-purple-700"
+                      onClick={() => handleOpenProject(project.id)}
+                    >
                       <Music className="w-4 h-4 mr-2" />
                       Open
                     </Button>
