@@ -76,21 +76,43 @@ export const useProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Map our interface values to database values and ensure proper typing
-      const dbUpdates: any = {
+      // Map our interface values to database values
+      const dbUpdates = {
         ...updates,
         visibility: updates.visibility === 'connections_only' ? 'unlisted' : updates.visibility
       };
 
-      // Remove any undefined values and ensure we have the required id
-      const cleanUpdates = Object.fromEntries(
-        Object.entries(dbUpdates).filter(([_, value]) => value !== undefined)
-      );
-      cleanUpdates.id = user.id;
+      // Create properly typed update object with required id
+      const updateData: {
+        id: string;
+        avatar_url?: string;
+        bio?: string;
+        created_at?: string;
+        email?: string;
+        experience?: string;
+        full_name?: string;
+        genres?: string[];
+        hourly_rate?: number;
+        location?: string;
+        name?: string;
+        portfolio_urls?: string[];
+        profile_picture_url?: string;
+        role?: string;
+        skills?: string[];
+        updated_at?: string;
+        username?: string;
+        visibility?: 'public' | 'private' | 'unlisted';
+        zip_code?: string;
+      } = {
+        id: user.id,
+        ...Object.fromEntries(
+          Object.entries(dbUpdates).filter(([_, value]) => value !== undefined)
+        )
+      };
 
       const { data, error } = await supabase
         .from('profiles')
-        .upsert(cleanUpdates)
+        .upsert(updateData)
         .select()
         .single();
 
