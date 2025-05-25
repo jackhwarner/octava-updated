@@ -121,7 +121,7 @@ const BrowseFilters = ({
 
           <div className="flex items-center gap-2">
             <Input placeholder="City or Location" value={location} onChange={e => setLocation(e.target.value)} className="flex-grow" />
-            <Button onClick={onSearch} aria-label="Search" className="bg-purple-600 hover:bg-purple-700 p-2.5">
+            <Button onClick={onSearch} aria-label="Search" className="bg-purple-600 hover:bg-purple-700 p-3">
               <Search className="w-6 h-6" />
             </Button>
           </div>
