@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,6 +65,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
       
       if (value.length === 5) {
         try {
+          // Mock API call - in real app, you'd use a service like Zippopotam.us
           const response = await fetch(`https://api.zippopotam.us/us/${value}`);
           if (response.ok) {
             const data = await response.json();
@@ -82,14 +82,6 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
         setDetectedCity('');
       }
     }
-  };
-
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    // Remove any existing @ symbols
-    value = value.replace(/@/g, '');
-    // Update with the clean username
-    onUpdate({ username: value });
   };
 
   const isFormValid = data.name && data.username && data.bio && data.location && data.experience;
@@ -110,16 +102,12 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
           
           <div className="space-y-2">
             <Label htmlFor="username">Username *</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
-              <Input
-                id="username"
-                placeholder="your_username"
-                value={data.username}
-                onChange={handleUsernameChange}
-                className="pl-8"
-              />
-            </div>
+            <Input
+              id="username"
+              placeholder="@your_username"
+              value={data.username}
+              onChange={(e) => onUpdate({ username: e.target.value })}
+            />
           </div>
         </div>
 
@@ -134,51 +122,49 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="location" className="flex items-center space-x-1">
-              <span>Zip Code *</span>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="w-4 h-4 text-gray-400" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Your zip code won't be public and is only used to determine your general area</p>
-                </TooltipContent>
-              </Tooltip>
-            </Label>
-            <div className="flex items-center space-x-2">
-              <Input
-                id="location"
-                placeholder="12345"
-                value={data.location}
-                onChange={handleZipCodeChange}
-                maxLength={5}
-                className="w-32"
-                inputMode="numeric"
-                pattern="[0-9]*"
-              />
-              {detectedCity && (
-                <span className="text-gray-600 text-sm">{detectedCity}</span>
-              )}
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="location" className="flex items-center space-x-1">
+            <span>Zip Code *</span>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="w-4 h-4 text-gray-400" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Your zip code won't be public and is only used to determine your general area</p>
+              </TooltipContent>
+            </Tooltip>
+          </Label>
+          <div className="flex items-center space-x-2">
+            <Input
+              id="location"
+              placeholder="12345"
+              value={data.location}
+              onChange={handleZipCodeChange}
+              maxLength={5}
+              className="w-32"
+              inputMode="numeric"
+              pattern="[0-9]*"
+            />
+            {detectedCity && (
+              <span className="text-gray-600 text-sm">{detectedCity}</span>
+            )}
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <Label>Experience Level *</Label>
-            <Select value={data.experience} onValueChange={(value) => onUpdate({ experience: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your experience level" />
-              </SelectTrigger>
-              <SelectContent>
-                {experienceLevels.map((level) => (
-                  <SelectItem key={level.value} value={level.value}>
-                    {level.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-2">
+          <Label>Experience Level *</Label>
+          <Select value={data.experience} onValueChange={(value) => onUpdate({ experience: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select your experience level" />
+            </SelectTrigger>
+            <SelectContent>
+              {experienceLevels.map((level) => (
+                <SelectItem key={level.value} value={level.value}>
+                  {level.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

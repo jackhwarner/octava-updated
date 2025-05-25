@@ -1,12 +1,9 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import AboutYouStep from './ProfileSetup/AboutYouStep';
 import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
@@ -14,10 +11,6 @@ import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [user, setUser] = useState<any>(null);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  
   const [profileData, setProfileData] = useState({
     name: '',
     username: '',
@@ -35,24 +28,8 @@ const ProfileSetup = () => {
       soundcloud: '',
       instagram: '',
       tiktok: '',
-    },
-    role: '' // Store the role from signup
+    }
   });
-
-  useEffect(() => {
-    // Check if user is authenticated and get their role
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-      setUser(user);
-      
-      // Get the role from user metadata
-      const userRole = user.user_metadata?.primary_role || '';
-      setProfileData(prev => ({ ...prev, role: userRole }));
-    });
-  }, [navigate]);
 
   const steps = [
     { id: 1, title: 'About You', description: 'Tell us about yourself' },
@@ -73,121 +50,11 @@ const ProfileSetup = () => {
     }
   };
 
-  const uploadProfilePicture = async (file: File): Promise<string | null> => {
-    if (!user) return null;
-    
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/profile-picture.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('profiles')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        return null;
-      }
-
-      const { data } = supabase.storage
-        .from('profiles')
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
-      return null;
-    }
-  };
-
-  const uploadMusicFiles = async (files: File[]): Promise<string[]> => {
-    if (!user || files.length === 0) return [];
-    
-    const uploadPromises = files.map(async (file, index) => {
-      try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${user.id}/music-${index}-${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('profiles')
-          .upload(fileName, file);
-
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          return null;
-        }
-
-        const { data } = supabase.storage
-          .from('profiles')
-          .getPublicUrl(fileName);
-
-        return data.publicUrl;
-      } catch (error) {
-        console.error('Error uploading music file:', error);
-        return null;
-      }
-    });
-
-    const results = await Promise.all(uploadPromises);
-    return results.filter(url => url !== null) as string[];
-  };
-
-  const handleComplete = async () => {
-    if (!user) return;
-    
+  const handleComplete = () => {
     setCompletedSteps(prev => [...prev, currentStep]);
-    
-    try {
-      // Upload profile picture if provided
-      let avatarUrl = null;
-      if (profileData.profilePic) {
-        avatarUrl = await uploadProfilePicture(profileData.profilePic);
-      }
-
-      // Upload music files if provided
-      const musicUrls = await uploadMusicFiles(profileData.musicFiles);
-
-      // Update the user's profile in the database using the new schema
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: profileData.name,
-          name: profileData.name, // New field in updated schema
-          username: profileData.username,
-          bio: profileData.bio,
-          location: profileData.location,
-          experience: profileData.experience, // Updated field name
-          genres: profileData.genres,
-          skills: profileData.instruments,
-          role: profileData.role, // Updated field name
-          avatar_url: avatarUrl,
-          profile_picture_url: avatarUrl, // New field in updated schema
-          portfolio_urls: musicUrls.length > 0 ? musicUrls : null,
-          visibility: 'public'
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      console.log('Profile setup completed:', profileData);
-      
-      toast({
-        title: "Profile setup completed!",
-        description: "Welcome to Octava! Your profile has been created successfully."
-      });
-      
-      // Navigate to dashboard
-      navigate('/dashboard');
-    } catch (error: any) {
-      console.error('Profile setup error:', error);
-      toast({
-        variant: "destructive",
-        title: "Profile setup failed",
-        description: error.message || "There was an error saving your profile. Please try again."
-      });
-    }
+    // Here you would typically save the profile data
+    console.log('Profile setup completed:', profileData);
+    // Navigate to dashboard or profile page
   };
 
   const isStepCompleted = (stepId: number) => completedSteps.includes(stepId);
@@ -230,14 +97,6 @@ const ProfileSetup = () => {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 p-6">
       <div className="max-w-2xl mx-auto">
@@ -245,9 +104,6 @@ const ProfileSetup = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Profile</h1>
           <p className="text-gray-600">Let's set up your musical profile in just a few steps</p>
-          {profileData.role && (
-            <p className="text-sm text-purple-600 mt-2">Setting up as: {profileData.role}</p>
-          )}
         </div>
 
         {/* Progress Bar */}

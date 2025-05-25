@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
@@ -26,13 +27,7 @@ const Index = () => {
 
   // Update URL when tab changes
   useEffect(() => {
-    const currentTab = getTabFromPath();
-    if (currentTab === 'profile' && location.search) {
-      // Keep query params for profile viewing
-      navigate(`/${activeTab}${location.search}`);
-    } else {
-      navigate(`/${activeTab}`);
-    }
+    navigate(`/${activeTab}`);
   }, [activeTab, navigate]);
 
   // Update active tab when URL changes

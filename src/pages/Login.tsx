@@ -1,59 +1,34 @@
 
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FcGoogle } from "react-icons/fc";
-import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
-
-  // Get the redirect path from query params or default to dashboard
-  const from = new URLSearchParams(location.search).get('from') || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
+      // Here you would typically authenticate the user
+      // For now, we'll just simulate a successful login
+      setTimeout(() => {
         toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: error.message
+          title: "Successfully logged in",
+          description: "Redirecting to your dashboard..."
         });
-      } else {
-        // Check if user has completed profile setup
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (!profile || !profile.full_name || !profile.username || !profile.bio || !profile.location || !profile.experience) {
-          // Profile is incomplete, redirect to setup
-          navigate('/profile-setup');
-        } else {
-          // Profile is complete, redirect to intended destination
-          navigate(from, { replace: true });
-        }
-      }
+        navigate("/dashboard");
+      }, 1000);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -65,34 +40,17 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     setIsLoading(true);
     
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}${from}`
-        }
-      });
-
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Google login failed",
-          description: error.message
-        });
-        setIsLoading(false);
-      }
-      // Don't set loading to false here as we're redirecting
-    } catch (error: any) {
+    // Simulating Google authentication
+    setTimeout(() => {
       toast({
-        variant: "destructive",
-        title: "Google login failed",
-        description: error.message || "Please try again."
+        title: "Google login successful",
+        description: "Redirecting to your dashboard..."
       });
-      setIsLoading(false);
-    }
+      navigate("/dashboard");
+    }, 1000);
   };
 
   return (
@@ -133,29 +91,14 @@ const Login = () => {
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative">
-                <Input 
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
+              <Input 
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
             <Button 
               type="submit" 
@@ -189,7 +132,7 @@ const Login = () => {
         <CardFooter>
           <p className="text-center text-sm text-gray-500 w-full">
             Don't have an account?{" "}
-            <Link to={`/signup${location.search}`} className="text-purple-600 hover:underline font-medium">
+            <Link to="/signup" className="text-purple-600 hover:underline font-medium">
               Sign up
             </Link>
           </p>
