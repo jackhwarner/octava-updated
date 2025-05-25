@@ -52,7 +52,12 @@ export const useProfile = () => {
           throw error;
         }
       } else {
-        setProfile(data);
+        // Map database visibility values to our interface
+        const mappedProfile: Profile = {
+          ...data,
+          visibility: data.visibility === 'unlisted' ? 'connections_only' : data.visibility as 'public' | 'private' | 'connections_only'
+        };
+        setProfile(mappedProfile);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -71,23 +76,35 @@ export const useProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Map our interface values to database values
+      const dbUpdates = {
+        ...updates,
+        visibility: updates.visibility === 'connections_only' ? 'unlisted' : updates.visibility
+      };
+
       const { data, error } = await supabase
         .from('profiles')
-        .upsert([{
+        .upsert({
           id: user.id,
-          ...updates
-        }])
+          ...dbUpdates
+        })
         .select()
         .single();
 
       if (error) throw error;
 
-      setProfile(data);
+      // Map back for our interface
+      const mappedProfile: Profile = {
+        ...data,
+        visibility: data.visibility === 'unlisted' ? 'connections_only' : data.visibility as 'public' | 'private' | 'connections_only'
+      };
+      setProfile(mappedProfile);
+      
       toast({
         title: "Success",
         description: "Profile updated successfully",
       });
-      return data;
+      return mappedProfile;
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({

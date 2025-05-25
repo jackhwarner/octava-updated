@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,9 +11,14 @@ import { MapPin, Edit, Play, Pause, ExternalLink, Plus, Calendar, X, Info } from
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProfile } from '@/hooks/useProfile';
+import { useAvailability } from '@/hooks/useAvailability';
+import { useProjects } from '@/hooks/useProjects';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 const Profile = () => {
   const { profile, loading, updateProfile } = useProfile();
+  const { availabilities } = useAvailability();
+  const { projects } = useProjects();
   const [isPlaying, setIsPlaying] = useState<number | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editName, setEditName] = useState('');
@@ -25,6 +29,7 @@ const Profile = () => {
   const [editGenres, setEditGenres] = useState<string[]>([]);
   const [editSkills, setEditSkills] = useState<string[]>([]);
   const [detectedCity, setDetectedCity] = useState('');
+  const [cityName, setCityName] = useState('');
 
   // Initialize form data when profile loads
   useEffect(() => {
@@ -36,8 +41,27 @@ const Profile = () => {
       setEditExperience(profile.experience || 'beginner');
       setEditGenres(profile.genres || []);
       setEditSkills(profile.skills || []);
+      
+      // Fetch city name for display
+      if (profile.zip_code && profile.zip_code.length === 5) {
+        fetchCityName(profile.zip_code);
+      }
     }
   }, [profile]);
+
+  const fetchCityName = async (zipCode: string) => {
+    try {
+      const response = await fetch(`https://api.zippopotam.us/us/${zipCode}`);
+      if (response.ok) {
+        const data = await response.json();
+        const city = data.places[0]['place name'];
+        const state = data.places[0]['state abbreviation'];
+        setCityName(`${city}, ${state}`);
+      }
+    } catch (error) {
+      setCityName('');
+    }
+  };
 
   const experienceLevels = [
     { value: 'beginner', label: 'Beginner (0-2 years)' },
@@ -148,6 +172,10 @@ const Profile = () => {
     );
   }
 
+  // Calculate stats from actual data
+  const activeProjects = projects.filter(p => p.status === 'active').length;
+  const totalCollaborations = projects.reduce((acc, p) => acc + (p.collaborators?.length || 0), 0);
+
   return (
     <TooltipProvider>
       <div className="p-12">
@@ -188,7 +216,7 @@ const Profile = () => {
                     
                     <div className="inline-flex items-center text-gray-900 px-5 py-2 border border-gray-300 rounded ml-auto mt-3 md:mt-0">
                       <MapPin className="w-4 h-4 mr-2 text-gray-900" />
-                      {profile?.location || 'Add Location'}
+                      {cityName || profile?.location || 'Add Location'}
                     </div>
                   </div>
                 </div>
@@ -201,7 +229,7 @@ const Profile = () => {
             <CardContent className="py-6 px-8">
               <div className="grid grid-cols-4 gap-4 text-center">
                 <div>
-                  <div className="text-xl font-bold text-gray-900">127</div>
+                  <div className="text-xl font-bold text-gray-900">{totalCollaborations}</div>
                   <div className="text-sm text-gray-500">Collaborations</div>
                 </div>
                 <div>
@@ -213,8 +241,8 @@ const Profile = () => {
                   <div className="text-sm text-gray-500">Followers</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-gray-900">234</div>
-                  <div className="text-sm text-gray-500">Following</div>
+                  <div className="text-xl font-bold text-gray-900">{activeProjects}</div>
+                  <div className="text-sm text-gray-500">Active Projects</div>
                 </div>
               </div>
             </CardContent>
@@ -271,20 +299,10 @@ const Profile = () => {
                   <CardTitle>Availability</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 p-6">
-                  <div className="grid grid-cols-7 gap-2 text-center">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                      <div key={day} className="space-y-2">
-                        <div className="font-medium">{day}</div>
-                        <div className="bg-green-100 text-green-800 rounded px-2 py-2 text-xs">10am - 2pm</div>
-                        <div className="bg-green-100 text-green-800 rounded px-2 py-2 text-xs">6pm - 10pm</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button variant="outline" className="w-full mt-4">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    View Full Schedule
-                  </Button>
+                  <CalendarComponent 
+                    mode="multiple"
+                    className="rounded-md border"
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -339,13 +357,28 @@ const Profile = () => {
                   <CardTitle>Public Projects</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6 p-6">
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">No public projects yet</p>
-                    <Button variant="outline">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Project
-                    </Button>
-                  </div>
+                  {projects.filter(p => p.visibility === 'public').length > 0 ? (
+                    <div className="space-y-4">
+                      {projects.filter(p => p.visibility === 'public').map((project) => (
+                        <div key={project.id} className="p-4 border rounded-lg">
+                          <h4 className="font-medium">{project.title}</h4>
+                          <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="outline">{project.status}</Badge>
+                            {project.genre && <Badge variant="outline">{project.genre}</Badge>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500 mb-4">No public projects yet</p>
+                      <Button variant="outline">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Project
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

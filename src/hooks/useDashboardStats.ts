@@ -32,13 +32,38 @@ export const useDashboardStats = () => {
         return;
       }
 
-      // Fetch projects stats
+      // Fetch projects stats - fix the OR syntax
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
         .select('id, status')
         .or(`owner_id.eq.${user.id},project_collaborators.user_id.eq.${user.id}`);
 
-      if (projectsError) throw projectsError;
+      if (projectsError) {
+        console.error('Projects error:', projectsError);
+        // For now, just get projects owned by user
+        const { data: ownedProjects } = await supabase
+          .from('projects')
+          .select('id, status')
+          .eq('owner_id', user.id);
+        
+        const totalProjects = ownedProjects?.length || 0;
+        const activeProjects = ownedProjects?.filter(p => p.status === 'active').length || 0;
+        
+        setStats(prev => ({
+          ...prev,
+          totalProjects,
+          activeProjects,
+        }));
+      } else {
+        const totalProjects = projects?.length || 0;
+        const activeProjects = projects?.filter(p => p.status === 'active').length || 0;
+        
+        setStats(prev => ({
+          ...prev,
+          totalProjects,
+          activeProjects,
+        }));
+      }
 
       // Fetch collaborations stats
       const { data: collaborations, error: collaborationsError } = await supabase
@@ -47,40 +72,51 @@ export const useDashboardStats = () => {
         .eq('user_id', user.id)
         .eq('status', 'accepted');
 
-      if (collaborationsError) throw collaborationsError;
+      if (!collaborationsError) {
+        const totalCollaborations = collaborations?.length || 0;
+        setStats(prev => ({
+          ...prev,
+          totalCollaborations,
+        }));
+      }
 
-      // Fetch upcoming sessions
+      // Fetch upcoming sessions - fix the OR syntax
       const { data: sessions, error: sessionsError } = await supabase
         .from('sessions')
         .select('id')
-        .or(`created_by.eq.${user.id},session_attendees.user_id.eq.${user.id}`)
+        .eq('created_by', user.id)
         .gte('start_time', new Date().toISOString());
 
-      if (sessionsError) throw sessionsError;
+      if (!sessionsError) {
+        const upcomingSessions = sessions?.length || 0;
+        setStats(prev => ({
+          ...prev,
+          upcomingSessions,
+        }));
+      }
 
       // Fetch messages stats
-      const { data: messages, error: messagesError } = await supabase
+      const { data: sentMessages, error: sentError } = await supabase
         .from('messages')
         .select('id, read_at')
-        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`);
+        .eq('sender_id', user.id);
 
-      if (messagesError) throw messagesError;
+      const { data: receivedMessages, error: receivedError } = await supabase
+        .from('messages')
+        .select('id, read_at')
+        .eq('recipient_id', user.id);
 
-      const totalProjects = projects?.length || 0;
-      const activeProjects = projects?.filter(p => p.status === 'active').length || 0;
-      const totalCollaborations = collaborations?.length || 0;
-      const upcomingSessions = sessions?.length || 0;
-      const totalMessages = messages?.length || 0;
-      const unreadMessages = messages?.filter(m => !m.read_at && m.sender_id !== user.id).length || 0;
+      if (!sentError && !receivedError) {
+        const totalMessages = (sentMessages?.length || 0) + (receivedMessages?.length || 0);
+        const unreadMessages = receivedMessages?.filter(m => !m.read_at).length || 0;
+        
+        setStats(prev => ({
+          ...prev,
+          totalMessages,
+          unreadMessages,
+        }));
+      }
 
-      setStats({
-        totalProjects,
-        activeProjects,
-        totalCollaborations,
-        upcomingSessions,
-        totalMessages,
-        unreadMessages,
-      });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
       toast({

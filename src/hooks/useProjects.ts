@@ -41,7 +41,8 @@ export const useProjects = () => {
         return;
       }
 
-      const { data, error } = await supabase
+      // First try to get projects owned by user
+      const { data: ownedProjects, error: ownedError } = await supabase
         .from('projects')
         .select(`
           *,
@@ -56,11 +57,53 @@ export const useProjects = () => {
             )
           )
         `)
-        .or(`owner_id.eq.${user.id},project_collaborators.user_id.eq.${user.id}`)
+        .eq('owner_id', user.id)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
-      setProjects(data || []);
+      if (ownedError) {
+        console.error('Owned projects error:', ownedError);
+        throw ownedError;
+      }
+
+      // Then get projects where user is a collaborator
+      const { data: collaboratorProjects, error: collabError } = await supabase
+        .from('project_collaborators')
+        .select(`
+          projects (
+            *,
+            project_collaborators (
+              id,
+              user_id,
+              role,
+              status,
+              profiles (
+                name,
+                username
+              )
+            )
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'accepted');
+
+      let allProjects = ownedProjects || [];
+
+      if (!collabError && collaboratorProjects) {
+        const collabProjectsData = collaboratorProjects
+          .map(cp => cp.projects)
+          .filter(p => p !== null);
+        allProjects = [...allProjects, ...collabProjectsData];
+      }
+
+      // Map database values to our interface
+      const mappedProjects: Project[] = allProjects.map(project => ({
+        ...project,
+        status: project.status === 'paused' ? 'on_hold' : project.status as 'active' | 'completed' | 'on_hold' | 'cancelled',
+        visibility: project.visibility === 'unlisted' ? 'connections_only' : project.visibility as 'public' | 'private' | 'connections_only',
+        collaborators: project.project_collaborators || []
+      }));
+
+      setProjects(mappedProjects);
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast({
@@ -86,19 +129,22 @@ export const useProjects = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Map our interface values to database values
+      const dbData = {
+        title: projectData.title,
+        name: projectData.name || projectData.title,
+        description: projectData.description,
+        genre: projectData.genre,
+        visibility: projectData.visibility === 'connections_only' ? 'unlisted' : projectData.visibility || 'private',
+        owner_id: user.id,
+        deadline: projectData.deadline,
+        budget: projectData.budget,
+        status: 'active'
+      };
+
       const { data, error } = await supabase
         .from('projects')
-        .insert([{
-          title: projectData.title,
-          name: projectData.name || projectData.title,
-          description: projectData.description,
-          genre: projectData.genre,
-          visibility: projectData.visibility || 'private',
-          owner_id: user.id,
-          deadline: projectData.deadline,
-          budget: projectData.budget,
-          status: 'active'
-        }])
+        .insert([dbData])
         .select()
         .single();
 
@@ -132,21 +178,35 @@ export const useProjects = () => {
     budget?: number;
   }) => {
     try {
+      // Map our interface values to database values
+      const dbUpdates = {
+        ...updates,
+        status: updates.status === 'on_hold' ? 'paused' : updates.status,
+        visibility: updates.visibility === 'connections_only' ? 'unlisted' : updates.visibility
+      };
+
       const { data, error } = await supabase
         .from('projects')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
 
-      setProjects(prev => prev.map(project => project.id === id ? data : project));
+      // Map back for our interface
+      const mappedProject: Project = {
+        ...data,
+        status: data.status === 'paused' ? 'on_hold' : data.status as 'active' | 'completed' | 'on_hold' | 'cancelled',
+        visibility: data.visibility === 'unlisted' ? 'connections_only' : data.visibility as 'public' | 'private' | 'connections_only'
+      };
+
+      setProjects(prev => prev.map(project => project.id === id ? mappedProject : project));
       toast({
         title: "Success",
         description: "Project updated successfully",
       });
-      return data;
+      return mappedProject;
     } catch (error) {
       console.error('Error updating project:', error);
       toast({
