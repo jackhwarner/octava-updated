@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { FcGoogle } from "react-icons/fc";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +18,11 @@ const Signup = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Get the redirect path from query params or default to profile setup
+  const from = new URLSearchParams(location.search).get('from') || '/profile-setup';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,37 +39,67 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
-      // Here you would typically register the user
-      // For now, we'll just simulate a successful signup
-      setTimeout(() => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            primary_role: accountType
+          }
+        }
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Sign up failed",
+          description: error.message
+        });
+      } else {
         toast({
           title: "Account created successfully",
           description: "Welcome to Octava! Let's set up your profile..."
         });
         navigate("/profile-setup");
-      }, 1000);
-    } catch (error) {
+      }
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Sign up failed",
-        description: "There was an error creating your account. Please try again."
+        description: error.message || "There was an error creating your account. Please try again."
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignup = () => {
+  const handleGoogleSignup = async () => {
     setIsLoading(true);
     
-    // Simulating Google signup
-    setTimeout(() => {
-      toast({
-        title: "Google signup successful",
-        description: "Let's set up your profile..."
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/profile-setup`
+        }
       });
-      navigate("/profile-setup");
-    }, 1000);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Google signup failed",
+          description: error.message
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Google signup failed",
+        description: error.message || "Please try again."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -185,7 +220,7 @@ const Signup = () => {
         <CardFooter>
           <p className="text-center text-sm text-gray-500 w-full">
             Already have an account?{" "}
-            <Link to="/login" className="text-purple-600 hover:underline font-medium">
+            <Link to={`/login${location.search}`} className="text-purple-600 hover:underline font-medium">
               Log in
             </Link>
           </p>

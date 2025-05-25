@@ -1,11 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import AboutYouStep from './ProfileSetup/AboutYouStep';
 import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
@@ -13,6 +14,7 @@ import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -36,6 +38,17 @@ const ProfileSetup = () => {
     }
   });
 
+  useEffect(() => {
+    // Check if user is authenticated
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+      setUser(user);
+    });
+  }, [navigate]);
+
   const steps = [
     { id: 1, title: 'About You', description: 'Tell us about yourself' },
     { id: 2, title: 'Upload Files', description: 'Add your profile picture and music' },
@@ -55,18 +68,47 @@ const ProfileSetup = () => {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    if (!user) return;
+    
     setCompletedSteps(prev => [...prev, currentStep]);
-    // Here you would typically save the profile data to the database
-    console.log('Profile setup completed:', profileData);
     
-    toast({
-      title: "Profile setup completed!",
-      description: "Welcome to Octava! Your profile has been created successfully."
-    });
-    
-    // Navigate to dashboard
-    navigate('/dashboard');
+    try {
+      // Update the user's profile in the database
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          full_name: profileData.name,
+          username: profileData.username,
+          bio: profileData.bio,
+          location: profileData.location,
+          experience_level: profileData.experience,
+          genres: profileData.genres,
+          skills: profileData.instruments,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Profile setup completed:', profileData);
+      
+      toast({
+        title: "Profile setup completed!",
+        description: "Welcome to Octava! Your profile has been created successfully."
+      });
+      
+      // Navigate to dashboard
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error('Profile setup error:', error);
+      toast({
+        variant: "destructive",
+        title: "Profile setup failed",
+        description: error.message || "There was an error saving your profile. Please try again."
+      });
+    }
   };
 
   const isStepCompleted = (stepId: number) => completedSteps.includes(stepId);
@@ -108,6 +150,14 @@ const ProfileSetup = () => {
         return null;
     }
   };
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 p-6">
