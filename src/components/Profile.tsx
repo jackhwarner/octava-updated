@@ -58,6 +58,10 @@ const Profile = () => {
   const activeProjects = projects.filter(p => p.status === 'active').length;
   const totalCollaborations = projects.reduce((acc, p) => acc + (p.collaborators?.length || 0), 0);
 
+  const handleUpdateProfile = async (updates: Partial<typeof profile>) => {
+    await updateProfile(updates);
+  };
+
   return (
     <TooltipProvider>
       <div className="p-12">
@@ -103,7 +107,7 @@ const Profile = () => {
           open={showEditDialog}
           onOpenChange={setShowEditDialog}
           profile={profile}
-          onSave={updateProfile}
+          onSave={handleUpdateProfile}
         />
       </div>
     </TooltipProvider>

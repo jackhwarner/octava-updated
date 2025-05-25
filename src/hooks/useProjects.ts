@@ -129,17 +129,17 @@ export const useProjects = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Map our interface values to database values
+      // Map our interface values to database values with proper typing
       const dbData = {
         title: projectData.title,
         name: projectData.name || projectData.title,
         description: projectData.description,
         genre: projectData.genre,
-        visibility: projectData.visibility === 'connections_only' ? 'unlisted' : projectData.visibility || 'private',
+        visibility: (projectData.visibility === 'connections_only' ? 'unlisted' : projectData.visibility || 'private') as 'public' | 'private' | 'unlisted',
         owner_id: user.id,
         deadline: projectData.deadline,
         budget: projectData.budget,
-        status: 'active'
+        status: 'active' as const
       };
 
       const { data, error } = await supabase
@@ -178,16 +178,21 @@ export const useProjects = () => {
     budget?: number;
   }) => {
     try {
-      // Map our interface values to database values
-      const dbUpdates = {
+      // Map our interface values to database values with proper typing
+      const dbUpdates: any = {
         ...updates,
         status: updates.status === 'on_hold' ? 'paused' : updates.status,
         visibility: updates.visibility === 'connections_only' ? 'unlisted' : updates.visibility
       };
 
+      // Remove undefined values
+      const cleanUpdates = Object.fromEntries(
+        Object.entries(dbUpdates).filter(([_, value]) => value !== undefined)
+      );
+
       const { data, error } = await supabase
         .from('projects')
-        .update(dbUpdates)
+        .update(cleanUpdates)
         .eq('id', id)
         .select()
         .single();

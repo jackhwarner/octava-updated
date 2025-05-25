@@ -9,11 +9,18 @@ export interface Message {
   sender_id: string;
   recipient_id?: string;
   thread_id?: string;
+  project_id?: string;
+  event_invite_id?: string;
+  file_urls?: string[];
   read_at?: string;
   created_at: string;
-  sender: {
+  sender_profile?: {
     name: string;
-    username?: string;
+    username: string;
+  };
+  recipient_profile?: {
+    name: string;
+    username: string;
   };
 }
 
@@ -23,15 +30,15 @@ export interface MessageThread {
   is_group: boolean;
   created_by: string;
   created_at: string;
-  participants: Array<{
-    id: string;
+  participants?: Array<{
     user_id: string;
+    joined_at: string;
     profiles: {
       name: string;
-      username?: string;
+      username: string;
     };
   }>;
-  last_message?: Message;
+  latest_message?: Message;
 }
 
 export const useMessages = () => {
@@ -48,67 +55,24 @@ export const useMessages = () => {
         return;
       }
 
-      // Fetch direct messages
-      const { data: directMessages, error: directError } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .select(`
           *,
-          profiles:sender_id (
+          sender_profile:profiles!messages_sender_id_fkey (
+            name,
+            username
+          ),
+          recipient_profile:profiles!messages_recipient_id_fkey (
             name,
             username
           )
         `)
         .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-        .is('thread_id', null)
         .order('created_at', { ascending: false });
 
-      if (directError) {
-        console.error('Direct messages error:', directError);
-      } else if (directMessages) {
-        const formattedMessages: Message[] = directMessages.map(msg => ({
-          id: msg.id,
-          content: msg.content,
-          sender_id: msg.sender_id,
-          recipient_id: msg.recipient_id,
-          thread_id: msg.thread_id,
-          read_at: msg.read_at,
-          created_at: msg.created_at,
-          sender: {
-            name: msg.profiles?.name || 'Unknown User',
-            username: msg.profiles?.username
-          }
-        }));
-        setMessages(formattedMessages);
-      }
-
-      // Fetch message threads
-      const { data: messageThreads, error: threadsError } = await supabase
-        .from('message_threads')
-        .select(`
-          *,
-          thread_participants (
-            id,
-            user_id,
-            profiles (
-              name,
-              username
-            )
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (!threadsError && messageThreads) {
-        const formattedThreads: MessageThread[] = messageThreads.map(thread => ({
-          id: thread.id,
-          name: thread.name,
-          is_group: thread.is_group,
-          created_by: thread.created_by,
-          created_at: thread.created_at,
-          participants: thread.thread_participants || []
-        }));
-        setThreads(formattedThreads);
-      }
-
+      if (error) throw error;
+      setMessages(data || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -121,7 +85,107 @@ export const useMessages = () => {
     }
   };
 
-  const sendMessage = async (content: string, recipientId?: string, threadId?: string) => {
+  const fetchThreads = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get threads where user is a participant
+      const { data: threadParticipants, error: participantError } = await supabase
+        .from('thread_participants')
+        .select(`
+          thread_id,
+          message_threads (
+            id,
+            name,
+            is_group,
+            created_by,
+            created_at
+          )
+        `)
+        .eq('user_id', user.id)
+        .is('left_at', null);
+
+      if (participantError) throw participantError;
+
+      const threadIds = threadParticipants?.map(tp => tp.thread_id) || [];
+      
+      if (threadIds.length === 0) {
+        setThreads([]);
+        return;
+      }
+
+      // Get all participants for these threads
+      const { data: allParticipants, error: allParticipantsError } = await supabase
+        .from('thread_participants')
+        .select(`
+          thread_id,
+          user_id,
+          joined_at,
+          sender_profile:profiles!thread_participants_user_id_fkey (
+            name,
+            username
+          )
+        `)
+        .in('thread_id', threadIds)
+        .is('left_at', null);
+
+      if (allParticipantsError) throw allParticipantsError;
+
+      // Get latest messages for threads
+      const { data: latestMessages, error: messagesError } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender_profile:profiles!messages_sender_id_fkey (
+            name,
+            username
+          )
+        `)
+        .in('thread_id', threadIds)
+        .order('created_at', { ascending: false });
+
+      if (messagesError) throw messagesError;
+
+      // Combine the data
+      const threadsData: MessageThread[] = threadParticipants
+        ?.map(tp => {
+          const thread = tp.message_threads;
+          if (!thread) return null;
+
+          const participants = allParticipants
+            ?.filter(p => p.thread_id === thread.id)
+            ?.map(p => ({
+              user_id: p.user_id,
+              joined_at: p.joined_at,
+              profiles: {
+                name: p.sender_profile?.name || '',
+                username: p.sender_profile?.username || ''
+              }
+            })) || [];
+
+          const latestMessage = latestMessages?.find(m => m.thread_id === thread.id);
+
+          return {
+            ...thread,
+            participants,
+            latest_message: latestMessage
+          };
+        })
+        .filter(Boolean) as MessageThread[];
+
+      setThreads(threadsData);
+    } catch (error) {
+      console.error('Error fetching threads:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load message threads",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const sendMessage = async (content: string, recipientId?: string, threadId?: string, projectId?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -133,38 +197,15 @@ export const useMessages = () => {
           sender_id: user.id,
           recipient_id: recipientId,
           thread_id: threadId,
+          project_id: projectId
         }])
-        .select(`
-          *,
-          profiles:sender_id (
-            name,
-            username
-          )
-        `)
+        .select()
         .single();
 
       if (error) throw error;
 
-      const newMessage: Message = {
-        id: data.id,
-        content: data.content,
-        sender_id: data.sender_id,
-        recipient_id: data.recipient_id,
-        thread_id: data.thread_id,
-        read_at: data.read_at,
-        created_at: data.created_at,
-        sender: {
-          name: data.profiles?.name || 'Unknown User',
-          username: data.profiles?.username
-        }
-      };
-
-      setMessages(prev => [newMessage, ...prev]);
-      
-      toast({
-        title: "Success",
-        description: "Message sent successfully",
-      });
+      await fetchMessages();
+      await fetchThreads();
       return data;
     } catch (error) {
       console.error('Error sending message:', error);
@@ -177,7 +218,7 @@ export const useMessages = () => {
     }
   };
 
-  const createThread = async (name: string, participantIds: string[], isGroup: boolean = true) => {
+  const createThread = async (name: string, participantIds: string[], isGroup: boolean = false) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -187,72 +228,67 @@ export const useMessages = () => {
         .insert([{
           name,
           is_group: isGroup,
-          created_by: user.id,
+          created_by: user.id
         }])
         .select()
         .single();
 
       if (threadError) throw threadError;
 
-      // Add participants
-      const participants = [user.id, ...participantIds].map(userId => ({
-        thread_id: thread.id,
-        user_id: userId,
-      }));
-
+      // Add participants including the creator
+      const allParticipants = [user.id, ...participantIds];
       const { error: participantsError } = await supabase
         .from('thread_participants')
-        .insert(participants);
+        .insert(
+          allParticipants.map(userId => ({
+            thread_id: thread.id,
+            user_id: userId
+          }))
+        );
 
       if (participantsError) throw participantsError;
 
-      await fetchMessages(); // Refresh
-      
-      toast({
-        title: "Success",
-        description: "Group chat created successfully",
-      });
+      await fetchThreads();
       return thread;
     } catch (error) {
       console.error('Error creating thread:', error);
       toast({
         title: "Error",
-        description: "Failed to create group chat",
+        description: "Failed to create thread",
         variant: "destructive",
       });
       throw error;
     }
   };
 
-  const updateThreadName = async (threadId: string, name: string) => {
+  const updateThreadName = async (threadId: string, newName: string) => {
     try {
       const { error } = await supabase
         .from('message_threads')
-        .update({ name })
+        .update({ name: newName })
         .eq('id', threadId);
 
       if (error) throw error;
 
-      setThreads(prev => prev.map(thread => 
-        thread.id === threadId ? { ...thread, name } : thread
-      ));
-
+      await fetchThreads();
       toast({
         title: "Success",
-        description: "Chat name updated successfully",
+        description: "Thread name updated successfully",
       });
     } catch (error) {
       console.error('Error updating thread name:', error);
       toast({
         title: "Error",
-        description: "Failed to update chat name",
+        description: "Failed to update thread name",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
   useEffect(() => {
     fetchMessages();
+    fetchThreads();
   }, []);
 
   return {
@@ -262,6 +298,9 @@ export const useMessages = () => {
     sendMessage,
     createThread,
     updateThreadName,
-    refetch: fetchMessages
+    refetch: () => {
+      fetchMessages();
+      fetchThreads();
+    }
   };
 };
