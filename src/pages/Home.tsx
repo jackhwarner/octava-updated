@@ -130,7 +130,7 @@ const Home = () => {
               </ul>
             </div>
             <div className="md:w-1/2">
-              <img src="/placeholder.svg" alt="Cloud Collaboration" className="w-full rounded-md aspect-video object-cover" />
+              <img alt="Cloud Collaboration" src="/lovable-uploads/1939f58c-b215-4542-9063-311d3a4c95cd.png" className="h-full rounded-md object-scale-down rounded-md" />
             </div>
           </div>
           
