@@ -1,72 +1,91 @@
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Users, Folder, MessageCircle, Play } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Music, Users, Calendar, MessageSquare } from 'lucide-react';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 interface DashboardStatsProps {
   onNavigate: (tab: string) => void;
 }
 
 const DashboardStats = ({ onNavigate }: DashboardStatsProps) => {
-  const stats = [
-    {
-      title: 'Collaborations',
-      value: '12',
-      icon: Users,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
-      action: () => onNavigate('browse'),
-    },
-    {
-      title: 'Projects',
-      value: '8',
-      icon: Folder,
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
-      action: () => onNavigate('projects'),
-    },
-    {
-      title: 'Unread Messages',
-      value: '5',
-      icon: MessageCircle,
-      color: 'text-green-600',
-      bg: 'bg-green-50',
-      action: () => onNavigate('messages'),
-    },
-    {
-      title: 'Total Plays',
-      value: '1.2k',
-      icon: Play,
-      color: 'text-orange-600',
-      bg: 'bg-orange-50',
-      action: () => onNavigate('profile'),
-    },
-  ];
+  const { stats, loading } = useDashboardStats();
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {stats.map((stat) => {
-        const IconComponent = stat.icon;
-        return (
-          <Card key={stat.title} className="hover:shadow-md transition-shadow cursor-pointer">
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
-              <Button
-                variant="ghost"
-                className="w-full h-full p-0 flex flex-col items-start space-y-2"
-                onClick={stat.action}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className={`p-2 rounded-lg ${stat.bg}`}>
-                    <IconComponent className={`w-4 h-4 ${stat.color}`} />
-                  </div>
-                  <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
-                </div>
-                <p className="text-sm font-medium text-gray-500 text-left">{stat.title}</p>
-              </Button>
+              <div className="h-16 bg-gray-200 rounded"></div>
             </CardContent>
           </Card>
-        );
-      })}
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <Card 
+        className="hover:shadow-lg transition-shadow cursor-pointer" 
+        onClick={() => onNavigate('projects')}
+      >
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+          <Music className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.activeProjects}</div>
+          <p className="text-xs text-muted-foreground">
+            of {stats.totalProjects} total projects
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Collaborations</CardTitle>
+          <Users className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.totalCollaborations}</div>
+          <p className="text-xs text-muted-foreground">
+            active partnerships
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card 
+        className="hover:shadow-lg transition-shadow cursor-pointer" 
+        onClick={() => onNavigate('availability')}
+      >
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Upcoming Sessions</CardTitle>
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.upcomingSessions}</div>
+          <p className="text-xs text-muted-foreground">
+            this week
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card 
+        className="hover:shadow-lg transition-shadow cursor-pointer" 
+        onClick={() => onNavigate('messages')}
+      >
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Messages</CardTitle>
+          <MessageSquare className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.unreadMessages}</div>
+          <p className="text-xs text-muted-foreground">
+            unread of {stats.totalMessages} total
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };

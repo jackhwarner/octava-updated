@@ -4,14 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Search, Plus, Paperclip, Calendar, MoreHorizontal, Trash2, Flag } from 'lucide-react';
+import { Send, Search, Plus, Paperclip, Calendar, MoreHorizontal, Trash2, Flag, Edit } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import NewMessageDialog from './NewMessageDialog';
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState(1);
   const [newMessage, setNewMessage] = useState('');
   const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
+  const [showEditChatDialog, setShowEditChatDialog] = useState(false);
+  const [editChatName, setEditChatName] = useState('');
 
   const chats = [
     {
@@ -81,6 +85,20 @@ const Messages = () => {
 
   const handleReportChat = () => {
     console.log('Report chat clicked');
+  };
+
+  const handleEditChatName = () => {
+    const selectedChatData = chats.find(chat => chat.id === selectedChat);
+    if (selectedChatData) {
+      setEditChatName(selectedChatData.name);
+      setShowEditChatDialog(true);
+    }
+  };
+
+  const handleSaveChatName = () => {
+    console.log('Save chat name:', editChatName);
+    setShowEditChatDialog(false);
+    setEditChatName('');
   };
 
   const selectedChatData = chats.find(chat => chat.id === selectedChat);
@@ -162,6 +180,12 @@ const Messages = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {selectedChatData?.isGroup && (
+                    <DropdownMenuItem onClick={handleEditChatName}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Chat Name
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleDeleteChat} className="text-red-600">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete Chat
@@ -245,6 +269,41 @@ const Messages = () => {
         isOpen={showNewMessageDialog} 
         onClose={() => setShowNewMessageDialog(false)} 
       />
+
+      {/* Edit Chat Name Dialog */}
+      <Dialog open={showEditChatDialog} onOpenChange={setShowEditChatDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Edit Chat Name</DialogTitle>
+            <DialogDescription>
+              Change the name of this group chat.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="chat-name">Chat Name</Label>
+              <Input
+                id="chat-name"
+                value={editChatName}
+                onChange={(e) => setEditChatName(e.target.value)}
+                placeholder="Enter chat name..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditChatDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveChatName}
+              className="bg-purple-600 hover:bg-purple-700"
+              disabled={!editChatName.trim()}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

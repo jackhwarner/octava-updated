@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,18 +11,33 @@ import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Edit, Play, Pause, ExternalLink, Plus, Calendar, X, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useProfile } from '@/hooks/useProfile';
 
 const Profile = () => {
+  const { profile, loading, updateProfile } = useProfile();
   const [isPlaying, setIsPlaying] = useState<number | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editName, setEditName] = useState('Alex Rodriguez');
-  const [editUsername, setEditUsername] = useState('@alex_producer');
-  const [editBio, setEditBio] = useState('Professional music producer with over 10 years of experience in hip-hop, R&B, and pop. Passionate about creating innovative sounds and collaborating with talented artists. Credits include work with major label artists and independent musicians worldwide.');
-  const [editLocation, setEditLocation] = useState('90210');
-  const [editExperience, setEditExperience] = useState('professional');
-  const [editGenres, setEditGenres] = useState(['Hip-Hop', 'R&B', 'Pop']);
-  const [editInstruments, setEditInstruments] = useState(['Piano', 'Guitar', 'Drums']);
-  const [detectedCity, setDetectedCity] = useState('(Beverly Hills, CA)');
+  const [editName, setEditName] = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editExperience, setEditExperience] = useState('');
+  const [editGenres, setEditGenres] = useState<string[]>([]);
+  const [editSkills, setEditSkills] = useState<string[]>([]);
+  const [detectedCity, setDetectedCity] = useState('');
+
+  // Initialize form data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setEditName(profile.name || profile.full_name || '');
+      setEditUsername(profile.username || '');
+      setEditBio(profile.bio || '');
+      setEditLocation(profile.zip_code || '');
+      setEditExperience(profile.experience || 'beginner');
+      setEditGenres(profile.genres || []);
+      setEditSkills(profile.skills || []);
+    }
+  }, [profile]);
 
   const experienceLevels = [
     { value: 'beginner', label: 'Beginner (0-2 years)' },
@@ -37,20 +53,12 @@ const Profile = () => {
     'Drum & Bass', 'Trap', 'Lo-fi', 'Experimental'
   ];
 
-  const commonInstruments = [
+  const commonSkills = [
     'Piano', 'Guitar', 'Bass', 'Drums', 'Violin', 'Saxophone', 'Trumpet', 
     'Vocals', 'Synthesizer', 'Flute', 'Cello', 'Clarinet', 'Trombone',
     'Harmonica', 'Banjo', 'Mandolin', 'Ukulele', 'Accordion', 'Harp',
-    'Oboe', 'Percussion', 'Electric Guitar', 'Acoustic Guitar'
-  ];
-
-  const socialLinks = [
-    { platform: 'Spotify', url: 'https://spotify.com/artist/username', color: 'text-green-600' },
-    { platform: 'Apple Music', url: 'https://music.apple.com/artist/username', color: 'text-gray-800' },
-    { platform: 'YouTube', url: 'https://youtube.com/@username', color: 'text-red-600' },
-    { platform: 'TikTok', url: 'https://tiktok.com/@username', color: 'text-black' },
-    { platform: 'Instagram', url: 'https://instagram.com/username', color: 'text-pink-600' },
-    { platform: 'SoundCloud', url: 'https://soundcloud.com/username', color: 'text-orange-600' },
+    'Oboe', 'Percussion', 'Electric Guitar', 'Acoustic Guitar', 'Production',
+    'Mixing', 'Mastering', 'Songwriting', 'Audio Engineering'
   ];
 
   const tracks = [
@@ -70,7 +78,6 @@ const Profile = () => {
       
       if (value.length === 5) {
         try {
-          // Mock API call - in real app, you'd use a service like Zippopotam.us
           const response = await fetch(`https://api.zippopotam.us/us/${value}`);
           if (response.ok) {
             const data = await response.json();
@@ -99,20 +106,47 @@ const Profile = () => {
     setEditGenres(editGenres.filter((g: string) => g !== genre));
   };
 
-  const addInstrument = (instrument: string) => {
-    if (instrument && !editInstruments.includes(instrument)) {
-      setEditInstruments([...editInstruments, instrument]);
+  const addSkill = (skill: string) => {
+    if (skill && !editSkills.includes(skill)) {
+      setEditSkills([...editSkills, skill]);
     }
   };
 
-  const removeInstrument = (instrument: string) => {
-    setEditInstruments(editInstruments.filter((i: string) => i !== instrument));
+  const removeSkill = (skill: string) => {
+    setEditSkills(editSkills.filter((s: string) => s !== skill));
   };
 
-  const handleSaveProfile = () => {
-    // Here you would typically save the profile
-    setShowEditDialog(false);
+  const handleSaveProfile = async () => {
+    try {
+      await updateProfile({
+        name: editName,
+        full_name: editName,
+        username: editUsername,
+        bio: editBio,
+        zip_code: editLocation,
+        experience: editExperience,
+        genres: editGenres,
+        skills: editSkills,
+      });
+      setShowEditDialog(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="p-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="h-64 bg-gray-200 rounded mb-8"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <TooltipProvider>
@@ -127,8 +161,12 @@ const Profile = () => {
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h1 className="text-xl font-bold text-gray-900">Alex Rodriguez</h1>
-                      <p className="text-lg text-gray-600 mt-2">@alex_producer</p>
+                      <h1 className="text-xl font-bold text-gray-900">
+                        {profile?.name || profile?.full_name || 'Your Name'}
+                      </h1>
+                      <p className="text-lg text-gray-600 mt-2">
+                        {profile?.username ? `@${profile.username}` : '@username'}
+                      </p>
                     </div>
                     <Button variant="outline" onClick={() => setShowEditDialog(true)}>
                       <Edit className="w-4 h-4 mr-2" />
@@ -138,15 +176,19 @@ const Profile = () => {
 
                   <div className="flex flex-wrap justify-between items-center">
                     <div className="flex flex-wrap gap-2">
-                      <Badge className="bg-purple-100 text-purple-700 px-3 py-1.5 text-sm">Producer</Badge>
-                      <Badge variant="outline" className="px-3 py-1.5 text-sm">Hip-Hop</Badge>
-                      <Badge variant="outline" className="px-3 py-1.5 text-sm">R&B</Badge>
-                      <Badge variant="outline" className="px-3 py-1.5 text-sm">Pop</Badge>
+                      <Badge className="bg-purple-100 text-purple-700 px-3 py-1.5 text-sm">
+                        {profile?.role || 'Musician'}
+                      </Badge>
+                      {profile?.genres?.slice(0, 3).map((genre) => (
+                        <Badge key={genre} variant="outline" className="px-3 py-1.5 text-sm">
+                          {genre}
+                        </Badge>
+                      ))}
                     </div>
                     
                     <div className="inline-flex items-center text-gray-900 px-5 py-2 border border-gray-300 rounded ml-auto mt-3 md:mt-0">
                       <MapPin className="w-4 h-4 mr-2 text-gray-900" />
-                      Los Angeles, CA
+                      {profile?.location || 'Add Location'}
                     </div>
                   </div>
                 </div>
@@ -196,24 +238,28 @@ const Profile = () => {
                   <div>
                     <h3 className="font-semibold mb-2">Bio</h3>
                     <p className="text-gray-600">
-                      Professional music producer with over 10 years of experience in hip-hop, R&B, and pop. 
-                      Passionate about creating innovative sounds and collaborating with talented artists. 
-                      Credits include work with major label artists and independent musicians worldwide.
+                      {profile?.bio || 'No bio available. Click "Edit Profile" to add one.'}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <h3 className="font-semibold mb-3">Experience Level</h3>
-                      <Badge className="bg-purple-100 text-purple-700 px-4 py-2 text-xs">Professional (10+ years)</Badge>
+                      <Badge className="bg-purple-100 text-purple-700 px-4 py-2 text-xs">
+                        {experienceLevels.find(level => level.value === profile?.experience)?.label || 'Not specified'}
+                      </Badge>
                     </div>
 
                     <div>
-                      <h3 className="font-semibold mb-3">Instruments</h3>
+                      <h3 className="font-semibold mb-3">Skills</h3>
                       <div className="flex flex-wrap gap-3">
-                        <Badge variant="outline" className="px-4 py-2 text-xs">Piano</Badge>
-                        <Badge variant="outline" className="px-4 py-2 text-xs">Guitar</Badge>
-                        <Badge variant="outline" className="px-4 py-2 text-xs">Drums</Badge>
+                        {profile?.skills?.length ? profile.skills.map((skill) => (
+                          <Badge key={skill} variant="outline" className="px-4 py-2 text-xs">
+                            {skill}
+                          </Badge>
+                        )) : (
+                          <p className="text-gray-500 text-sm">No skills listed</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -293,38 +339,12 @@ const Profile = () => {
                   <CardTitle>Public Projects</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6 p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card className="hover:shadow-lg transition-shadow">
-                      <div className="h-28 bg-purple-100 relative"></div>
-                      <CardHeader className="pb-0 p-5">
-                        <CardTitle className="text-lg">Summer Vibes</CardTitle>
-                        <p className="text-sm text-gray-500">Upbeat pop track</p>
-                      </CardHeader>
-                      <CardContent className="p-5 pt-2">
-                        <div className="flex justify-between items-center mt-2">
-                          <Badge variant="outline">Pop</Badge>
-                          <Button variant="ghost" size="sm">
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="hover:shadow-lg transition-shadow">
-                      <div className="h-28 bg-purple-100 relative"></div>
-                      <CardHeader className="pb-0 p-5">
-                        <CardTitle className="text-lg">Urban Echoes</CardTitle>
-                        <p className="text-sm text-gray-500">Hip-hop collaboration</p>
-                      </CardHeader>
-                      <CardContent className="p-5 pt-2">
-                        <div className="flex justify-between items-center mt-2">
-                          <Badge variant="outline">Hip-Hop</Badge>
-                          <Button variant="ghost" size="sm">
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">No public projects yet</p>
+                    <Button variant="outline">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Project
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -336,23 +356,12 @@ const Profile = () => {
                   <CardTitle>Social & Streaming Links</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {socialLinks.map((link) => (
-                      <div key={link.platform} className="flex items-center justify-between p-5 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center ${link.color}`}>
-                            <ExternalLink className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{link.platform}</h4>
-                            <p className="text-sm text-gray-500">Connected</p>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">No links added yet</p>
+                    <Button variant="outline">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Link
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -476,28 +485,28 @@ const Profile = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Instruments</Label>
+                  <Label>Skills</Label>
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {editInstruments.map((instrument: string) => (
-                      <Badge key={instrument} variant="outline" className="px-3 py-1">
-                        {instrument}
+                    {editSkills.map((skill: string) => (
+                      <Badge key={skill} variant="outline" className="px-3 py-1">
+                        {skill}
                         <X
                           className="w-3 h-3 ml-2 cursor-pointer"
-                          onClick={() => removeInstrument(instrument)}
+                          onClick={() => removeSkill(skill)}
                         />
                       </Badge>
                     ))}
                   </div>
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                    {commonInstruments.filter(i => !editInstruments.includes(i)).map((instrument) => (
+                    {commonSkills.filter(s => !editSkills.includes(s)).map((skill) => (
                       <Button
-                        key={instrument}
+                        key={skill}
                         variant="ghost"
                         size="sm"
-                        onClick={() => addInstrument(instrument)}
+                        onClick={() => addSkill(skill)}
                         className="text-xs"
                       >
-                        + {instrument}
+                        + {skill}
                       </Button>
                     ))}
                   </div>

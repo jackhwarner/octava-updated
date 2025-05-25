@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,77 +18,72 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useProjects } from '@/hooks/useProjects';
 
 const Projects = () => {
+  const { projects, loading, addProject, deleteProject } = useProjects();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
   const [showAddToFolderDialog, setShowAddToFolderDialog] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState('');
   const [projectGenre, setProjectGenre] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
-  const [searchCollaborator, setSearchCollaborator] = useState('');
+  const [projectVisibility, setProjectVisibility] = useState('private');
+  const [projectDeadline, setProjectDeadline] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
 
   const folders = [
-    { id: 'pop', name: 'Pop Projects', count: 5, type: 'folder' },
-    { id: 'hip-hop', name: 'Hip-Hop Projects', count: 3, type: 'folder' },
-    { id: 'collaborations', name: 'Collaborations', count: 4, type: 'folder' },
-  ];
-
-  const projects = [
-    {
-      id: 1,
-      title: 'Summer Vibes',
-      description: 'Upbeat pop track perfect for summer playlists',
-      genre: 'Pop',
-      collaborators: 3,
-      status: 'In Progress',
-      lastUpdated: '2 days ago',
-      folder: 'pop',
-      type: 'project'
-    },
-    {
-      id: 2,
-      title: 'Midnight Drive',
-      description: 'Chill synthwave instrumental',
-      genre: 'Electronic',
-      collaborators: 2,
-      status: 'Review',
-      lastUpdated: '1 week ago',
-      folder: 'collaborations',
-      type: 'project'
-    },
-    {
-      id: 3,
-      title: 'City Lights',
-      description: 'Urban hip-hop track with jazz influences',
-      genre: 'Hip-Hop',
-      collaborators: 4,
-      status: 'Complete',
-      lastUpdated: '3 days ago',
-      folder: 'hip-hop',
-      type: 'project'
-    },
+    { id: 'pop', name: 'Pop Projects', count: projects.filter(p => p.genre === 'Pop').length, type: 'folder' },
+    { id: 'hip-hop', name: 'Hip-Hop Projects', count: projects.filter(p => p.genre === 'Hip-Hop').length, type: 'folder' },
+    { id: 'collaborations', name: 'Collaborations', count: projects.filter(p => p.collaborators && p.collaborators.length > 0).length, type: 'folder' },
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'In Progress':
+      case 'active':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Review':
+      case 'on_hold':
         return 'bg-blue-100 text-blue-800';
-      case 'Complete':
+      case 'completed':
         return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'In Progress';
+      case 'on_hold':
+        return 'On Hold';
+      case 'completed':
+        return 'Complete';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  };
+
   const displayProjects = currentFolderId === null 
     ? projects 
-    : projects.filter(project => project.folder === currentFolderId);
+    : projects.filter(project => {
+        switch (currentFolderId) {
+          case 'pop':
+            return project.genre === 'Pop';
+          case 'hip-hop':
+            return project.genre === 'Hip-Hop';
+          case 'collaborations':
+            return project.collaborators && project.collaborators.length > 0;
+          default:
+            return true;
+        }
+      });
 
   const handleFolderClick = (folderId: string, folderName: string) => {
     setCurrentFolderId(folderId);
@@ -99,15 +95,37 @@ const Projects = () => {
     setCurrentFolderName(null);
   };
 
-  const handleCreateProject = () => {
-    setShowNewProjectDialog(false);
-    setProjectName('');
-    setProjectGenre('');
-    setProjectDescription('');
-    setSearchCollaborator('');
+  const handleCreateProject = async () => {
+    try {
+      await addProject({
+        title: projectName,
+        name: projectName,
+        description: projectDescription,
+        genre: projectGenre,
+        visibility: projectVisibility as 'public' | 'private' | 'connections_only',
+        deadline: projectDeadline || undefined,
+      });
+      
+      setShowNewProjectDialog(false);
+      setProjectName('');
+      setProjectGenre('');
+      setProjectDescription('');
+      setProjectVisibility('private');
+      setProjectDeadline('');
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
   };
 
-  const handleAddToFolder = (projectId: number) => {
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      await deleteProject(projectId);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+    }
+  };
+
+  const handleAddToFolder = (projectId: string) => {
     setSelectedProjectId(projectId);
     setShowAddToFolderDialog(true);
   };
@@ -137,6 +155,21 @@ const Projects = () => {
       </Breadcrumb>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -190,61 +223,83 @@ const Projects = () => {
       {/* Projects Section */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Projects</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {displayProjects.map((project: any) => (
-            <Card key={project.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{project.title}</CardTitle>
-                    <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+        {displayProjects.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p className="text-gray-500 mb-4">No projects found</p>
+              <Button 
+                className="bg-purple-600 hover:bg-purple-700"
+                onClick={() => setShowNewProjectDialog(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Project
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {displayProjects.map((project) => (
+              <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{project.title || project.name}</CardTitle>
+                      <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>Edit Project</DropdownMenuItem>
+                        <DropdownMenuItem>Share</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleAddToFolder(project.id)}>
+                          Add to Folder
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => handleDeleteProject(project.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem>Edit Project</DropdownMenuItem>
-                      <DropdownMenuItem>Share</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAddToFolder(project.id)}>
-                        Add to Folder
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline">{project.genre}</Badge>
-                  <Badge className={getStatusColor(project.status)}>
-                    {project.status}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />
-                    {project.collaborators} collaborators
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline">{project.genre || 'No Genre'}</Badge>
+                    <Badge className={getStatusColor(project.status)}>
+                      {getStatusLabel(project.status)}
+                    </Badge>
                   </div>
-                  <div>Updated {project.lastUpdated}</div>
-                </div>
 
-                <div className="flex space-x-2">
-                  <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
-                    <Music className="w-4 h-4 mr-2" />
-                    Open
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    Share
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex items-center">
+                      <Users className="w-4 h-4 mr-1" />
+                      {project.collaborators?.length || 0} collaborators
+                    </div>
+                    <div>
+                      Updated {new Date(project.updated_at).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
+                      <Music className="w-4 h-4 mr-2" />
+                      Open
+                    </Button>
+                    <Button variant="outline" className="flex-1">
+                      Share
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* New Project Dialog */}
@@ -275,13 +330,13 @@ const Projects = () => {
                   <SelectValue placeholder="Select genre" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pop">Pop</SelectItem>
-                  <SelectItem value="rock">Rock</SelectItem>
-                  <SelectItem value="hip-hop">Hip-Hop</SelectItem>
-                  <SelectItem value="r&b">R&B</SelectItem>
-                  <SelectItem value="jazz">Jazz</SelectItem>
-                  <SelectItem value="classical">Classical</SelectItem>
-                  <SelectItem value="electronic">Electronic</SelectItem>
+                  <SelectItem value="Pop">Pop</SelectItem>
+                  <SelectItem value="Rock">Rock</SelectItem>
+                  <SelectItem value="Hip-Hop">Hip-Hop</SelectItem>
+                  <SelectItem value="R&B">R&B</SelectItem>
+                  <SelectItem value="Jazz">Jazz</SelectItem>
+                  <SelectItem value="Classical">Classical</SelectItem>
+                  <SelectItem value="Electronic">Electronic</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -299,37 +354,16 @@ const Projects = () => {
             
             <div className="space-y-2">
               <Label htmlFor="project-privacy">Privacy</Label>
-              <Select>
+              <Select value={projectVisibility} onValueChange={setProjectVisibility}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select privacy" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="public">Public</SelectItem>
                   <SelectItem value="private">Private</SelectItem>
-                  <SelectItem value="connections-only">Connections Only</SelectItem>
+                  <SelectItem value="connections_only">Connections Only</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="project-collaborators">Collaborators</Label>
-              <Input 
-                id="project-collaborators"
-                value={searchCollaborator}
-                onChange={(e) => setSearchCollaborator(e.target.value)}
-                className="w-full"
-                placeholder="Search for collaborators by name"
-              />
-              {searchCollaborator && (
-                <div className="mt-1 p-2 border rounded-md">
-                  <div className="cursor-pointer hover:bg-gray-100 p-2 rounded">
-                    David Kim - Pianist
-                  </div>
-                  <div className="cursor-pointer hover:bg-gray-100 p-2 rounded">
-                    Sophia Martinez - Vocalist
-                  </div>
-                </div>
-              )}
             </div>
             
             <div className="space-y-2">
@@ -337,6 +371,8 @@ const Projects = () => {
               <Input 
                 id="project-deadline"
                 type="date"
+                value={projectDeadline}
+                onChange={(e) => setProjectDeadline(e.target.value)}
                 className="w-full"
               />
             </div>
@@ -348,6 +384,7 @@ const Projects = () => {
             <Button 
               className="bg-purple-600 hover:bg-purple-700"
               onClick={handleCreateProject}
+              disabled={!projectName.trim()}
             >
               Create Project
             </Button>
