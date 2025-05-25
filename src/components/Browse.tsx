@@ -337,7 +337,7 @@ const Browse = () => {
                       </div>
 
                       <div className="flex items-center justify-between text-sm text-gray-500">
-                        <div className="flex items-center">
+                        <div className="flex justify-between items-center">
                           <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
                           <span className="truncate mr-2">{profile.location}</span>
                           <span>{profile.completedProjects} projects</span>
