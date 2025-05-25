@@ -37,8 +37,8 @@ export const useAvailability = () => {
         start_time: item.start_time,
         end_time: item.end_time,
         category: item.category || 'open',
-        title: item.title,
-        notes: item.notes,
+        title: item.title || undefined,
+        notes: item.notes || undefined,
         created_at: item.created_at
       }));
       
@@ -75,8 +75,8 @@ export const useAvailability = () => {
         start_time: data.start_time,
         end_time: data.end_time,
         category: data.category || 'open',
-        title: data.title,
-        notes: data.notes,
+        title: data.title || undefined,
+        notes: data.notes || undefined,
         created_at: data.created_at
       };
 

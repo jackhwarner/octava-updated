@@ -391,6 +391,7 @@ export type Database = {
       }
       user_availability: {
         Row: {
+          category: string | null
           created_at: string | null
           date: string
           end_time: string
@@ -398,9 +399,11 @@ export type Database = {
           notes: string | null
           start_time: string
           status: Database["public"]["Enums"]["availability_status"] | null
+          title: string | null
           user_id: string
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           date: string
           end_time: string
@@ -408,9 +411,11 @@ export type Database = {
           notes?: string | null
           start_time: string
           status?: Database["public"]["Enums"]["availability_status"] | null
+          title?: string | null
           user_id: string
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           date?: string
           end_time?: string
@@ -418,6 +423,7 @@ export type Database = {
           notes?: string | null
           start_time?: string
           status?: Database["public"]["Enums"]["availability_status"] | null
+          title?: string | null
           user_id?: string
         }
         Relationships: [
