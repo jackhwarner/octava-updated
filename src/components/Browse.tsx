@@ -31,6 +31,19 @@ const Browse = () => {
     avatar: null
   }));
 
+  // Convert collaborators to expected SuggestedCollaborator format
+  const suggestedCollaboratorsFormatted = suggestedCollaborators.map(collaborator => ({
+    id: parseInt(collaborator.id) || 0,
+    name: collaborator.name,
+    username: collaborator.username || '@unknown',
+    role: collaborator.role || 'Musician',
+    genres: collaborator.genres || [],
+    location: collaborator.location || 'Unknown',
+    experience: collaborator.experience || 'Beginner',
+    completedProjects: collaborator.completed_projects || 0,
+    avatar: null
+  }));
+
   // Convert projects to spotlight format
   const spotlightProjects = projects
     .filter(p => p.visibility === 'public' && p.status === 'active')
@@ -94,7 +107,7 @@ const Browse = () => {
       ) : (
         <div className="space-y-10">
           <SpotlightProjects projects={spotlightProjects} />
-          <SuggestedCollaborators collaborators={suggestedCollaborators} />
+          <SuggestedCollaborators collaborators={suggestedCollaboratorsFormatted} />
         </div>
       )}
     </div>

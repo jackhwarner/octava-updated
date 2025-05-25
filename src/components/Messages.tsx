@@ -119,7 +119,13 @@ const Messages = () => {
                   >
                     <div className="flex items-center space-x-3">
                       {thread.is_group ? (
-                        <GroupAvatar participants={thread.participants || []} size="md" />
+                        <GroupAvatar 
+                          participants={thread.participants?.map(p => ({
+                            name: p.profiles.name,
+                            username: p.profiles.username
+                          })) || []} 
+                          size="md" 
+                        />
                       ) : (
                         <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
                           {thread.participants?.[0]?.profiles?.name?.[0] || '?'}
@@ -154,7 +160,13 @@ const Messages = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     {selectedThread.is_group ? (
-                      <GroupAvatar participants={selectedThread.participants || []} size="md" />
+                      <GroupAvatar 
+                        participants={selectedThread.participants?.map(p => ({
+                          name: p.profiles.name,
+                          username: p.profiles.username
+                        })) || []} 
+                        size="md" 
+                      />
                     ) : (
                       <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
                         {selectedThread.participants?.[0]?.profiles?.name?.[0] || '?'}
