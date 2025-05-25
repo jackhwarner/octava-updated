@@ -5,19 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Users, Calendar, DollarSign, Globe, Lock, Eye } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info } from 'lucide-react';
 import { useFakeProjects } from '@/hooks/useFakeProjects';
 import ProjectFiles from './project/ProjectFiles';
 import ProjectChat from './project/ProjectChat';
 import ProjectCollaborators from './project/ProjectCollaborators';
 import ProjectInfo from './project/ProjectInfo';
-import GroupAvatar from './GroupAvatar';
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { projects } = useFakeProjects();
   const [project, setProject] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     const foundProject = projects.find(p => p.id === projectId);
@@ -83,110 +83,169 @@ const ProjectDetail = () => {
     }
   };
 
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const sidebarItems = [
+    { id: 'overview', label: 'Overview', icon: Info },
+    { id: 'files', label: 'Files', icon: FileText },
+    { id: 'chat', label: 'Chat', icon: MessageSquare },
+    { id: 'collaborators', label: 'Team', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return <ProjectInfo project={project} />;
+      case 'files':
+        return <ProjectFiles projectId={project.id} />;
+      case 'chat':
+        return <ProjectChat projectId={project.id} />;
+      case 'collaborators':
+        return <ProjectCollaborators project={project} />;
+      case 'settings':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-500">Project settings will be implemented here.</p>
+            </CardContent>
+          </Card>
+        );
+      default:
+        return <ProjectInfo project={project} />;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-4 py-4">
-            <Button variant="ghost" onClick={() => navigate('/projects')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Projects
-            </Button>
-          </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div className="w-[280px] bg-white border-r border-gray-200 flex flex-col">
+        {/* Header */}
+        <div className="p-6 border-b">
+          <Button variant="ghost" onClick={() => navigate('/projects')} className="mb-4 -ml-2">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Projects
+          </Button>
           
-          <div className="pb-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {project.title || project.name}
-                </h1>
-                <p className="text-gray-600 mb-4">{project.description}</p>
-                
-                <div className="flex items-center space-x-4 mb-4">
-                  <Badge className={getStatusColor(project.status)}>
-                    {getStatusLabel(project.status)}
-                  </Badge>
-                  <Badge variant="outline">{project.genre || 'No Genre'}</Badge>
-                  <div className="flex items-center text-sm text-gray-500">
-                    {getVisibilityIcon(project.visibility)}
-                    <span className="ml-1 capitalize">{project.visibility}</span>
-                  </div>
-                </div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">
+            {project.title || project.name}
+          </h1>
+          
+          <div className="flex items-center space-x-2 mb-3">
+            <Badge className={getStatusColor(project.status)}>
+              {getStatusLabel(project.status)}
+            </Badge>
+            <Badge variant="outline">{project.genre || 'No Genre'}</Badge>
+          </div>
 
-                <div className="flex items-center space-x-6 text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />
-                    {project.collaborators?.length || 0} collaborators
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    Created {new Date(project.created_at).toLocaleDateString()}
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    Updated {new Date(project.updated_at).toLocaleDateString()}
-                  </div>
-                </div>
-              </div>
+          <div className="flex items-center text-sm text-gray-500 mb-4">
+            {getVisibilityIcon(project.visibility)}
+            <span className="ml-1 capitalize">{project.visibility}</span>
+          </div>
 
-              <div className="flex items-center space-x-4">
-                {project.collaborators && project.collaborators.length > 0 && (
-                  <GroupAvatar 
-                    participants={project.collaborators.map(c => ({
-                      name: c.name,
-                      username: c.username
-                    }))}
-                    size="lg"
-                  />
-                )}
-                <Button className="bg-purple-600 hover:bg-purple-700">
-                  Invite Collaborators
-                </Button>
-              </div>
+          <p className="text-sm text-gray-600 line-clamp-3">{project.description}</p>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4">
+          <ul className="space-y-2">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.id}>
+                  <button
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                      activeTab === item.id
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Project Stats */}
+        <div className="p-4 border-t">
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500">Created</span>
+              <span className="text-gray-900">{new Date(project.created_at).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500">Updated</span>
+              <span className="text-gray-900">{new Date(project.updated_at).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500">Collaborators</span>
+              <span className="text-gray-900">{project.collaborators?.length || 0}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="files">Files</TabsTrigger>
-            <TabsTrigger value="chat">Chat</TabsTrigger>
-            <TabsTrigger value="collaborators">Team</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-          </TabsList>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Bar */}
+        <div className="bg-white border-b px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Calendar className="w-5 h-5 text-gray-400" />
+              <span className="text-sm text-gray-600">
+                Last updated {new Date(project.updated_at).toLocaleDateString()}
+              </span>
+            </div>
 
-          <TabsContent value="overview">
-            <ProjectInfo project={project} />
-          </TabsContent>
+            <div className="flex items-center space-x-4">
+              {/* Collaborator Avatars */}
+              {project.collaborators && project.collaborators.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500 mr-2">Team:</span>
+                  <div className="flex -space-x-2">
+                    {/* Project Owner */}
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
+                      <span className="text-xs text-purple-700">AR</span>
+                    </div>
+                    
+                    {/* Collaborators */}
+                    {project.collaborators.slice(0, 4).map((collaborator, index) => (
+                      <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
+                        <span className="text-xs text-purple-700">
+                          {getInitials(collaborator.name)}
+                        </span>
+                      </div>
+                    ))}
+                    
+                    {project.collaborators.length > 4 && (
+                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
+                        <span className="text-xs text-gray-600">+{project.collaborators.length - 4}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
-          <TabsContent value="files">
-            <ProjectFiles projectId={project.id} />
-          </TabsContent>
+              <Button className="bg-purple-600 hover:bg-purple-700">
+                Invite Collaborators
+              </Button>
+            </div>
+          </div>
+        </div>
 
-          <TabsContent value="chat">
-            <ProjectChat projectId={project.id} />
-          </TabsContent>
-
-          <TabsContent value="collaborators">
-            <ProjectCollaborators project={project} />
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Settings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-500">Project settings will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {/* Content Area */}
+        <div className="flex-1 p-6 overflow-auto">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );

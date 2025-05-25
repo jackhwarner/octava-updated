@@ -2,7 +2,8 @@
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, File, Download, Trash2, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Upload, Download, Trash2, Plus, Play, FileText, Image, Video, File } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProjectFilesProps {
@@ -17,7 +18,8 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
       size: 5242880, // 5MB
       type: 'audio/mp3',
       uploadedBy: 'Sarah Johnson',
-      uploadedAt: '2024-01-20T10:30:00Z'
+      uploadedAt: '2024-01-20T10:30:00Z',
+      url: '/lovable-uploads/sample-audio.mp3'
     },
     {
       id: '2',
@@ -25,19 +27,31 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
       size: 2048, // 2KB
       type: 'text/plain',
       uploadedBy: 'Marcus Williams',
-      uploadedAt: '2024-01-19T14:15:00Z'
+      uploadedAt: '2024-01-19T14:15:00Z',
+      url: '/lovable-uploads/sample-text.txt'
     },
     {
       id: '3',
-      name: 'chord-progression.pdf',
+      name: 'album-cover.jpg',
       size: 1048576, // 1MB
-      type: 'application/pdf',
+      type: 'image/jpeg',
       uploadedBy: 'Sarah Johnson',
-      uploadedAt: '2024-01-18T09:45:00Z'
+      uploadedAt: '2024-01-18T09:45:00Z',
+      url: '/lovable-uploads/473e0e70-6ce1-470c-989b-502bc6fc4f4e.png'
+    },
+    {
+      id: '4',
+      name: 'music-video.mp4',
+      size: 15728640, // 15MB
+      type: 'video/mp4',
+      uploadedBy: 'Alex Rodriguez',
+      uploadedAt: '2024-01-17T16:30:00Z',
+      url: '/lovable-uploads/sample-video.mp4'
     }
   ]);
   
   const [uploading, setUploading] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -49,13 +63,14 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getFileIcon = (type: string) => {
-    if (type.startsWith('audio/')) return '🎵';
-    if (type.startsWith('image/')) return '🖼️';
-    if (type.startsWith('video/')) return '🎥';
-    if (type.includes('pdf')) return '📄';
-    if (type.includes('text')) return '📝';
-    return '📁';
+  const getFileIcon = (type: string, isAudio = false) => {
+    if (isAudio || type.startsWith('audio/')) {
+      return <Play className="w-4 h-4" />;
+    }
+    if (type.startsWith('image/')) return <Image className="w-4 h-4" />;
+    if (type.startsWith('video/')) return <Video className="w-4 h-4" />;
+    if (type.includes('pdf') || type.includes('text')) return <FileText className="w-4 h-4" />;
+    return <File className="w-4 h-4" />;
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +88,8 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
           size: file.size,
           type: file.type,
           uploadedBy: 'You',
-          uploadedAt: new Date().toISOString()
+          uploadedAt: new Date().toISOString(),
+          url: URL.createObjectURL(file)
         };
 
         // Add to files list
@@ -104,6 +120,12 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
       title: "File deleted",
       description: "The file has been removed from the project.",
     });
+  };
+
+  const handleImagePreview = (file: any) => {
+    if (file.type.startsWith('image/')) {
+      setPreviewImage(file.url);
+    }
   };
 
   return (
@@ -162,7 +184,11 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                 >
                   <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{getFileIcon(file.type)}</span>
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <div className="text-purple-700">
+                        {getFileIcon(file.type, file.type.startsWith('audio/'))}
+                      </div>
+                    </div>
                     <div>
                       <p className="font-medium text-gray-900">{file.name}</p>
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
@@ -176,6 +202,15 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                   </div>
                   
                   <div className="flex items-center space-x-2">
+                    {file.type.startsWith('image/') && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleImagePreview(file)}
+                      >
+                        <Image className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="sm">
                       <Download className="w-4 h-4" />
                     </Button>
@@ -194,6 +229,24 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Image Preview Dialog */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Image Preview</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center">
+            {previewImage && (
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="max-w-full max-h-[70vh] object-contain rounded-lg"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
