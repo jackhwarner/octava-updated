@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Music, Search, Users, Clock, Star } from 'lucide-react';
+
 const Browse = () => {
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
@@ -13,6 +14,7 @@ const Browse = () => {
   const [selectedAvailability, setSelectedAvailability] = useState('');
   const [location, setLocation] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+
   const profiles = [{
     id: 1,
     name: 'Sarah Johnson',
@@ -130,6 +132,7 @@ const Browse = () => {
   const handleSearch = () => {
     setHasSearched(true);
   };
+
   return <div className="p-10">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Browse Musicians</h1>
@@ -337,11 +340,11 @@ const Browse = () => {
                       </div>
 
                       <div className="flex items-center justify-between text-sm text-gray-500">
-                        <div className="flex justify-between items-center w-full">
+                        <div className="flex items-center">
                           <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
                           <span className="truncate mr-2">{profile.location}</span>
-                          <span>{profile.completedProjects} projects</span>
                         </div>
+                        <span>{profile.completedProjects} projects</span>
                       </div>
 
                       <Button className="w-full bg-purple-600 hover:bg-purple-700">
