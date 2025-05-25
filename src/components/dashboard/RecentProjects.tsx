@@ -1,9 +1,7 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users } from 'lucide-react';
-
 interface Project {
   id: number;
   title: string;
@@ -12,31 +10,27 @@ interface Project {
   lastUpdated: string;
   status: string;
 }
-
 interface RecentProjectsProps {
   onNavigate: (tab: string) => void;
 }
-
-const RecentProjects = ({ onNavigate }: RecentProjectsProps) => {
-  const recentProjects = [
-    {
-      id: 1,
-      title: 'Summer Vibes',
-      description: 'Upbeat pop track perfect for summer playlists',
-      collaborators: 3,
-      lastUpdated: '2 days ago',
-      status: 'In Progress',
-    },
-    {
-      id: 2,
-      title: 'Midnight Drive',
-      description: 'Chill synthwave instrumental',
-      collaborators: 2,
-      lastUpdated: '1 week ago',
-      status: 'Review',
-    },
-  ];
-
+const RecentProjects = ({
+  onNavigate
+}: RecentProjectsProps) => {
+  const recentProjects = [{
+    id: 1,
+    title: 'Summer Vibes',
+    description: 'Upbeat pop track perfect for summer playlists',
+    collaborators: 3,
+    lastUpdated: '2 days ago',
+    status: 'In Progress'
+  }, {
+    id: 2,
+    title: 'Midnight Drive',
+    description: 'Chill synthwave instrumental',
+    collaborators: 2,
+    lastUpdated: '1 week ago',
+    status: 'Review'
+  }];
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'In Progress':
@@ -49,21 +43,17 @@ const RecentProjects = ({ onNavigate }: RecentProjectsProps) => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
   const handleProjectClick = (projectId: number) => {
     onNavigate('projects');
   };
-
-  return (
-    <Card>
+  return <Card>
       <CardHeader>
         <CardTitle>Recent Projects</CardTitle>
-        <CardDescription>Projects you've been working on</CardDescription>
+        
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {recentProjects.map((project) => (
-            <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
+          {recentProjects.map(project => <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex-1">
                 <h3 className="font-medium">{project.title}</h3>
                 <p className="text-sm text-gray-500">{project.description}</p>
@@ -79,20 +69,13 @@ const RecentProjects = ({ onNavigate }: RecentProjectsProps) => {
                 <Badge className={getStatusColor(project.status)}>
                   {project.status}
                 </Badge>
-                <Button
-                  size="sm"
-                  onClick={() => handleProjectClick(project.id)}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
+                <Button size="sm" onClick={() => handleProjectClick(project.id)} className="bg-purple-600 hover:bg-purple-700">
                   View Project
                 </Button>
               </div>
-            </div>
-          ))}
+            </div>)}
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default RecentProjects;
