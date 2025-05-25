@@ -1,9 +1,11 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import AboutYouStep from './ProfileSetup/AboutYouStep';
 import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
@@ -11,6 +13,9 @@ import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
   const [profileData, setProfileData] = useState({
     name: '',
     username: '',
@@ -52,9 +57,16 @@ const ProfileSetup = () => {
 
   const handleComplete = () => {
     setCompletedSteps(prev => [...prev, currentStep]);
-    // Here you would typically save the profile data
+    // Here you would typically save the profile data to the database
     console.log('Profile setup completed:', profileData);
-    // Navigate to dashboard or profile page
+    
+    toast({
+      title: "Profile setup completed!",
+      description: "Welcome to Octava! Your profile has been created successfully."
+    });
+    
+    // Navigate to dashboard
+    navigate('/dashboard');
   };
 
   const isStepCompleted = (stepId: number) => completedSteps.includes(stepId);

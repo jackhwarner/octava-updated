@@ -109,6 +109,14 @@ const Profile = () => {
     setEditInstruments(editInstruments.filter((i: string) => i !== instrument));
   };
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    // Remove any existing @ symbols
+    value = value.replace(/@/g, '');
+    // Update with the clean username
+    setEditUsername(value);
+  };
+
   const handleSaveProfile = () => {
     // Here you would typically save the profile
     setShowEditDialog(false);
@@ -388,7 +396,15 @@ const Profile = () => {
                   
                   <div className="space-y-2">
                     <Label htmlFor="edit-username">Username</Label>
-                    <Input id="edit-username" value={editUsername} onChange={(e) => setEditUsername(e.target.value)} />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
+                      <Input 
+                        id="edit-username" 
+                        value={editUsername.replace('@', '')} 
+                        onChange={handleUsernameChange}
+                        className="pl-8"
+                      />
+                    </div>
                   </div>
                 </div>
 

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,6 +85,14 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
     }
   };
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    // Remove any existing @ symbols
+    value = value.replace(/@/g, '');
+    // Update with the clean username
+    onUpdate({ username: value });
+  };
+
   const isFormValid = data.name && data.username && data.bio && data.location && data.experience;
 
   return (
@@ -102,12 +111,16 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
           
           <div className="space-y-2">
             <Label htmlFor="username">Username *</Label>
-            <Input
-              id="username"
-              placeholder="@your_username"
-              value={data.username}
-              onChange={(e) => onUpdate({ username: e.target.value })}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
+              <Input
+                id="username"
+                placeholder="your_username"
+                value={data.username}
+                onChange={handleUsernameChange}
+                className="pl-8"
+              />
+            </div>
           </div>
         </div>
 
