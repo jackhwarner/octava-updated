@@ -6,7 +6,6 @@ import DashboardStats from './DashboardStats';
 import QuickActions from './dashboard/QuickActions';
 import OnlineCollaborators from './dashboard/OnlineCollaborators';
 import RecentProjects from './dashboard/RecentProjects';
-import TodaySchedule from './dashboard/TodaySchedule';
 import SuggestedCollaborators from './dashboard/SuggestedCollaborators';
 
 interface DashboardProps {
@@ -38,24 +37,16 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
       {/* Dashboard Stats */}
       <DashboardStats onNavigate={onNavigate || (() => {})} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Quick Actions and Online Collaborators Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <QuickActions onNavigate={onNavigate || (() => {})} />
-            <OnlineCollaborators onMessageCollaborator={handleMessageCollaborator} />
-          </div>
-
-          {/* Recent Projects Row */}
-          <div className="grid grid-cols-1 gap-6">
-            <RecentProjects onNavigate={onNavigate || (() => {})} />
-          </div>
+      <div className="space-y-8">
+        {/* Quick Actions and Recent Projects Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <QuickActions onNavigate={onNavigate || (() => {})} />
+          <RecentProjects onNavigate={onNavigate || (() => {})} />
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <TodaySchedule />
+        {/* Online Collaborators and Suggested Collaborators Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <OnlineCollaborators onMessageCollaborator={handleMessageCollaborator} />
           <SuggestedCollaborators onConnectCollaborator={handleConnectCollaborator} />
         </div>
       </div>

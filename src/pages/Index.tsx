@@ -9,7 +9,6 @@ import Projects from '@/components/Projects';
 import Profile from '@/components/Profile';
 import Settings from '@/components/Settings';
 import Support from '@/components/Support';
-import Availability from '@/components/Availability';
 import AuthWrapper from '@/components/AuthWrapper';
 
 const Index = () => {
@@ -52,8 +51,6 @@ const Index = () => {
         return <Messages />;
       case 'projects':
         return <Projects />;
-      case 'availability':
-        return <Availability />;
       case 'profile':
         return <Profile />;
       case 'settings':

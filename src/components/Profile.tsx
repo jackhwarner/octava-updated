@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useProfile } from '@/hooks/useProfile';
-import { useAvailability } from '@/hooks/useAvailability';
 import { useProjects } from '@/hooks/useProjects';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileStats } from '@/components/profile/ProfileStats';
@@ -15,7 +14,6 @@ import { EditProfileDialog } from '@/components/profile/EditProfileDialog';
 
 const Profile = () => {
   const { profile, loading, updateProfile } = useProfile();
-  const { availabilities } = useAvailability();
   const { projects } = useProjects();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [cityName, setCityName] = useState('');
@@ -86,7 +84,7 @@ const Profile = () => {
             </TabsList>
 
             <TabsContent value="about" className="space-y-6">
-              <AboutTab profile={profile} availabilities={availabilities} />
+              <AboutTab profile={profile} />
             </TabsContent>
 
             <TabsContent value="music" className="space-y-6">

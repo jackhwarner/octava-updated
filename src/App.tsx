@@ -33,7 +33,6 @@ const App = () => (
           <Route path="/browse" element={<AuthWrapper><Index /></AuthWrapper>} />
           <Route path="/messages" element={<AuthWrapper><Index /></AuthWrapper>} />
           <Route path="/projects" element={<AuthWrapper><Index /></AuthWrapper>} />
-          <Route path="/availability" element={<AuthWrapper><Index /></AuthWrapper>} />
           <Route path="/profile" element={<AuthWrapper><Index /></AuthWrapper>} />
           <Route path="/settings" element={<AuthWrapper><Index /></AuthWrapper>} />
           <Route path="/support" element={<AuthWrapper><Index /></AuthWrapper>} />
