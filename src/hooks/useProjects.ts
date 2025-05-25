@@ -41,22 +41,10 @@ export const useProjects = () => {
         return;
       }
 
-      // First try to get projects owned by user
+      // Get projects owned by user
       const { data: ownedProjects, error: ownedError } = await supabase
         .from('projects')
-        .select(`
-          *,
-          project_collaborators (
-            id,
-            user_id,
-            role,
-            status,
-            profiles (
-              name,
-              username
-            )
-          )
-        `)
+        .select('*')
         .eq('owner_id', user.id)
         .order('updated_at', { ascending: false });
 
@@ -65,43 +53,62 @@ export const useProjects = () => {
         throw ownedError;
       }
 
-      // Then get projects where user is a collaborator
-      const { data: collaboratorProjects, error: collabError } = await supabase
+      // Get collaborator data separately
+      const projectIds = ownedProjects?.map(p => p.id) || [];
+      let collaboratorsData: any[] = [];
+      
+      if (projectIds.length > 0) {
+        const { data: collabData, error: collabError } = await supabase
+          .from('project_collaborators')
+          .select(`
+            id,
+            user_id,
+            role,
+            status,
+            project_id,
+            profiles (
+              name,
+              username
+            )
+          `)
+          .in('project_id', projectIds);
+
+        if (!collabError) {
+          collaboratorsData = collabData || [];
+        }
+      }
+
+      // Get projects where user is a collaborator
+      const { data: userCollabProjects, error: userCollabError } = await supabase
         .from('project_collaborators')
         .select(`
-          projects (
-            *,
-            project_collaborators (
-              id,
-              user_id,
-              role,
-              status,
-              profiles (
-                name,
-                username
-              )
-            )
-          )
+          project_id,
+          projects (*)
         `)
         .eq('user_id', user.id)
         .eq('status', 'accepted');
 
-      let allProjects = ownedProjects || [];
-
-      if (!collabError && collaboratorProjects) {
-        const collabProjectsData = collaboratorProjects
+      let collabProjects: any[] = [];
+      if (!userCollabError && userCollabProjects) {
+        collabProjects = userCollabProjects
           .map(cp => cp.projects)
           .filter(p => p !== null);
-        allProjects = [...allProjects, ...collabProjectsData];
       }
 
-      // Map database values to our interface
-      const mappedProjects: Project[] = allProjects.map(project => ({
-        ...project,
-        status: project.status === 'paused' ? 'on_hold' : project.status as 'active' | 'completed' | 'on_hold' | 'cancelled',
-        visibility: project.visibility === 'unlisted' ? 'connections_only' : project.visibility as 'public' | 'private' | 'connections_only',
-        collaborators: project.project_collaborators || []
-      }));
+      // Combine all projects
+      const allProjects = [...(ownedProjects || []), ...collabProjects];
+
+      // Map to our interface
+      const mappedProjects: Project[] = allProjects.map(project => {
+        const projectCollaborators = collaboratorsData.filter(c => c.project_id === project.id);
+        
+        return {
+          ...project,
+          status: project.status === 'paused' ? 'on_hold' : project.status as 'active' | 'completed' | 'on_hold' | 'cancelled',
+          visibility: project.visibility === 'unlisted' ? 'connections_only' : project.visibility as 'public' | 'private' | 'connections_only',
+          collaborators: projectCollaborators || []
+        };
+      });
 
       setProjects(mappedProjects);
     } catch (error) {

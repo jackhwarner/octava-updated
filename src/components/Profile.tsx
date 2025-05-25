@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -21,6 +20,8 @@ const Profile = () => {
   useEffect(() => {
     if (profile?.zip_code && profile.zip_code.length === 5) {
       fetchCityName(profile.zip_code);
+    } else if (profile?.location) {
+      setCityName(profile.location);
     }
   }, [profile]);
 
@@ -34,7 +35,7 @@ const Profile = () => {
         setCityName(`${city}, ${state}`);
       }
     } catch (error) {
-      setCityName('');
+      setCityName(profile?.location || '');
     }
   };
 
@@ -73,6 +74,7 @@ const Profile = () => {
           <ProfileStats 
             totalCollaborations={totalCollaborations}
             activeProjects={activeProjects}
+            profile={profile}
           />
 
           <Tabs defaultValue="about" className="space-y-6">

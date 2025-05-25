@@ -1,56 +1,63 @@
-
 import { Home, Search, MessageCircle, FolderOpen, Settings, HelpCircle, User, Bell } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import NotificationsPanel from './NotificationsPanel';
+import { useNotifications } from '@/hooks/useNotifications';
+import { formatDistanceToNow } from 'date-fns';
+
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
-const Sidebar = ({
-  activeTab,
-  setActiveTab
-}: SidebarProps) => {
+
+const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
   const navigate = useNavigate();
-  const mainMenuItems = [{
-    id: 'dashboard',
-    label: 'Dashboard',
-    icon: Home
-  }, {
-    id: 'browse',
-    label: 'Browse',
-    icon: Search
-  }, {
-    id: 'messages',
-    label: 'Messages',
-    icon: MessageCircle
-  }, {
-    id: 'projects',
-    label: 'Projects',
-    icon: FolderOpen
-  }];
-  const notifications = [{
-    id: 1,
-    text: 'David Kim wants to connect with you',
-    time: '2 hours ago'
-  }, {
-    id: 2,
-    text: 'Your track was commented on',
-    time: '1 day ago'
-  }, {
-    id: 3,
-    text: 'New project invitation received',
-    time: '2 days ago'
-  }];
+  const { notifications, markAsRead, markAllAsRead } = useNotifications();
+
+  // Get only recent notifications for the dropdown
+  const recentNotifications = notifications.slice(0, 3);
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  const mainMenuItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: Home
+    },
+    {
+      id: 'browse',
+      label: 'Browse',
+      icon: Search
+    },
+    {
+      id: 'messages',
+      label: 'Messages',
+      icon: MessageCircle
+    },
+    {
+      id: 'projects',
+      label: 'Projects',
+      icon: FolderOpen
+    }
+  ];
+
   const handleViewAllNotifications = () => {
     setIsNotificationsOpen(false);
     setShowNotificationsPanel(true);
   };
-  return <>
+
+  const handleNotificationClick = (notification: any) => {
+    if (!notification.is_read) {
+      markAsRead(notification.id);
+    }
+  };
+
+  return (
+    <>
       <div className="w-[90px] bg-white border-r border-gray-200 flex flex-col items-center py-3 h-full">
         {/* Logo */}
         <div className="mb-4">
@@ -79,21 +86,55 @@ const Sidebar = ({
         <div className="mb-3">
           <DropdownMenu open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
             <DropdownMenuTrigger asChild>
-              <button className={`p-3 rounded-lg transition-colors ${isNotificationsOpen ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`} aria-label="Notifications">
+              <button className={`relative p-3 rounded-lg transition-colors ${isNotificationsOpen ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`} aria-label="Notifications">
                 <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80 p-3 mr-32">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">Notifications</h3>
-                <button className="text-xs text-purple-600">Mark all as read</button>
+                <button 
+                  className="text-xs text-purple-600"
+                  onClick={markAllAsRead}
+                  disabled={unreadCount === 0}
+                >
+                  Mark all as read
+                </button>
               </div>
               <DropdownMenuSeparator />
-              {notifications.map(notification => <div key={notification.id} className="py-2">
-                  <p className="text-sm">{notification.text}</p>
-                  <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
-                  {notification.id !== notifications.length && <DropdownMenuSeparator className="mt-2" />}
-                </div>)}
+              {recentNotifications.length === 0 ? (
+                <div className="py-4 text-center text-gray-500 text-sm">
+                  No notifications yet
+                </div>
+              ) : (
+                recentNotifications.map((notification, index) => (
+                  <div key={notification.id}>
+                    <div 
+                      className={`py-2 cursor-pointer hover:bg-gray-50 rounded px-2 ${!notification.is_read ? 'bg-blue-50' : ''}`}
+                      onClick={() => handleNotificationClick(notification)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{notification.title}</p>
+                          <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                          </p>
+                        </div>
+                        {!notification.is_read && (
+                          <div className="w-2 h-2 bg-blue-600 rounded-full ml-2 mt-1"></div>
+                        )}
+                      </div>
+                    </div>
+                    {index !== recentNotifications.length - 1 && <DropdownMenuSeparator className="mt-2" />}
+                  </div>
+                ))
+              )}
               <DropdownMenuSeparator />
               <button className="w-full text-center text-sm text-purple-600 py-2" onClick={handleViewAllNotifications}>
                 View all notifications
@@ -137,6 +178,8 @@ const Sidebar = ({
       </div>
 
       <NotificationsPanel isOpen={showNotificationsPanel} onClose={() => setShowNotificationsPanel(false)} />
-    </>;
+    </>
+  );
 };
+
 export default Sidebar;

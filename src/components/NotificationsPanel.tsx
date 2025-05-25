@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
+import { useEffect } from 'react';
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -11,13 +12,22 @@ interface NotificationsPanelProps {
 }
 
 const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps) => {
-  const { notifications, loading, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, loading, markAsRead, markAllAsRead, refetch } = useNotifications();
+
+  // Refetch notifications when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      refetch();
+    }
+  }, [isOpen, refetch]);
 
   const handleNotificationClick = (notification: any) => {
     if (!notification.is_read) {
       markAsRead(notification.id);
     }
   };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
     <>
@@ -35,7 +45,14 @@ const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps) => {
       }`}>
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Notifications</h2>
+            <h2 className="text-xl font-semibold">
+              Notifications
+              {unreadCount > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                  {unreadCount}
+                </span>
+              )}
+            </h2>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-5 h-5" />
             </Button>
