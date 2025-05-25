@@ -102,7 +102,7 @@ const Home = () => {
               </ul>
             </div>
             <div className="md:w-1/2">
-              <img alt="Connect with Professionals" src="/lovable-uploads/e4cd1827-613e-4812-8286-2aac2e23c5e6.png" className="w-full rounded-md aspect-video object-scale-down rounded-sm" />
+              <img alt="Connect with Professionals" src="/lovable-uploads/e4cd1827-613e-4812-8286-2aac2e23c5e6.png" className="w-full rounded-md aspect-video object-scale-down" />
             </div>
           </div>
           
