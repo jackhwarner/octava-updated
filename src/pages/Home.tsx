@@ -1,52 +1,38 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Check, Star } from "lucide-react";
-
 const Home = () => {
-  const reviews = [
-    {
-      name: "Sarah Johnson",
-      role: "Producer",
-      rating: 5,
-      text: "Octava has completely transformed how I collaborate with artists. The platform is intuitive and the quality of connections is amazing."
-    },
-    {
-      name: "Marcus Williams",
-      role: "Guitarist",
-      rating: 5,
-      text: "Found my dream collaborators through Octava. The project management tools make working remotely feel seamless."
-    },
-    {
-      name: "Emma Chen",
-      role: "Songwriter",
-      rating: 4,
-      text: "Great platform for finding talented musicians. The communication tools are top-notch."
-    },
-    {
-      name: "David Kim",
-      role: "Pianist",
-      rating: 5,
-      text: "As a classical musician, I never thought I'd find jazz collaborators so easily. Octava opened up a whole new world for me."
-    },
-    {
-      name: "Lisa Rodriguez",
-      role: "Vocalist",
-      rating: 5,
-      text: "The quality of projects and professionals on Octava is outstanding. Highly recommend!"
-    }
-  ];
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  const reviews = [{
+    name: "Sarah Johnson",
+    role: "Producer",
+    rating: 5,
+    text: "Octava has completely transformed how I collaborate with artists. The platform is intuitive and the quality of connections is amazing."
+  }, {
+    name: "Marcus Williams",
+    role: "Guitarist",
+    rating: 5,
+    text: "Found my dream collaborators through Octava. The project management tools make working remotely feel seamless."
+  }, {
+    name: "Emma Chen",
+    role: "Songwriter",
+    rating: 4,
+    text: "Great platform for finding talented musicians. The communication tools are top-notch."
+  }, {
+    name: "David Kim",
+    role: "Pianist",
+    rating: 5,
+    text: "As a classical musician, I never thought I'd find jazz collaborators so easily. Octava opened up a whole new world for me."
+  }, {
+    name: "Lisa Rodriguez",
+    role: "Vocalist",
+    rating: 5,
+    text: "The quality of projects and professionals on Octava is outstanding. Highly recommend!"
+  }];
+  return <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="w-full p-5 md:p-6 flex justify-between items-center bg-white shadow-sm">
         <div className="flex items-center">
-          <img 
-            src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
-            alt="Octava Logo" 
-            className="h-10" 
-          />
+          <img alt="Octava Logo" src="/lovable-uploads/8f437838-999e-4f09-9473-4da4c56bc06f.png" className="h-10 object-scale-down" />
         </div>
         <nav className="hidden md:flex space-x-8 absolute left-1/2 transform -translate-x-1/2">
           <a href="#features" className="text-gray-700 hover:text-gray-900">Features</a>
@@ -72,24 +58,15 @@ const Home = () => {
         <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
           Octava is the platform that connects musicians, producers, and creators to bring your musical vision to life.
         </p>
-        <Button 
-          size="lg" 
-          className="text-lg px-12 py-8 rounded-full"
-          style={{
-            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%)",
-            boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -5px rgba(217, 70, 239, 0.2)"
-          }}
-          asChild
-        >
+        <Button size="lg" className="text-lg px-12 py-8 rounded-full" style={{
+        background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%)",
+        boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), 0 8px 10px -5px rgba(217, 70, 239, 0.2)"
+      }} asChild>
           <Link to="/signup">Get Started</Link>
         </Button>
         <div className="mt-16">
           <div className="bg-gray-200 rounded-md max-w-4xl mx-auto aspect-[16/9] flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/bbc2aa1e-fc0b-471d-8bcb-dd79522521d5.png"
-              alt="Platform preview" 
-              className="w-full h-full object-cover rounded-md shadow-lg"
-            />
+            <img src="/lovable-uploads/bbc2aa1e-fc0b-471d-8bcb-dd79522521d5.png" alt="Platform preview" className="w-full h-full object-cover rounded-md shadow-lg" />
           </div>
         </div>
       </section>
@@ -191,23 +168,16 @@ const Home = () => {
           <h2 className="text-3xl md:text-5xl font-bold mb-16 text-center">What Our Users Say</h2>
           <div className="relative">
             <div className="flex animate-scroll space-x-8">
-              {[...reviews, ...reviews].map((review, index) => (
-                <div key={index} className="bg-gray-50 p-6 rounded-xl min-w-[350px] max-w-[350px] flex-shrink-0">
+              {[...reviews, ...reviews].map((review, index) => <div key={index} className="bg-gray-50 p-6 rounded-xl min-w-[350px] max-w-[350px] flex-shrink-0">
                   <div className="flex items-center mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
-                      />
-                    ))}
+                    {[...Array(5)].map((_, i) => <Star key={i} className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />)}
                   </div>
                   <p className="text-gray-700 mb-4 text-sm leading-relaxed">"{review.text}"</p>
                   <div>
                     <p className="font-medium text-gray-900">{review.name}</p>
                     <p className="text-sm text-gray-500">{review.role}</p>
                   </div>
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
         </div>
@@ -318,11 +288,7 @@ const Home = () => {
           <p className="text-xl mb-12 opacity-80 max-w-2xl mx-auto">
             Join thousands of musicians and creators who are using Octava to bring their musical projects to life.
           </p>
-          <Button 
-            size="lg" 
-            className="text-lg px-16 py-8 rounded-full bg-white text-purple-900 hover:bg-gray-100"
-            asChild
-          >
+          <Button size="lg" className="text-lg px-16 py-8 rounded-full bg-white text-purple-900 hover:bg-gray-100" asChild>
             <Link to="/signup">Start Your Free Trial</Link>
           </Button>
         </div>
@@ -333,11 +299,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img 
-                src="/lovable-uploads/473e0e70-6ce1-470c-989b-502bc6fc4f4e.png" 
-                alt="Octava Logo" 
-                className="w-8 h-8" 
-              />
+              <img src="/lovable-uploads/473e0e70-6ce1-470c-989b-502bc6fc4f4e.png" alt="Octava Logo" className="w-8 h-8" />
               <span className="font-bold text-xl text-white">Octava</span>
             </div>
             <p className="text-sm">
@@ -378,8 +340,6 @@ const Home = () => {
           <p>© 2025 Octava. All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Home;
