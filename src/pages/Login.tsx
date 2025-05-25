@@ -1,34 +1,48 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FcGoogle } from "react-icons/fc";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Get the redirect path from query params or default to dashboard
+  const from = new URLSearchParams(location.search).get('from') || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // Here you would typically authenticate the user
-      // For now, we'll just simulate a successful login
-      setTimeout(() => {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: error.message
+        });
+      } else {
         toast({
           title: "Successfully logged in",
-          description: "Redirecting to your dashboard..."
+          description: "Redirecting..."
         });
-        navigate("/dashboard");
-      }, 1000);
+        navigate(from, { replace: true });
+      }
     } catch (error) {
       toast({
         variant: "destructive",
@@ -40,17 +54,33 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     
-    // Simulating Google authentication
-    setTimeout(() => {
-      toast({
-        title: "Google login successful",
-        description: "Redirecting to your dashboard..."
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}${from}`
+        }
       });
-      navigate("/dashboard");
-    }, 1000);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Google login failed",
+          description: error.message
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Google login failed",
+        description: "Please try again."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -132,7 +162,7 @@ const Login = () => {
         <CardFooter>
           <p className="text-center text-sm text-gray-500 w-full">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-purple-600 hover:underline font-medium">
+            <Link to={`/signup${location.search}`} className="text-purple-600 hover:underline font-medium">
               Sign up
             </Link>
           </p>

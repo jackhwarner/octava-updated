@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AuthWrapperProps {
@@ -11,6 +11,7 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Get initial session
@@ -18,9 +19,10 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // If no user, redirect to login
+      // If no user, redirect to login with current path
       if (!session?.user) {
-        navigate('/login');
+        const currentPath = location.pathname;
+        navigate(`/login?from=${encodeURIComponent(currentPath)}`);
       }
     });
 
@@ -30,15 +32,16 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // If no user, redirect to login
+        // If no user, redirect to login with current path
         if (!session?.user) {
-          navigate('/login');
+          const currentPath = location.pathname;
+          navigate(`/login?from=${encodeURIComponent(currentPath)}`);
         }
       }
     );
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   if (loading) {
     return (
