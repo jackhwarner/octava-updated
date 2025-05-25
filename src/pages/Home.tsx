@@ -66,7 +66,7 @@ const Home = () => {
         </Button>
         <div className="mt-16">
           <div className="bg-gray-200 rounded-md max-w-4xl mx-auto flex items-center justify-center relative overflow-hidden">
-            <img alt="Platform preview" src="/lovable-uploads/00e0e220-eb35-4790-aa98-b33b36c4fdbc.png" className="h-full rounded-md shadow-lg object-scale-down" />
+            <img alt="Platform preview" src="/lovable-uploads/21e23c9f-3154-4f29-a8ad-79ce21c3864d.png" className="h-full rounded-md shadow-xl object-scale-down" />
             {/* Fade out gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white pointer-events-none"></div>
           </div>
