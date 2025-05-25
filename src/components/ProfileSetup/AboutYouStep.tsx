@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -122,49 +123,51 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="location" className="flex items-center space-x-1">
-            <span>Zip Code *</span>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-4 h-4 text-gray-400" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Your zip code won't be public and is only used to determine your general area</p>
-              </TooltipContent>
-            </Tooltip>
-          </Label>
-          <div className="flex items-center space-x-2">
-            <Input
-              id="location"
-              placeholder="12345"
-              value={data.location}
-              onChange={handleZipCodeChange}
-              maxLength={5}
-              className="w-32"
-              inputMode="numeric"
-              pattern="[0-9]*"
-            />
-            {detectedCity && (
-              <span className="text-gray-600 text-sm">{detectedCity}</span>
-            )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="location" className="flex items-center space-x-1">
+              <span>Zip Code *</span>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="w-4 h-4 text-gray-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Your zip code won't be public and is only used to determine your general area</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <div className="flex items-center space-x-2">
+              <Input
+                id="location"
+                placeholder="12345"
+                value={data.location}
+                onChange={handleZipCodeChange}
+                maxLength={5}
+                className="w-32"
+                inputMode="numeric"
+                pattern="[0-9]*"
+              />
+              {detectedCity && (
+                <span className="text-gray-600 text-sm">{detectedCity}</span>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label>Experience Level *</Label>
-          <Select value={data.experience} onValueChange={(value) => onUpdate({ experience: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select your experience level" />
-            </SelectTrigger>
-            <SelectContent>
-              {experienceLevels.map((level) => (
-                <SelectItem key={level.value} value={level.value}>
-                  {level.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <Label>Experience Level *</Label>
+            <Select value={data.experience} onValueChange={(value) => onUpdate({ experience: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select your experience level" />
+              </SelectTrigger>
+              <SelectContent>
+                {experienceLevels.map((level) => (
+                  <SelectItem key={level.value} value={level.value}>
+                    {level.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="space-y-2">

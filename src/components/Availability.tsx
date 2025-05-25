@@ -1,24 +1,23 @@
-
 import { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, MapPin, LogOut } from 'lucide-react';
+import { Plus, MapPin, Calendar as CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAvailability } from '@/hooks/useAvailability';
 import { useSessions } from '@/hooks/useSessions';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 const Availability = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showAddAvailabilityDialog, setShowAddAvailabilityDialog] = useState(false);
+  const [showAddSessionDialog, setShowAddSessionDialog] = useState(false);
   const [availabilityType, setAvailabilityType] = useState("Available to collaborate");
   const [timeSelection, setTimeSelection] = useState("morning");
   const [customStartTime, setCustomStartTime] = useState("");
@@ -26,34 +25,24 @@ const Availability = () => {
   const [selectedDayOfWeek, setSelectedDayOfWeek] = useState(0);
   const [isRecurring, setIsRecurring] = useState(true);
   
+  // Session form state
+  const [sessionTitle, setSessionTitle] = useState("");
+  const [sessionDescription, setSessionDescription] = useState("");
+  const [sessionType, setSessionType] = useState("recording");
+  const [sessionLocation, setSessionLocation] = useState("");
+  const [sessionStartTime, setSessionStartTime] = useState("");
+  const [sessionEndTime, setSessionEndTime] = useState("");
+  const [sessionDate, setSessionDate] = useState("");
+  
   const { availabilities, loading: availabilityLoading, addAvailability, deleteAvailability } = useAvailability();
   const { sessions, loading: sessionsLoading, deleteSession } = useSessions();
-  const { toast } = useToast();
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
 
   const handleAddAvailability = async () => {
-    if (!isRecurring && selectedDayOfWeek === undefined) {
-      toast({
-        title: "Error",
-        description: "Please select a day of the week",
-        variant: "destructive",
-      });
-      return;
-    }
-
     let startTime: string | undefined = undefined;
     let endTime: string | undefined = undefined;
 
     if (timeSelection === "custom") {
       if (!customStartTime || !customEndTime) {
-        toast({
-          title: "Error",
-          description: "Please set both start and end times",
-          variant: "destructive",
-        });
         return;
       }
       startTime = customStartTime;
@@ -80,6 +69,37 @@ const Availability = () => {
     }
   };
 
+  const handleAddSession = async () => {
+    if (!sessionTitle || !sessionDate || !sessionStartTime || !sessionEndTime) {
+      return;
+    }
+
+    try {
+      const startDateTime = new Date(`${sessionDate}T${sessionStartTime}`);
+      const endDateTime = new Date(`${sessionDate}T${sessionEndTime}`);
+
+      // Add session logic here - you'll need to create a useSessions hook or API call
+      console.log('Adding session:', {
+        title: sessionTitle,
+        description: sessionDescription,
+        type: sessionType,
+        location: sessionLocation,
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+      });
+
+      setShowAddSessionDialog(false);
+      setSessionTitle("");
+      setSessionDescription("");
+      setSessionLocation("");
+      setSessionDate("");
+      setSessionStartTime("");
+      setSessionEndTime("");
+    } catch (error) {
+      console.error('Error adding session:', error);
+    }
+  };
+
   const formatTimeRange = (startTime: string | null, endTime: string | null, period: string) => {
     if (startTime && endTime) {
       const formatTime = (time: string) => {
@@ -93,7 +113,6 @@ const Availability = () => {
       return `${formatTime(startTime)} - ${formatTime(endTime)}`;
     }
 
-    // Fallback to period names
     switch (period) {
       case 'morning':
         return '9:00 AM - 12:00 PM';
@@ -129,12 +148,8 @@ const Availability = () => {
 
   return (
     <div className="p-8">
-      <div className="mb-8 flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Availability</h1>
-        <Button variant="outline" onClick={handleSignOut}>
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
-        </Button>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Availability & Sessions</h1>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -142,7 +157,7 @@ const Availability = () => {
         <Card className="flex-grow lg:w-3/5">
           <CardHeader>
             <CardTitle>Your Schedule</CardTitle>
-            <CardDescription>Manage your recurring availability</CardDescription>
+            <CardDescription>Manage your availability and sessions</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
             <Calendar
@@ -164,6 +179,8 @@ const Availability = () => {
                   <Plus className="w-4 h-4 mr-2" /> Add Availability
                 </Button>
               </div>
+              
+              {/* Availability List */}
               <div>
                 {availabilityLoading ? (
                   <div className="text-center py-8">Loading...</div>
@@ -199,23 +216,76 @@ const Availability = () => {
                   </>
                 )}
               </div>
+              
+              {/* Sessions Section */}
+              <div className="mt-8">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium">Upcoming Sessions</h3>
+                  <Button 
+                    onClick={() => setShowAddSessionDialog(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <CalendarIcon className="w-4 h-4 mr-2" /> Add Session
+                  </Button>
+                </div>
+                <div>
+                  {sessionsLoading ? (
+                    <div className="text-center py-8">Loading...</div>
+                  ) : (
+                    <>
+                      {sessions.map(session => (
+                        <div key={session.id} className="p-3 border rounded-md flex justify-between items-center mb-3">
+                          <div>
+                            <div className="font-medium">{session.title}</div>
+                            <div className="text-sm text-gray-500">
+                              {new Date(session.start_time).toLocaleDateString()} - {formatSessionTime(session.start_time, session.end_time)}
+                            </div>
+                            {session.location && (
+                              <div className="text-sm text-gray-500 flex items-center">
+                                <MapPin className="w-3 h-3 mr-1" /> {session.location}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge className="bg-blue-100 text-blue-800">
+                              {session.type}
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteSession(session.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {sessions.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          No upcoming sessions
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Sidebar with Sessions */}
+        {/* Sidebar */}
         <div className="lg:w-2/5">
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Your Availability</CardTitle>
-              <CardDescription>Weekly recurring availability</CardDescription>
+              <CardTitle>Quick Overview</CardTitle>
+              <CardDescription>Your availability summary</CardDescription>
             </CardHeader>
             <CardContent>
               {availabilityLoading ? (
                 <div className="text-center py-4">Loading...</div>
               ) : (
                 <div className="space-y-4">
-                  {availabilities.slice(0, 5).map(availability => (
+                  {availabilities.slice(0, 3).map(availability => (
                     <div key={availability.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <div className="font-medium">
@@ -226,69 +296,13 @@ const Availability = () => {
                         </div>
                       </div>
                       <Badge className="bg-green-100 text-green-800">
-                        {availability.availability_type}
+                        Available
                       </Badge>
                     </div>
                   ))}
                   {availabilities.length === 0 && (
                     <div className="text-center py-4 text-gray-500">
                       No availability set yet
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Sessions</CardTitle>
-              <CardDescription>Scheduled sessions with collaborators</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {sessionsLoading ? (
-                <div className="text-center py-4">Loading...</div>
-              ) : (
-                <div className="space-y-4">
-                  {sessions.slice(0, 5).map(session => (
-                    <div key={session.id} className="p-3 border rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium">{session.title}</div>
-                          <div className="text-sm text-gray-500">Type: {session.type}</div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Badge className="bg-purple-600">
-                            {formatSessionTime(session.start_time, session.end_time)}
-                          </Badge>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteSession(session.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-500">
-                        <div>
-                          {new Date(session.start_time).toLocaleDateString('en-US', { 
-                            month: 'long', 
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </div>
-                        {session.location && (
-                          <div className="flex items-center">
-                            <MapPin className="w-3 h-3 mr-1" /> {session.location}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {sessions.length === 0 && (
-                    <div className="text-center py-4 text-gray-500">
-                      No upcoming sessions
                     </div>
                   )}
                 </div>
@@ -302,9 +316,9 @@ const Availability = () => {
       <Dialog open={showAddAvailabilityDialog} onOpenChange={setShowAddAvailabilityDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Set Weekly Availability</DialogTitle>
+            <DialogTitle>Set Availability</DialogTitle>
             <DialogDescription>
-              Set your recurring weekly availability for collaboration.
+              Set your availability for collaboration.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -318,7 +332,19 @@ const Availability = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <Label>Recurring</Label>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="recurring" 
+                  checked={isRecurring}
+                  onCheckedChange={(checked) => setIsRecurring(checked === true)}
+                />
+                <Label htmlFor="recurring">Make this a recurring weekly availability</Label>
+              </div>
+            </div>
+
+            {isRecurring && (
               <div className="space-y-2">
                 <Label htmlFor="day">Day of Week</Label>
                 <Select value={selectedDayOfWeek.toString()} onValueChange={(value) => setSelectedDayOfWeek(parseInt(value))}>
@@ -336,20 +362,21 @@ const Availability = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="time">Time Period</Label>
-                <Select value={timeSelection} onValueChange={setTimeSelection}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="morning">Morning (9AM - 12PM)</SelectItem>
-                    <SelectItem value="afternoon">Afternoon (12PM - 5PM)</SelectItem>
-                    <SelectItem value="evening">Evening (5PM - 10PM)</SelectItem>
-                    <SelectItem value="custom">Custom Range</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="time">Time Period</Label>
+              <Select value={timeSelection} onValueChange={setTimeSelection}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select time" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="morning">Morning (9AM - 12PM)</SelectItem>
+                  <SelectItem value="afternoon">Afternoon (12PM - 5PM)</SelectItem>
+                  <SelectItem value="evening">Evening (5PM - 10PM)</SelectItem>
+                  <SelectItem value="custom">Custom Range</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             {timeSelection === "custom" && (
@@ -383,6 +410,107 @@ const Availability = () => {
             </Button>
             <Button className="bg-purple-600 hover:bg-purple-700" onClick={handleAddAvailability}>
               Save Availability
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Session Dialog */}
+      <Dialog open={showAddSessionDialog} onOpenChange={setShowAddSessionDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Schedule Session</DialogTitle>
+            <DialogDescription>
+              Create a new session for collaboration.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="session-title">Session Title</Label>
+              <Input
+                id="session-title"
+                placeholder="Recording session, Mixing review, etc."
+                value={sessionTitle}
+                onChange={(e) => setSessionTitle(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="session-type">Session Type</Label>
+              <Select value={sessionType} onValueChange={setSessionType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select session type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recording">Recording</SelectItem>
+                  <SelectItem value="mixing">Mixing</SelectItem>
+                  <SelectItem value="mastering">Mastering</SelectItem>
+                  <SelectItem value="writing">Writing</SelectItem>
+                  <SelectItem value="rehearsal">Rehearsal</SelectItem>
+                  <SelectItem value="meeting">Meeting</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="session-date">Date</Label>
+              <Input
+                id="session-date"
+                type="date"
+                value={sessionDate}
+                onChange={(e) => setSessionDate(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="session-start">Start Time</Label>
+                <Input
+                  id="session-start"
+                  type="time"
+                  value={sessionStartTime}
+                  onChange={(e) => setSessionStartTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="session-end">End Time</Label>
+                <Input
+                  id="session-end"
+                  type="time"
+                  value={sessionEndTime}
+                  onChange={(e) => setSessionEndTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="session-location">Location (Optional)</Label>
+              <Input
+                id="session-location"
+                placeholder="Studio address, online meeting link, etc."
+                value={sessionLocation}
+                onChange={(e) => setSessionLocation(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="session-description">Description (Optional)</Label>
+              <Textarea
+                id="session-description"
+                placeholder="Additional details about the session..."
+                value={sessionDescription}
+                onChange={(e) => setSessionDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddSessionDialog(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAddSession}>
+              Schedule Session
             </Button>
           </DialogFooter>
         </DialogContent>

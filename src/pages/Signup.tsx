@@ -6,14 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FcGoogle } from "react-icons/fc";
+import { Eye, EyeOff } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [accountType, setAccountType] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,37 +38,55 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
-      // Here you would typically register the user
-      // For now, we'll just simulate a successful signup
-      setTimeout(() => {
-        toast({
-          title: "Account created successfully",
-          description: "Welcome to Octava! Let's set up your profile..."
-        });
-        navigate("/profile-setup");
-      }, 1000);
-    } catch (error) {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            role: accountType
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Account created successfully",
+        description: "Welcome to Octava! Let's set up your profile..."
+      });
+      navigate("/profile-setup", { state: { role: accountType, fullName: name } });
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Sign up failed",
-        description: "There was an error creating your account. Please try again."
+        description: error.message || "There was an error creating your account. Please try again."
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignup = () => {
+  const handleGoogleSignup = async () => {
     setIsLoading(true);
     
-    // Simulating Google signup
-    setTimeout(() => {
-      toast({
-        title: "Google signup successful",
-        description: "Let's set up your profile..."
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/profile-setup`
+        }
       });
-      navigate("/profile-setup");
-    }, 1000);
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Google signup failed",
+        description: error.message
+      });
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -113,14 +134,29 @@ const Signup = () => {
             
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input 
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
+              </div>
               <p className="text-xs text-gray-500">
                 Must be at least 8 characters long with a number and special character
               </p>

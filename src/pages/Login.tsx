@@ -1,56 +1,85 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FcGoogle } from "react-icons/fc";
+import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  const from = location.state?.from?.pathname || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // Here you would typically authenticate the user
-      // For now, we'll just simulate a successful login
-      setTimeout(() => {
-        toast({
-          title: "Successfully logged in",
-          description: "Redirecting to your dashboard..."
-        });
-        navigate("/dashboard");
-      }, 1000);
-    } catch (error) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      // Check if user has completed profile setup
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, username, bio, location, experience')
+        .single();
+
+      if (!profile || !profile.name || !profile.username || !profile.bio || !profile.location || !profile.experience) {
+        navigate("/profile-setup");
+      } else {
+        navigate(from, { replace: true });
+      }
+
+      toast({
+        title: "Successfully logged in",
+        description: "Welcome back!"
+      });
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: "Please check your credentials and try again."
+        description: error.message || "Please check your credentials and try again."
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     
-    // Simulating Google authentication
-    setTimeout(() => {
-      toast({
-        title: "Google login successful",
-        description: "Redirecting to your dashboard..."
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}${from}`
+        }
       });
-      navigate("/dashboard");
-    }, 1000);
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Google login failed",
+        description: error.message
+      });
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -91,14 +120,29 @@ const Login = () => {
                   Forgot password?
                 </Link>
               </div>
-              <Input 
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input 
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
+              </div>
             </div>
             <Button 
               type="submit" 

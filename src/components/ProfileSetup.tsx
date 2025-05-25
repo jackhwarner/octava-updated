@@ -1,24 +1,31 @@
 
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import AboutYouStep from './ProfileSetup/AboutYouStep';
 import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
 
 const ProfileSetup = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [profileData, setProfileData] = useState({
-    name: '',
+    name: location.state?.fullName || '',
     username: '',
     bio: '',
     location: '',
     genres: [] as string[],
     experience: '',
     instruments: [] as string[],
+    role: location.state?.role || '',
     profilePic: null as File | null,
     musicFiles: [] as File[],
     socialLinks: {
@@ -50,11 +57,40 @@ const ProfileSetup = () => {
     }
   };
 
-  const handleComplete = () => {
-    setCompletedSteps(prev => [...prev, currentStep]);
-    // Here you would typically save the profile data
-    console.log('Profile setup completed:', profileData);
-    // Navigate to dashboard or profile page
+  const handleComplete = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          name: profileData.name,
+          username: profileData.username,
+          bio: profileData.bio,
+          location: profileData.location,
+          experience: profileData.experience,
+          role: profileData.role,
+          genres: profileData.genres,
+          skills: profileData.instruments,
+        });
+
+      if (error) throw error;
+
+      setCompletedSteps(prev => [...prev, currentStep]);
+      toast({
+        title: "Profile setup complete!",
+        description: "Welcome to Octava! Your profile has been created successfully.",
+      });
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save profile. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const isStepCompleted = (stepId: number) => completedSteps.includes(stepId);
