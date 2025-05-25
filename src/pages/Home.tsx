@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Check, Star } from "lucide-react";
@@ -65,8 +66,10 @@ const Home = () => {
           <Link to="/signup">Get Started</Link>
         </Button>
         <div className="mt-16">
-          <div className="bg-gray-200 rounded-md max-w-4xl mx-auto aspect-[16/9] flex items-center justify-center">
+          <div className="bg-gray-200 rounded-md max-w-4xl mx-auto aspect-[16/9] flex items-center justify-center relative overflow-hidden">
             <img src="/lovable-uploads/bbc2aa1e-fc0b-471d-8bcb-dd79522521d5.png" alt="Platform preview" className="w-full h-full object-cover rounded-md shadow-lg" />
+            {/* Fade out gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white pointer-events-none"></div>
           </div>
         </div>
       </section>
