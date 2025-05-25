@@ -3,7 +3,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, MapPin, Calendar as CalendarIcon, AlertTriangle } from 'lucide-react';
+import { Plus, MapPin, Calendar as CalendarIcon, AlertTriangle, Edit, Trash } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -19,8 +19,10 @@ const Availability = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedDateRange, setSelectedDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({from: undefined, to: undefined});
   const [showAddAvailabilityDialog, setShowAddAvailabilityDialog] = useState(false);
+  const [showEditAvailabilityDialog, setShowEditAvailabilityDialog] = useState(false);
   const [showAddSessionDialog, setShowAddSessionDialog] = useState(false);
   const [showAddConflictDialog, setShowAddConflictDialog] = useState(false);
+  const [editingAvailability, setEditingAvailability] = useState<any>(null);
   
   // Availability form state
   const [availabilityType, setAvailabilityType] = useState("Available to collaborate");
@@ -161,14 +163,38 @@ const Availability = () => {
     }
   };
 
+  const handleEditAvailability = (availability: any) => {
+    setEditingAvailability(availability);
+    setAvailabilityType(availability.availability_type);
+    setTimeSelection(availability.period);
+    setCustomStartTime(availability.start_time || "");
+    setCustomEndTime(availability.end_time || "");
+    setSelectedDayOfWeek(availability.day_of_week || 0);
+    setIsRecurring(availability.is_recurring);
+    
+    if (availability.start_date) {
+      setSelectedDateRange({
+        from: new Date(availability.start_date),
+        to: availability.end_date ? new Date(availability.end_date) : undefined
+      });
+    }
+    
+    setShowEditAvailabilityDialog(true);
+  };
+
+  const handleUpdateAvailability = async () => {
+    // Implementation would require an update function in the hook
+    console.log('Update availability functionality needs to be implemented');
+    setShowEditAvailabilityDialog(false);
+  };
+
   // Calendar styling function
   const getDateModifiers = () => {
     const modifiers: any = {};
     const modifiersClassNames: any = {};
     
-    // Today - purple outline
+    // Today - purple outline (handled in calendar component)
     modifiers.today = new Date();
-    modifiersClassNames.today = "border-2 border-purple-600 bg-transparent";
     
     // Available days - light purple background
     const availableDates: Date[] = [];
@@ -180,7 +206,16 @@ const Availability = () => {
           const checkDate = new Date(today);
           checkDate.setDate(today.getDate() + i);
           if (checkDate.getDay() === availability.day_of_week) {
-            availableDates.push(new Date(checkDate));
+            // Check if it's within the date range if specified
+            if (availability.start_date) {
+              const startDate = new Date(availability.start_date);
+              const endDate = availability.end_date ? new Date(availability.end_date) : new Date('2099-12-31');
+              if (checkDate >= startDate && checkDate <= endDate) {
+                availableDates.push(new Date(checkDate));
+              }
+            } else {
+              availableDates.push(new Date(checkDate));
+            }
           }
         }
       } else if (availability.start_date) {
@@ -273,6 +308,44 @@ const Availability = () => {
     return days[dayOfWeek];
   };
 
+  // Get today's schedule
+  const getTodaysSchedule = () => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const dayOfWeek = today.getDay();
+    
+    const todayAvailabilities = availabilities.filter(avail => {
+      if (avail.is_recurring && avail.day_of_week === dayOfWeek) {
+        // Check if today falls within date range if specified
+        if (avail.start_date) {
+          const startDate = new Date(avail.start_date);
+          const endDate = avail.end_date ? new Date(avail.end_date) : new Date('2099-12-31');
+          return today >= startDate && today <= endDate;
+        }
+        return true;
+      } else if (avail.start_date) {
+        const startDate = new Date(avail.start_date);
+        const endDate = avail.end_date ? new Date(avail.end_date) : startDate;
+        return today >= startDate && today <= endDate;
+      }
+      return false;
+    });
+
+    const todaySessions = sessions.filter(session => 
+      session.start_time.split('T')[0] === todayStr
+    );
+
+    const todayConflicts = conflicts.filter(conflict => {
+      const startDate = new Date(conflict.start_date);
+      const endDate = conflict.end_date ? new Date(conflict.end_date) : startDate;
+      return today >= startDate && today <= endDate;
+    });
+
+    return { availabilities: todayAvailabilities, sessions: todaySessions, conflicts: todayConflicts };
+  };
+
+  const todaysSchedule = getTodaysSchedule();
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -300,7 +373,7 @@ const Availability = () => {
           <CardContent className="pt-0">
             <div className="mt-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Weekly Availability</h3>
+                <h3 className="text-lg font-medium">Weekly Availability & Conflicts</h3>
                 <div className="flex gap-2">
                   <Button 
                     onClick={() => setShowAddAvailabilityDialog(true)}
@@ -317,9 +390,9 @@ const Availability = () => {
                 </div>
               </div>
               
-              {/* Availability List */}
+              {/* Merged Availability and Conflicts List */}
               <div>
-                {availabilityLoading ? (
+                {availabilityLoading || conflictsLoading ? (
                   <div className="text-center py-8">Loading...</div>
                 ) : (
                   <>
@@ -328,7 +401,7 @@ const Availability = () => {
                         <div>
                           <div className="font-medium">
                             {availability.is_recurring && availability.day_of_week !== null ? 
-                              `${getDayName(availability.day_of_week)} - ${formatTimeRange(availability.start_time, availability.end_time, availability.period)}` :
+                              `${getDayName(availability.day_of_week)}${availability.start_date ? ` (${availability.start_date}${availability.end_date ? ` to ${availability.end_date}` : ''})` : ''} - ${formatTimeRange(availability.start_time, availability.end_time, availability.period)}` :
                               `${availability.start_date}${availability.end_date ? ` to ${availability.end_date}` : ''} - ${formatTimeRange(availability.start_time, availability.end_time, availability.period)}`
                             }
                           </div>
@@ -339,71 +412,62 @@ const Availability = () => {
                         </div>
                         <div className="flex gap-2">
                           <Badge className="bg-green-100 text-green-800">
-                            Active
+                            Available
                           </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditAvailability(availability)}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => deleteAvailability(availability.id)}
                           >
-                            Delete
+                            <Trash className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
                     ))}
-                    {availabilities.length === 0 && (
+                    
+                    {conflicts.map(conflict => (
+                      <div key={conflict.id} className="p-3 border rounded-md flex justify-between items-center mb-3 border-red-200">
+                        <div>
+                          <div className="font-medium">{conflict.title}</div>
+                          <div className="text-sm text-gray-500">
+                            {conflict.start_date}{conflict.end_date ? ` to ${conflict.end_date}` : ''}
+                            {!conflict.is_all_day && conflict.start_time && conflict.end_time && 
+                              ` • ${formatTimeRange(conflict.start_time, conflict.end_time, 'custom')}`
+                            }
+                          </div>
+                          {conflict.description && (
+                            <div className="text-xs text-gray-400">{conflict.description}</div>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className="bg-red-100 text-red-800">
+                            Unavailable
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteConflict(conflict.id)}
+                          >
+                            <Trash className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {availabilities.length === 0 && conflicts.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        No availability set yet
+                        No availability or conflicts set yet
                       </div>
                     )}
                   </>
                 )}
-              </div>
-              
-              {/* Conflicts Section */}
-              <div className="mt-8">
-                <h3 className="text-lg font-medium mb-4">Conflicts & Unavailable Times</h3>
-                <div>
-                  {conflictsLoading ? (
-                    <div className="text-center py-8">Loading...</div>
-                  ) : (
-                    <>
-                      {conflicts.map(conflict => (
-                        <div key={conflict.id} className="p-3 border rounded-md flex justify-between items-center mb-3 border-red-200">
-                          <div>
-                            <div className="font-medium">{conflict.title}</div>
-                            <div className="text-sm text-gray-500">
-                              {conflict.start_date}{conflict.end_date ? ` to ${conflict.end_date}` : ''}
-                              {!conflict.is_all_day && conflict.start_time && conflict.end_time && 
-                                ` • ${formatTimeRange(conflict.start_time, conflict.end_time, 'custom')}`
-                              }
-                            </div>
-                            {conflict.description && (
-                              <div className="text-xs text-gray-400">{conflict.description}</div>
-                            )}
-                          </div>
-                          <div className="flex gap-2">
-                            <Badge className="bg-red-100 text-red-800">
-                              Unavailable
-                            </Badge>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => deleteConflict(conflict.id)}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                      {conflicts.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          No conflicts recorded
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
               </div>
               
               {/* Sessions Section */}
@@ -471,39 +535,71 @@ const Availability = () => {
         <div className="lg:w-2/5">
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Quick Overview</CardTitle>
-              <CardDescription>Your availability summary</CardDescription>
+              <CardTitle>Today's Overview</CardTitle>
+              <CardDescription>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</CardDescription>
             </CardHeader>
             <CardContent>
-              {availabilityLoading ? (
-                <div className="text-center py-4">Loading...</div>
-              ) : (
-                <div className="space-y-4">
-                  {availabilities.slice(0, 3).map(availability => (
-                    <div key={availability.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <div className="font-medium">
-                          {availability.is_recurring && availability.day_of_week !== null ? 
-                            getDayName(availability.day_of_week) :
-                            `${availability.start_date}${availability.end_date ? ` - ${availability.end_date}` : ''}`
-                          }
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {formatTimeRange(availability.start_time, availability.end_time, availability.period)}
-                        </div>
+              <div className="space-y-4">
+                {todaysSchedule.availabilities.map(availability => (
+                  <div key={availability.id} className="flex items-center justify-between p-3 border rounded-lg border-green-200">
+                    <div>
+                      <div className="font-medium text-green-800">Available</div>
+                      <div className="text-sm text-gray-500">
+                        {formatTimeRange(availability.start_time, availability.end_time, availability.period)}
                       </div>
-                      <Badge className="bg-green-100 text-green-800">
-                        Available
-                      </Badge>
+                      <div className="text-xs text-gray-400">{availability.availability_type}</div>
                     </div>
-                  ))}
-                  {availabilities.length === 0 && (
-                    <div className="text-center py-4 text-gray-500">
-                      No availability set yet
+                    <Badge className="bg-green-100 text-green-800">
+                      Available
+                    </Badge>
+                  </div>
+                ))}
+                
+                {todaysSchedule.sessions.map(session => (
+                  <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg border-blue-200">
+                    <div>
+                      <div className="font-medium text-blue-800">{session.title}</div>
+                      <div className="text-sm text-gray-500">
+                        {formatSessionTime(session.start_time, session.end_time)}
+                      </div>
+                      {session.location && (
+                        <div className="text-xs text-gray-400">📍 {session.location}</div>
+                      )}
                     </div>
-                  )}
-                </div>
-              )}
+                    <Badge className="bg-blue-100 text-blue-800">
+                      {session.type}
+                    </Badge>
+                  </div>
+                ))}
+                
+                {todaysSchedule.conflicts.map(conflict => (
+                  <div key={conflict.id} className="flex items-center justify-between p-3 border rounded-lg border-red-200">
+                    <div>
+                      <div className="font-medium text-red-800">{conflict.title}</div>
+                      <div className="text-sm text-gray-500">
+                        {!conflict.is_all_day && conflict.start_time && conflict.end_time ? 
+                          formatTimeRange(conflict.start_time, conflict.end_time, 'custom') : 
+                          'All day'
+                        }
+                      </div>
+                      {conflict.description && (
+                        <div className="text-xs text-gray-400">{conflict.description}</div>
+                      )}
+                    </div>
+                    <Badge className="bg-red-100 text-red-800">
+                      Unavailable
+                    </Badge>
+                  </div>
+                ))}
+                
+                {todaysSchedule.availabilities.length === 0 && 
+                 todaysSchedule.sessions.length === 0 && 
+                 todaysSchedule.conflicts.length === 0 && (
+                  <div className="text-center py-4 text-gray-500">
+                    No schedule items for today
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -574,9 +670,9 @@ const Availability = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="end-date">End Date (Optional)</Label>
+                  <Label htmlFor="recurring-end-date">End Date (Optional)</Label>
                   <Input
-                    id="end-date"
+                    id="recurring-end-date"
                     type="date"
                     value={selectedDateRange.to?.toISOString().split('T')[0] || ''}
                     onChange={(e) => setSelectedDateRange(prev => ({
@@ -634,6 +730,136 @@ const Availability = () => {
             </Button>
             <Button className="bg-purple-600 hover:bg-purple-700" onClick={handleAddAvailability}>
               Save Availability
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Availability Dialog */}
+      <Dialog open={showEditAvailabilityDialog} onOpenChange={setShowEditAvailabilityDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Availability</DialogTitle>
+            <DialogDescription>
+              Update your availability settings.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="availability-type">Availability Type</Label>
+              <Input
+                id="availability-type"
+                placeholder="e.g. Available to record, Available for mixing"
+                value={availabilityType}
+                onChange={(e) => setAvailabilityType(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>Schedule Type</Label>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="recurring" 
+                  checked={isRecurring}
+                  onCheckedChange={(checked) => setIsRecurring(checked === true)}
+                />
+                <Label htmlFor="recurring">Recurring weekly availability</Label>
+              </div>
+            </div>
+
+            {isRecurring ? (
+              <div className="space-y-2">
+                <Label htmlFor="day">Day of Week</Label>
+                <Select value={selectedDayOfWeek.toString()} onValueChange={(value) => setSelectedDayOfWeek(parseInt(value))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Sunday</SelectItem>
+                    <SelectItem value="1">Monday</SelectItem>
+                    <SelectItem value="2">Tuesday</SelectItem>
+                    <SelectItem value="3">Wednesday</SelectItem>
+                    <SelectItem value="4">Thursday</SelectItem>
+                    <SelectItem value="5">Friday</SelectItem>
+                    <SelectItem value="6">Saturday</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start-date">Start Date</Label>
+                  <Input
+                    id="start-date"
+                    type="date"
+                    value={selectedDateRange.from?.toISOString().split('T')[0] || ''}
+                    onChange={(e) => setSelectedDateRange(prev => ({
+                      ...prev,
+                      from: e.target.value ? new Date(e.target.value) : undefined
+                    }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="recurring-end-date">End Date (Optional)</Label>
+                  <Input
+                    id="recurring-end-date"
+                    type="date"
+                    value={selectedDateRange.to?.toISOString().split('T')[0] || ''}
+                    onChange={(e) => setSelectedDateRange(prev => ({
+                      ...prev,
+                      to: e.target.value ? new Date(e.target.value) : undefined
+                    }))}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="time">Time Period</Label>
+              <Select value={timeSelection} onValueChange={setTimeSelection}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select time" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="morning">Morning (9AM - 12PM)</SelectItem>
+                  <SelectItem value="afternoon">Afternoon (12PM - 5PM)</SelectItem>
+                  <SelectItem value="evening">Evening (5PM - 10PM)</SelectItem>
+                  <SelectItem value="custom">Custom Range</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {timeSelection === "custom" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start-time">Start Time</Label>
+                  <Input 
+                    id="start-time" 
+                    type="time" 
+                    value={customStartTime}
+                    onChange={(e) => setCustomStartTime(e.target.value)}
+                    className="w-full" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end-time">End Time</Label>
+                  <Input 
+                    id="end-time" 
+                    type="time" 
+                    value={customEndTime}
+                    onChange={(e) => setCustomEndTime(e.target.value)}
+                    className="w-full" 
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditAvailabilityDialog(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-purple-600 hover:bg-purple-700" onClick={handleUpdateAvailability}>
+              Update Availability
             </Button>
           </DialogFooter>
         </DialogContent>

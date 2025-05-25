@@ -37,6 +37,12 @@ export const useSessions = () => {
 
   const fetchSessions = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('sessions')
         .select(`
@@ -50,6 +56,7 @@ export const useSessions = () => {
             )
           )
         `)
+        .or(`created_by.eq.${user.id},session_attendees.user_id.eq.${user.id}`)
         .gte('start_time', new Date().toISOString())
         .order('start_time', { ascending: true });
 
@@ -81,6 +88,8 @@ export const useSessions = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      console.log('Creating session with data:', sessionData);
+
       // Create the session
       const { data: session, error: sessionError } = await supabase
         .from('sessions')
@@ -97,7 +106,12 @@ export const useSessions = () => {
         .select()
         .single();
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {
+        console.error('Session creation error:', sessionError);
+        throw sessionError;
+      }
+
+      console.log('Session created successfully:', session);
 
       // Add collaborators as attendees if any
       if (sessionData.collaborators && sessionData.collaborators.length > 0) {
@@ -111,7 +125,10 @@ export const useSessions = () => {
           .from('session_attendees')
           .insert(attendeeInserts);
 
-        if (attendeeError) throw attendeeError;
+        if (attendeeError) {
+          console.error('Attendee creation error:', attendeeError);
+          throw attendeeError;
+        }
       }
 
       await fetchSessions(); // Refresh the list
