@@ -7,9 +7,12 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 import AboutYouStep from './ProfileSetup/AboutYouStep';
 import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
+
+type UserRole = Database['public']['Enums']['user_role'];
 
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -159,7 +162,7 @@ const ProfileSetup = () => {
           experience_level: profileData.experience,
           genres: profileData.genres,
           skills: profileData.instruments,
-          primary_role: profileData.role,
+          primary_role: profileData.role as UserRole,
           avatar_url: avatarUrl,
           portfolio_urls: musicUrls.length > 0 ? musicUrls : null,
         });
