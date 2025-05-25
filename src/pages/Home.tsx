@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Check, Star } from "lucide-react";
@@ -68,7 +69,7 @@ const Home = () => {
           <img 
             alt="Platform preview" 
             src="/lovable-uploads/21e23c9f-3154-4f29-a8ad-79ce21c3864d.png" 
-            className="max-w-4xl mx-auto rounded-md object-scale-down relative"
+            className="max-w-4xl mx-auto rounded-md object-scale-down"
             style={{
               filter: 'drop-shadow(0 20px 25px rgba(0, 0, 0, 0.15))',
               maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
@@ -106,8 +107,12 @@ const Home = () => {
                 </li>
               </ul>
             </div>
-            <div className="md:w-1/2 bg-gray-200 rounded-md aspect-video flex items-center justify-center">
-              <div className="text-gray-400">Connect with Professionals Image</div>
+            <div className="md:w-1/2">
+              <img 
+                src="/placeholder.svg" 
+                alt="Connect with Professionals"
+                className="w-full rounded-md aspect-video object-cover"
+              />
             </div>
           </div>
           
@@ -134,8 +139,12 @@ const Home = () => {
                 </li>
               </ul>
             </div>
-            <div className="md:w-1/2 bg-gray-200 rounded-md aspect-video flex items-center justify-center">
-              <div className="text-gray-400">Cloud Collaboration Image</div>
+            <div className="md:w-1/2">
+              <img 
+                src="/placeholder.svg" 
+                alt="Cloud Collaboration"
+                className="w-full rounded-md aspect-video object-cover"
+              />
             </div>
           </div>
           
@@ -162,8 +171,12 @@ const Home = () => {
                 </li>
               </ul>
             </div>
-            <div className="md:w-1/2 bg-gray-200 rounded-md aspect-video flex items-center justify-center">
-              <div className="text-gray-400">Project Management Image</div>
+            <div className="md:w-1/2">
+              <img 
+                src="/placeholder.svg" 
+                alt="Project Management"
+                className="w-full rounded-md aspect-video object-cover"
+              />
             </div>
           </div>
         </div>
@@ -226,7 +239,7 @@ const Home = () => {
                 </li>
               </ul>
               <Button className="mt-auto bg-purple-600 hover:bg-purple-700" asChild>
-                <Link to="/signup">Get Started</Link>
+                <Link to="/signup">Start Your 14 Day Free Trial</Link>
               </Button>
             </div>
             
@@ -264,7 +277,7 @@ const Home = () => {
                 </li>
               </ul>
               <Button className="mt-auto bg-purple-600 hover:bg-purple-700" asChild>
-                <Link to="/signup">Sign Up Now</Link>
+                <Link to="/signup">Start Your 14 Day Free Trial</Link>
               </Button>
             </div>
           </div>
