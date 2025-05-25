@@ -18,11 +18,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
-import { useFakeProjects } from '@/hooks/useFakeProjects';
+import { useProjects } from '@/hooks/useProjects';
 
 const Projects = () => {
   const navigate = useNavigate();
-  const { projects, loading, addProject, deleteProject } = useFakeProjects();
+  const { projects, loading, addProject, deleteProject } = useProjects();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);

@@ -2,6 +2,8 @@
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useNotifications } from '@/hooks/useNotifications';
+import { formatDistanceToNow } from 'date-fns';
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -9,43 +11,13 @@ interface NotificationsPanelProps {
 }
 
 const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps) => {
-  const notifications = [
-    {
-      id: 1,
-      title: 'New collaboration request',
-      message: 'Sarah Johnson wants to collaborate on "Summer Vibes"',
-      time: '2 hours ago',
-      unread: true,
-    },
-    {
-      id: 2,
-      title: 'Project update',
-      message: 'Marcus Williams uploaded new files to "Midnight Drive"',
-      time: '5 hours ago',
-      unread: true,
-    },
-    {
-      id: 3,
-      title: 'Message received',
-      message: 'Emma Chen sent you a message',
-      time: '1 day ago',
-      unread: false,
-    },
-    {
-      id: 4,
-      title: 'Project completed',
-      message: 'Your project "City Lights" has been marked as complete',
-      time: '2 days ago',
-      unread: false,
-    },
-    {
-      id: 5,
-      title: 'New follower',
-      message: 'David Kim started following you',
-      time: '3 days ago',
-      unread: false,
-    },
-  ];
+  const { notifications, loading, markAsRead, markAllAsRead } = useNotifications();
+
+  const handleNotificationClick = (notification: any) => {
+    if (!notification.is_read) {
+      markAsRead(notification.id);
+    }
+  };
 
   return (
     <>
@@ -71,31 +43,53 @@ const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps) => {
         </div>
         
         <div className="flex-1 overflow-y-auto">
-          {notifications.map((notification) => (
-            <div 
-              key={notification.id} 
-              className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
-                notification.unread ? 'bg-blue-50' : ''
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium text-sm">{notification.title}</h3>
-                    {notification.unread && (
-                      <Badge className="bg-blue-600 text-xs px-2 py-0">New</Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
-                  <p className="text-xs text-gray-400">{notification.time}</p>
-                </div>
+          {loading ? (
+            <div className="p-4">
+              <div className="animate-pulse space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                ))}
               </div>
             </div>
-          ))}
+          ) : notifications.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              No notifications yet
+            </div>
+          ) : (
+            notifications.map((notification) => (
+              <div 
+                key={notification.id} 
+                className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
+                  !notification.is_read ? 'bg-blue-50' : ''
+                }`}
+                onClick={() => handleNotificationClick(notification)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium text-sm">{notification.title}</h3>
+                      {!notification.is_read && (
+                        <Badge className="bg-blue-600 text-xs px-2 py-0">New</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
+                    <p className="text-xs text-gray-400">
+                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
         
         <div className="p-4 border-t">
-          <Button variant="outline" className="w-full">
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={markAllAsRead}
+            disabled={loading || notifications.every(n => n.is_read)}
+          >
             Mark all as read
           </Button>
         </div>

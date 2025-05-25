@@ -4,6 +4,8 @@ import BrowseFilters from './browse/BrowseFilters';
 import SearchResults from './browse/SearchResults';
 import SpotlightProjects from './browse/SpotlightProjects';
 import SuggestedCollaborators from './browse/SuggestedCollaborators';
+import { useCollaborators } from '@/hooks/useCollaborators';
+import { useProjects } from '@/hooks/useProjects';
 
 const Browse = () => {
   const [selectedRole, setSelectedRole] = useState('');
@@ -14,126 +16,56 @@ const Browse = () => {
   const [location, setLocation] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
 
-  const profiles = [{
-    id: 1,
-    name: 'Sarah Johnson',
-    username: '@sarah_beats',
-    role: 'Producer',
-    genres: ['Pop', 'R&B'],
-    location: 'Los Angeles, CA',
-    experience: 'Professional',
-    avatar: null
-  }, {
-    id: 2,
-    name: 'Marcus Williams',
-    username: '@marcus_guitar',
-    role: 'Instrumentalist',
-    genres: ['Rock', 'Blues'],
-    location: 'Nashville, TN',
-    experience: 'Professional',
-    avatar: null
-  }, {
-    id: 3,
-    name: 'Emma Chen',
-    username: '@emma_writes',
-    role: 'Songwriter',
-    genres: ['Indie', 'Folk'],
-    location: 'Austin, TX',
-    experience: 'Intermediate',
-    avatar: null
-  }];
+  const { suggestedCollaborators, loading: collaboratorsLoading } = useCollaborators();
+  const { projects, loading: projectsLoading } = useProjects();
 
-  const suggestedCollaborators = [{
-    id: 4,
-    name: 'David Kim',
-    username: '@david_keys',
-    role: 'Pianist',
-    genres: ['Classical', 'Jazz'],
-    location: 'New York, NY',
-    experience: 'Professional',
-    completedProjects: 23,
+  // Convert profiles to expected format for search results
+  const profiles = suggestedCollaborators.map(collaborator => ({
+    id: parseInt(collaborator.id) || 0,
+    name: collaborator.name,
+    username: collaborator.username || '@unknown',
+    role: collaborator.role || 'Musician',
+    genres: collaborator.genres || [],
+    location: collaborator.location || 'Unknown',
+    experience: collaborator.experience || 'Beginner',
     avatar: null
-  }, {
-    id: 5,
-    name: 'Sophia Martinez',
-    username: '@sophia_voice',
-    role: 'Vocalist',
-    genres: ['Pop', 'Soul'],
-    location: 'Miami, FL',
-    experience: 'Professional',
-    completedProjects: 31,
-    avatar: null
-  }, {
-    id: 6,
-    name: 'Jackson Lee',
-    username: '@j_producer',
-    role: 'Producer',
-    genres: ['Hip-Hop', 'R&B'],
-    location: 'Chicago, IL',
-    experience: 'Intermediate',
-    completedProjects: 15,
-    avatar: null
-  }, {
-    id: 7,
-    name: 'Maya Patel',
-    username: '@maya_violin',
-    role: 'Violinist',
-    genres: ['Classical', 'World'],
-    location: 'San Francisco, CA',
-    experience: 'Professional',
-    completedProjects: 27,
-    avatar: null
-  }, {
-    id: 8,
-    name: 'Alex Thompson',
-    username: '@alex_drums',
-    role: 'Drummer',
-    genres: ['Rock', 'Jazz'],
-    location: 'Portland, OR',
-    experience: 'Intermediate',
-    completedProjects: 19,
-    avatar: null
-  }, {
-    id: 9,
-    name: 'Zoe Wang',
-    username: '@zoe_synth',
-    role: 'Producer',
-    genres: ['Electronic', 'Ambient'],
-    location: 'Seattle, WA',
-    experience: 'Professional',
-    completedProjects: 42,
-    avatar: null
-  }];
+  }));
 
-  const spotlightProjects = [{
-    id: 1,
-    title: 'Indie Pop Album',
-    genre: 'Indie Pop',
-    lookingFor: ['Vocalist', 'Guitarist'],
-    collaborators: 3,
-    deadline: '2 weeks',
-    budget: '$500-1000'
-  }, {
-    id: 2,
-    title: 'Electronic EP',
-    genre: 'Electronic',
-    lookingFor: ['Producer', 'Vocalist'],
-    collaborators: 2,
-    deadline: '1 month',
-    budget: '$300-600'
-  }, {
-    id: 3,
-    title: 'Jazz Fusion Track',
-    genre: 'Jazz',
-    lookingFor: ['Saxophonist', 'Bassist'],
-    collaborators: 4,
-    deadline: '3 weeks',
-    budget: '$200-400'
-  }];
+  // Convert projects to spotlight format
+  const spotlightProjects = projects
+    .filter(p => p.visibility === 'public' && p.status === 'active')
+    .slice(0, 3)
+    .map(project => ({
+      id: parseInt(project.id) || 0,
+      title: project.title || project.name || 'Untitled Project',
+      genre: project.genre || 'Various',
+      lookingFor: ['Musician', 'Producer'], // This would need to be stored in project data
+      collaborators: project.collaborators?.length || 0,
+      deadline: project.deadline ? new Date(project.deadline).toLocaleDateString() : '1 month',
+      budget: project.budget ? `$${project.budget}` : '$200-500'
+    }));
 
   const handleSearch = () => {
     setHasSearched(true);
   };
+
+  if (collaboratorsLoading || projectsLoading) {
+    return (
+      <div className="p-10">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="space-y-6">
+            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-64 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-10">
