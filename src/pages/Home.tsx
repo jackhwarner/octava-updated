@@ -65,11 +65,16 @@ const Home = () => {
           <Link to="/signup">Get Started</Link>
         </Button>
         <div className="mt-16">
-          <img alt="Platform preview" src="/lovable-uploads/21e23c9f-3154-4f29-a8ad-79ce21c3864d.png" style={{
-          filter: 'drop-shadow(0 20px 25px rgba(0, 0, 0, 0.15))',
-          maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
-        }} className="max-w-4xl mx-auto rounded-md object-scale-down relative shadow-lg" />
+          <img 
+            alt="Platform preview" 
+            src="/lovable-uploads/21e23c9f-3154-4f29-a8ad-79ce21c3864d.png" 
+            className="max-w-4xl mx-auto rounded-md object-scale-down relative"
+            style={{
+              filter: 'drop-shadow(0 20px 25px rgba(0, 0, 0, 0.15))',
+              maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
+            }}
+          />
         </div>
       </section>
       
