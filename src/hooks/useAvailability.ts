@@ -7,10 +7,13 @@ export interface Availability {
   id: string;
   user_id: string;
   availability_type: string;
-  day_of_week: number;
+  day_of_week: number | null;
   period: 'morning' | 'afternoon' | 'evening' | 'custom';
   start_time: string | null;
   end_time: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  is_recurring: boolean;
   is_active: boolean;
   created_at: string;
 }
@@ -43,10 +46,13 @@ export const useAvailability = () => {
 
   const addAvailability = async (availability: {
     availability_type: string;
-    day_of_week: number;
+    day_of_week?: number;
     period: 'morning' | 'afternoon' | 'evening' | 'custom';
     start_time?: string;
     end_time?: string;
+    start_date?: string;
+    end_date?: string;
+    is_recurring?: boolean;
     is_active?: boolean;
   }) => {
     try {
@@ -58,7 +64,8 @@ export const useAvailability = () => {
         .insert([{ 
           ...availability, 
           user_id: user.id,
-          is_active: availability.is_active ?? true
+          is_active: availability.is_active ?? true,
+          is_recurring: availability.is_recurring ?? true
         }])
         .select()
         .single();
