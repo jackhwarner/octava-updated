@@ -14,13 +14,33 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
   const location = useLocation();
 
   useEffect(() => {
+    const checkUserProfile = async (userId: string) => {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        // Check if profile is incomplete (missing required fields)
+        if (!profile || !profile.full_name || !profile.username || !profile.bio || !profile.location || !profile.experience) {
+          navigate('/profile-setup');
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking profile:', error);
+        navigate('/profile-setup');
+      }
+    };
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // If no user, redirect to login with current path
-      if (!session?.user) {
+      if (session?.user) {
+        checkUserProfile(session.user.id);
+      } else {
         const currentPath = location.pathname;
         navigate(`/login?from=${encodeURIComponent(currentPath)}`);
       }
@@ -32,8 +52,9 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // If no user, redirect to login with current path
-        if (!session?.user) {
+        if (session?.user) {
+          checkUserProfile(session.user.id);
+        } else {
           const currentPath = location.pathname;
           navigate(`/login?from=${encodeURIComponent(currentPath)}`);
         }

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MapPin, Clock, DollarSign, MessageCircle, UserPlus } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import ProfileEditDialog from './ProfileEditDialog';
@@ -228,12 +228,6 @@ const Profile = () => {
                   <div className="flex items-center">
                     <Clock className="w-4 h-4 mr-1" />
                     {profile.experience} experience
-                  </div>
-                )}
-                {profile.hourly_rate && (
-                  <div className="flex items-center">
-                    <DollarSign className="w-4 h-4 mr-1" />
-                    ${profile.hourly_rate}/hour
                   </div>
                 )}
               </div>

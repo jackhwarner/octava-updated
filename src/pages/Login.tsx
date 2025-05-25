@@ -39,11 +39,20 @@ const Login = () => {
           description: error.message
         });
       } else {
-        toast({
-          title: "Successfully logged in",
-          description: "Redirecting..."
-        });
-        navigate(from, { replace: true });
+        // Check if user has completed profile setup
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (!profile || !profile.full_name || !profile.username || !profile.bio || !profile.location || !profile.experience) {
+          // Profile is incomplete, redirect to setup
+          navigate('/profile-setup');
+        } else {
+          // Profile is complete, redirect to intended destination
+          navigate(from, { replace: true });
+        }
       }
     } catch (error) {
       toast({
@@ -73,14 +82,15 @@ const Login = () => {
           title: "Google login failed",
           description: error.message
         });
+        setIsLoading(false);
       }
+      // Don't set loading to false here as we're redirecting
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Google login failed",
         description: error.message || "Please try again."
       });
-    } finally {
       setIsLoading(false);
     }
   };
