@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Star, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
 const Subscription = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [loading, setLoading] = useState(false);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState({
@@ -20,18 +21,18 @@ const Subscription = () => {
     trial_end: null,
     subscription_end: null
   });
-
   useEffect(() => {
     checkSubscription();
   }, []);
-
   const checkSubscription = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('check-subscription');
       if (error) throw error;
-      
       setSubscriptionStatus(data);
-      
+
       // If user has access, redirect to dashboard
       if (data.hasAccess) {
         navigate('/dashboard');
@@ -42,16 +43,19 @@ const Subscription = () => {
       setCheckingSubscription(false);
     }
   };
-
   const handleSubscribe = async (plan: 'monthly' | 'annual') => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { plan }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          plan
+        }
       });
-      
       if (error) throw error;
-      
+
       // Open Stripe checkout in new tab
       window.open(data.url, '_blank');
     } catch (error) {
@@ -59,42 +63,38 @@ const Subscription = () => {
       toast({
         title: "Error",
         description: "Failed to start checkout process. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleManageSubscription = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('customer-portal');
       if (error) throw error;
-      
       window.open(data.url, '_blank');
     } catch (error) {
       console.error('Error opening customer portal:', error);
       toast({
         title: "Error",
         description: "Failed to open subscription management. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   if (checkingSubscription) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Checking subscription status...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex items-center justify-center py-12">
+  return <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex items-center justify-center py-12">
       <div className="max-w-4xl mx-auto px-6 w-full">
         {/* Header */}
         <div className="text-center mb-12">
@@ -102,14 +102,12 @@ const Subscription = () => {
           <p className="text-xl text-gray-600 mb-6">
             Start your musical journey with a 14-day free trial
           </p>
-          {subscriptionStatus.inTrial && (
-            <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-2">
+          {subscriptionStatus.inTrial && <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-2">
               <Clock className="w-5 h-5 text-green-600" />
               <span className="text-green-700 font-medium">
                 Free trial active until {new Date(subscriptionStatus.trial_end).toLocaleDateString()}
               </span>
-            </div>
-          )}
+            </div>}
         </div>
 
         {/* Pricing Cards */}
@@ -119,9 +117,7 @@ const Subscription = () => {
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 <span>Monthly</span>
-                {subscriptionStatus.subscription_tier === "Monthly" && (
-                  <Badge className="bg-purple-600">Current Plan</Badge>
-                )}
+                {subscriptionStatus.subscription_tier === "Monthly" && <Badge className="bg-purple-600">Current Plan</Badge>}
               </CardTitle>
               <div className="mb-4">
                 <span className="text-4xl font-bold">$9.99</span>
@@ -148,11 +144,7 @@ const Subscription = () => {
                   <span>14-day free trial</span>
                 </li>
               </ul>
-              <Button 
-                className="w-full bg-purple-600 hover:bg-purple-700" 
-                onClick={() => handleSubscribe('monthly')}
-                disabled={loading || subscriptionStatus.hasAccess}
-              >
+              <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={() => handleSubscribe('monthly')} disabled={loading || subscriptionStatus.hasAccess}>
                 {subscriptionStatus.subscription_tier === "Monthly" ? "Current Plan" : "Start Free Trial"}
               </Button>
             </CardContent>
@@ -160,16 +152,14 @@ const Subscription = () => {
 
           {/* Annual Plan */}
           <Card className="relative border-purple-200 bg-purple-50">
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-1 rounded-full text-sm">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-1 rounded-full text-sm flex items-center">
               <Star className="w-4 h-4 inline mr-1" />
               Save 17%
             </div>
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 <span>Annual</span>
-                {subscriptionStatus.subscription_tier === "Annual" && (
-                  <Badge className="bg-purple-600">Current Plan</Badge>
-                )}
+                {subscriptionStatus.subscription_tier === "Annual" && <Badge className="bg-purple-600">Current Plan</Badge>}
               </CardTitle>
               <div className="mb-4">
                 <span className="text-4xl font-bold">$99</span>
@@ -196,11 +186,7 @@ const Subscription = () => {
                   <span>14-day free trial</span>
                 </li>
               </ul>
-              <Button 
-                className="w-full bg-purple-600 hover:bg-purple-700" 
-                onClick={() => handleSubscribe('annual')}
-                disabled={loading || subscriptionStatus.hasAccess}
-              >
+              <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={() => handleSubscribe('annual')} disabled={loading || subscriptionStatus.hasAccess}>
                 {subscriptionStatus.subscription_tier === "Annual" ? "Current Plan" : "Start Free Trial"}
               </Button>
             </CardContent>
@@ -208,20 +194,14 @@ const Subscription = () => {
         </div>
 
         {/* Manage Subscription */}
-        {subscriptionStatus.hasAccess && (
-          <div className="text-center">
-            <Button 
-              variant="outline" 
-              onClick={handleManageSubscription}
-              className="mb-4"
-            >
+        {subscriptionStatus.hasAccess && <div className="text-center">
+            <Button variant="outline" onClick={handleManageSubscription} className="mb-4">
               Manage Subscription
             </Button>
             <p className="text-sm text-gray-600">
               Need to update your payment method or cancel? Use the subscription management portal.
             </p>
-          </div>
-        )}
+          </div>}
 
         {/* FAQ */}
         <div className="mt-16">
@@ -254,8 +234,6 @@ const Subscription = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Subscription;
