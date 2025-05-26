@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Star, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
 const Subscription = () => {
   const navigate = useNavigate();
   const {
@@ -87,12 +88,14 @@ const Subscription = () => {
     }
   };
   if (checkingSubscription) {
-    return <div className="min-h-screen flex items-center justify-center mx-auto">
+    return (
+      <div className="min-h-screen flex items-center justify-center mx-auto">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Checking subscription status...</p>
         </div>
-      </div>;
+      </div>
+    );
   }
   return <div className="min-h-screen flex items-center justify-center py-12 mx-auto">
       <div className="max-w-4xl mx-auto px-6 w-full">
@@ -236,4 +239,5 @@ const Subscription = () => {
       </div>
     </div>;
 };
+
 export default Subscription;
