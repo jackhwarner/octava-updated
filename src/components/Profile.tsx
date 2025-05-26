@@ -33,8 +33,11 @@ const Profile = () => {
         const city = data.places[0]['place name'];
         const state = data.places[0]['state abbreviation'];
         setCityName(`${city}, ${state}`);
+      } else {
+        setCityName('Location not found');
       }
     } catch (error) {
+      console.error('Error fetching city name:', error);
       setCityName(profile?.location || '');
     }
   };
@@ -59,6 +62,10 @@ const Profile = () => {
 
   const handleUpdateProfile = async (updates: Partial<typeof profile>) => {
     await updateProfile(updates);
+    // Refetch city name if zip code was updated
+    if (updates.zip_code && updates.zip_code.length === 5) {
+      fetchCityName(updates.zip_code);
+    }
   };
 
   return (
