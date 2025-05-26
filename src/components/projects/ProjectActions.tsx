@@ -104,7 +104,7 @@ export const ProjectActions = ({ project, folders, onUpdate, onDelete, onShare }
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </>
   );
