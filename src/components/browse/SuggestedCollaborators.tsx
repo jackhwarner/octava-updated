@@ -1,5 +1,5 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Users } from 'lucide-react';
@@ -22,7 +22,7 @@ interface SuggestedCollaboratorsProps {
 
 const SuggestedCollaborators = ({ collaborators }: SuggestedCollaboratorsProps) => {
   return (
-    <div>
+    <div className="border border-gray-200 rounded-lg p-6 bg-white">
       <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center">
         <Users className="w-6 h-6 mr-2 text-purple-600" />
         Suggested Collaborators

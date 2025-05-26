@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File, ListTodo } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
+import { supabase } from '@/integrations/supabase/client';
 import Sidebar from './Sidebar';
 import ProjectFiles from './project/ProjectFiles';
 import ProjectChat from './project/ProjectChat';
@@ -10,46 +12,98 @@ import ProjectCollaborators from './project/ProjectCollaborators';
 import ProjectInfo from './project/ProjectInfo';
 import ProjectSettings from './project/ProjectSettings';
 import ProjectTodos from './project/ProjectTodos';
+
 const ProjectDetail = () => {
-  const {
-    projectId
-  } = useParams();
+  const { projectId } = useParams();
   const navigate = useNavigate();
-  const {
-    projects,
-    loading
-  } = useProjects();
+  const { projects, loading } = useProjects();
   const [project, setProject] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [mainActiveTab, setMainActiveTab] = useState('projects');
+  const [recentFiles, setRecentFiles] = useState([]);
+  const [projectStats, setProjectStats] = useState({
+    totalFiles: 0,
+    totalTodos: 0,
+    completedTodos: 0,
+    teamSize: 0
+  });
 
-  // Sample recent files for demonstration
-  const recentFiles = [{
-    id: '1',
-    name: 'demo-track.mp3',
-    type: 'audio/mp3',
-    uploadedAt: '2024-01-20T10:30:00Z',
-    uploadedBy: 'Sarah Johnson'
-  }, {
-    id: '2',
-    name: 'album-cover.jpg',
-    type: 'image/jpeg',
-    uploadedAt: '2024-01-19T14:15:00Z',
-    uploadedBy: 'Marcus Williams'
-  }, {
-    id: '3',
-    name: 'lyrics.txt',
-    type: 'text/plain',
-    uploadedAt: '2024-01-18T09:45:00Z',
-    uploadedBy: 'Sarah Johnson'
-  }];
   useEffect(() => {
     const foundProject = projects.find(p => p.id === projectId);
     setProject(foundProject);
+    if (foundProject) {
+      fetchRecentFiles();
+      fetchProjectStats();
+    }
   }, [projectId, projects]);
+
+  const fetchRecentFiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('project_files')
+        .select(`
+          *,
+          uploader:profiles!project_files_uploaded_by_fkey (
+            name,
+            username
+          )
+        `)
+        .eq('project_id', projectId)
+        .eq('is_pending_approval', false)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      setRecentFiles(data || []);
+    } catch (error) {
+      console.error('Error fetching recent files:', error);
+    }
+  };
+
+  const fetchProjectStats = async () => {
+    try {
+      // Get file count
+      const { data: files, error: filesError } = await supabase
+        .from('project_files')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('is_pending_approval', false);
+
+      // Get todo counts
+      const { data: todos, error: todosError } = await supabase
+        .from('project_todos')
+        .select('id, completed')
+        .eq('project_id', projectId);
+
+      // Get collaborator count
+      const { data: collaborators, error: collabError } = await supabase
+        .from('project_collaborators')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('status', 'accepted');
+
+      if (!filesError && !todosError && !collabError) {
+        const totalFiles = files?.length || 0;
+        const totalTodos = todos?.length || 0;
+        const completedTodos = todos?.filter(t => t.completed).length || 0;
+        const teamSize = (collaborators?.length || 0) + 1; // +1 for owner
+
+        setProjectStats({
+          totalFiles,
+          totalTodos,
+          completedTodos,
+          teamSize
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching project stats:', error);
+    }
+  };
+
   const handleMainNavigation = (tab: string) => {
     navigate(`/${tab}`);
   };
+
   if (loading) {
     return <div className="min-h-screen bg-white flex">
         <div className="fixed top-0 left-0 h-screen z-10">
@@ -63,6 +117,7 @@ const ProjectDetail = () => {
         </div>
       </div>;
   }
+
   if (!project) {
     return <div className="min-h-screen bg-white flex">
         <div className="fixed top-0 left-0 h-screen z-10">
@@ -81,6 +136,7 @@ const ProjectDetail = () => {
         </div>
       </div>;
   }
+
   const getStatusColor = status => {
     switch (status) {
       case 'active':
@@ -95,6 +151,7 @@ const ProjectDetail = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
   const getStatusLabel = status => {
     switch (status) {
       case 'active':
@@ -109,6 +166,7 @@ const ProjectDetail = () => {
         return status;
     }
   };
+
   const getVisibilityIcon = visibility => {
     switch (visibility) {
       case 'public':
@@ -121,16 +179,18 @@ const ProjectDetail = () => {
         return <Lock className="w-4 h-4" />;
     }
   };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
+
   const getFileIcon = (type: string) => {
-    if (type.startsWith('audio/')) {
+    if (type?.startsWith('audio/')) {
       return <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
           <Play className="w-4 h-4 text-purple-700" />
         </div>;
     }
-    if (type.startsWith('image/')) {
+    if (type?.startsWith('image/')) {
       return <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
           <ImageIcon className="w-4 h-4 text-purple-700" />
         </div>;
@@ -139,6 +199,7 @@ const ProjectDetail = () => {
         <File className="w-4 h-4 text-purple-700" />
       </div>;
   };
+
   const sidebarItems = [{
     id: 'overview',
     label: 'Overview',
@@ -164,6 +225,7 @@ const ProjectDetail = () => {
     label: 'Settings',
     icon: Settings
   }];
+
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -182,6 +244,7 @@ const ProjectDetail = () => {
         return <ProjectInfo project={project} />;
     }
   };
+
   return <div className="min-h-screen bg-gray-50 flex">
       {/* Main Navigation Sidebar */}
       <div className="fixed top-0 left-0 h-screen z-20">
@@ -235,23 +298,29 @@ const ProjectDetail = () => {
         <div className="flex-1 p-4">
           <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Files</h3>
           <div className="space-y-3">
-            {recentFiles.map(file => <div key={file.id} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 flex-1 min-w-0">
-                  {getFileIcon(file.type)}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                    <p className="text-xs text-gray-500">by {file.uploadedBy}</p>
+            {recentFiles.length === 0 ? (
+              <p className="text-sm text-gray-500">No recent files</p>
+            ) : (
+              recentFiles.map(file => (
+                <div key={file.id} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    {getFileIcon(file.file_type)}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{file.file_name}</p>
+                      <p className="text-xs text-gray-500">by {file.uploader?.name || 'Unknown'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <button className="p-1 text-gray-400 hover:text-gray-600">
+                      <Download className="w-3 h-3" />
+                    </button>
+                    <button className="p-1 text-gray-400 hover:text-red-600">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <button className="p-1 text-gray-400 hover:text-gray-600">
-                    <Download className="w-3 h-3" />
-                  </button>
-                  <button className="p-1 text-gray-400 hover:text-red-600">
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>)}
+              ))
+            )}
           </div>
         </div>
 
@@ -268,11 +337,15 @@ const ProjectDetail = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Files</span>
-              <span className="text-gray-900">3</span>
+              <span className="text-gray-900">{projectStats.totalFiles}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500">Todos</span>
+              <span className="text-gray-900">{projectStats.completedTodos}/{projectStats.totalTodos}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Team Size</span>
-              <span className="text-gray-900">{(project.collaborators?.length || 0) + 1}</span>
+              <span className="text-gray-900">{projectStats.teamSize}</span>
             </div>
           </div>
         </div>
@@ -323,4 +396,5 @@ const ProjectDetail = () => {
       </div>
     </div>;
 };
+
 export default ProjectDetail;

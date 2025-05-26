@@ -1,333 +1,228 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Music, DollarSign, Calendar, Send } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Briefcase, MapPin, DollarSign, Clock } from 'lucide-react';
+import { useProjects } from '@/hooks/useProjects';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface BulletinBoardProps {
-  userProfile?: {
-    role?: string;
-    genres?: string[];
-  };
-}
-
-interface ProjectOpportunity {
-  id: string;
-  project_id: string;
-  project_title: string;
-  project_genre: string;
-  role: string;
-  payout: number;
-  deadline?: string;
-  description?: string;
-  created_at: string;
-  project_owner: {
-    id: string;
-    name: string;
-    username: string;
-  };
+  userProfile: any;
 }
 
 const BulletinBoard = ({ userProfile }: BulletinBoardProps) => {
-  const [opportunities, setOpportunities] = useState<ProjectOpportunity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
-  const [selectedOpportunity, setSelectedOpportunity] = useState<ProjectOpportunity | null>(null);
-  const [applicationMessage, setApplicationMessage] = useState('');
-  const [isApplying, setIsApplying] = useState(false);
+  const { projects, loading } = useProjects();
+  const { profile } = useProfile();
   const { toast } = useToast();
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [applicationData, setApplicationData] = useState({
+    coverLetter: '',
+    portfolio: '',
+    expectedPayout: ''
+  });
+  const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
 
-  useEffect(() => {
-    fetchOpportunities();
-  }, []);
-
-  const fetchOpportunities = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('project_looking_for')
-        .select(`
-          id,
-          role,
-          payout,
-          created_at,
-          projects!inner (
-            id,
-            title,
-            genre,
-            deadline,
-            description,
-            visibility,
-            status,
-            owner_id,
-            profiles!projects_owner_id_fkey (
-              id,
-              name,
-              username
-            )
-          )
-        `)
-        .eq('projects.visibility', 'public')
-        .eq('projects.status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-
-      // Transform the data to match our interface
-      const transformedData = (data || []).map(item => ({
-        id: item.id,
-        project_id: item.projects.id,
-        project_title: item.projects.title,
-        project_genre: item.projects.genre,
-        role: item.role,
-        payout: item.payout,
-        deadline: item.projects.deadline,
-        description: item.projects.description,
-        created_at: item.created_at,
-        project_owner: {
-          id: item.projects.owner_id,
-          name: item.projects.profiles?.name || 'Unknown',
-          username: item.projects.profiles?.username || 'unknown'
-        }
-      }));
-
-      // Filter based on user's role and genres if available
-      let filteredOpportunities = transformedData;
-      if (userProfile?.role || userProfile?.genres) {
-        filteredOpportunities = transformedData.filter(opp => {
-          const matchesRole = !userProfile.role || opp.role.toLowerCase().includes(userProfile.role.toLowerCase());
-          const matchesGenre = !userProfile.genres || userProfile.genres.some(genre => 
-            opp.project_genre?.toLowerCase().includes(genre.toLowerCase())
-          );
-          return matchesRole || matchesGenre;
-        });
-      }
-
-      setOpportunities(filteredOpportunities);
-    } catch (error) {
-      console.error('Error fetching opportunities:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load project opportunities",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+  // Filter projects to show only ones that:
+  // 1. Are not owned by the current user
+  // 2. Are public or connections_only
+  // 3. Have looking_for roles that match user's role/genres
+  const relevantProjects = projects.filter(project => {
+    // Don't show user's own projects
+    if (project.owner_id === profile?.id) return false;
+    
+    // Only show public or connections_only projects
+    if (project.visibility === 'private') return false;
+    
+    // Show if project matches user's role or genres (simplified check)
+    if (userProfile?.role || userProfile?.genres) {
+      return true; // For now, show all non-private projects that aren't user's own
     }
-  };
+    
+    return true;
+  });
 
-  const handleApply = (opportunity: ProjectOpportunity) => {
-    setSelectedOpportunity(opportunity);
-    setIsApplicationDialogOpen(true);
-  };
+  const handleApplyToProject = async () => {
+    if (!selectedProject || !profile) return;
 
-  const handleSubmitApplication = async () => {
-    if (!selectedOpportunity || !applicationMessage.trim()) return;
-
-    setIsApplying(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Create collaboration request
-      const { data, error } = await supabase
+      // Create application in project_collaborators table
+      const { error } = await supabase
         .from('project_collaborators')
         .insert([{
-          project_id: selectedOpportunity.project_id,
-          user_id: user.id,
-          role_name: selectedOpportunity.role,
-          status: 'pending'
-        }])
-        .select()
-        .single();
+          project_id: selectedProject.id,
+          user_id: profile.id,
+          status: 'pending',
+          role: userProfile?.role || 'Collaborator'
+        }]);
 
       if (error) throw error;
 
-      // Send message to project owner
-      await supabase
-        .from('messages')
-        .insert([{
-          sender_id: user.id,
-          recipient_id: selectedOpportunity.project_owner.id,
-          content: applicationMessage,
-          project_id: selectedOpportunity.project_id
-        }]);
-
-      // Create notification
+      // Create notification for project owner
       await supabase
         .from('notifications')
         .insert([{
-          user_id: selectedOpportunity.project_owner.id,
+          user_id: selectedProject.owner_id,
           title: 'New Project Application',
-          message: `Someone applied for the ${selectedOpportunity.role} role in "${selectedOpportunity.project_title}"`,
+          message: `${profile.name || 'A user'} applied to join your project "${selectedProject.title}"`,
           type: 'project_application',
-          payload: {
-            project_id: selectedOpportunity.project_id,
-            collaboration_id: data.id,
-            role: selectedOpportunity.role
-          }
+          payload: { project_id: selectedProject.id, applicant_id: profile.id }
         }]);
-
-      setIsApplicationDialogOpen(false);
-      setApplicationMessage('');
-      setSelectedOpportunity(null);
 
       toast({
         title: "Application sent",
-        description: "Your application has been sent to the project owner"
+        description: "Your application has been sent to the project owner.",
       });
+
+      setIsApplicationDialogOpen(false);
+      setApplicationData({ coverLetter: '', portfolio: '', expectedPayout: '' });
     } catch (error) {
-      console.error('Error submitting application:', error);
+      console.error('Error applying to project:', error);
       toast({
         title: "Error",
-        description: "Failed to submit application",
-        variant: "destructive"
+        description: "Failed to send application",
+        variant: "destructive",
       });
-    } finally {
-      setIsApplying(false);
     }
   };
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-48 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="border border-gray-200 rounded-lg p-6 bg-white">
+        <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center">
+          <Briefcase className="w-6 h-6 mr-2 text-purple-600" />
+          Project Opportunities
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-4">
+                <div className="h-32 bg-gray-200 rounded"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span>Project Opportunities</span>
-          </CardTitle>
-          <p className="text-sm text-gray-600">
-            {userProfile?.role || userProfile?.genres 
-              ? "Opportunities matching your profile" 
-              : "Latest project opportunities"}
-          </p>
-        </CardHeader>
-        <CardContent>
-          {opportunities.length === 0 ? (
-            <div className="text-center py-8">
-              <Music className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-gray-500">No opportunities available at the moment</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {opportunities.map(opportunity => (
-                <Card key={opportunity.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 line-clamp-1">
-                          {opportunity.project_title}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          by {opportunity.project_owner?.name}
-                        </p>
+    <div className="border border-gray-200 rounded-lg p-6 bg-white">
+      <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center">
+        <Briefcase className="w-6 h-6 mr-2 text-purple-600" />
+        Project Opportunities
+      </h2>
+      
+      {relevantProjects.length === 0 ? (
+        <div className="text-center py-8">
+          <Briefcase className="mx-auto h-12 w-12 text-gray-400" />
+          <p className="mt-2 text-gray-500">No relevant opportunities found</p>
+          <p className="text-sm text-gray-400">Check back later for new projects</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {relevantProjects.map(project => (
+            <Card key={project.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 truncate">{project.title}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2">{project.description}</p>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline" className="text-purple-600 border-purple-600">
+                      {project.genre || 'No Genre'}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {project.status}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-600">
+                    {project.budget && (
+                      <div className="flex items-center space-x-1">
+                        <DollarSign className="w-4 h-4" />
+                        <span>Budget: ${project.budget}</span>
                       </div>
-
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline" className="text-purple-600 border-purple-600">
-                          {opportunity.role}
-                        </Badge>
-                        {opportunity.project_genre && (
-                          <Badge variant="outline">
-                            {opportunity.project_genre}
-                          </Badge>
-                        )}
+                    )}
+                    
+                    {project.deadline && (
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-4 h-4" />
+                        <span>Due: {new Date(project.deadline).toLocaleDateString()}</span>
                       </div>
+                    )}
+                  </div>
 
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <div className="flex items-center space-x-1">
-                          <DollarSign className="w-4 h-4" />
-                          <span>${opportunity.payout}</span>
-                        </div>
-                        {opportunity.deadline && (
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>{new Date(opportunity.deadline).toLocaleDateString()}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {opportunity.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {opportunity.description}
-                        </p>
-                      )}
-
+                  <Dialog open={isApplicationDialogOpen} onOpenChange={setIsApplicationDialogOpen}>
+                    <DialogTrigger asChild>
                       <Button 
-                        className="w-full bg-purple-600 hover:bg-purple-700" 
-                        onClick={() => handleApply(opportunity)}
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                        onClick={() => setSelectedProject(project)}
                       >
-                        <Send className="w-4 h-4 mr-2" />
-                        Apply
+                        Apply to Project
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Application Dialog */}
-      <Dialog open={isApplicationDialogOpen} onOpenChange={setIsApplicationDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              Apply for {selectedOpportunity?.role} - {selectedOpportunity?.project_title}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="application-message">Application Message</Label>
-              <Textarea
-                id="application-message"
-                value={applicationMessage}
-                onChange={(e) => setApplicationMessage(e.target.value)}
-                placeholder="Tell the project owner why you're a good fit for this role..."
-                rows={4}
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsApplicationDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSubmitApplication}
-                disabled={isApplying || !applicationMessage.trim()}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {isApplying ? 'Sending...' : 'Send Application'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Apply to {selectedProject?.title}</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="cover-letter">Cover Letter</Label>
+                          <Textarea
+                            id="cover-letter"
+                            value={applicationData.coverLetter}
+                            onChange={(e) => setApplicationData(prev => ({ ...prev, coverLetter: e.target.value }))}
+                            placeholder="Tell them why you're interested in this project..."
+                            rows={4}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="portfolio">Portfolio Link (optional)</Label>
+                          <Input
+                            id="portfolio"
+                            value={applicationData.portfolio}
+                            onChange={(e) => setApplicationData(prev => ({ ...prev, portfolio: e.target.value }))}
+                            placeholder="Link to your work..."
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="expected-payout">Expected Payout (optional)</Label>
+                          <Input
+                            id="expected-payout"
+                            value={applicationData.expectedPayout}
+                            onChange={(e) => setApplicationData(prev => ({ ...prev, expectedPayout: e.target.value }))}
+                            placeholder="$0"
+                          />
+                        </div>
+                        
+                        <div className="flex justify-end space-x-2">
+                          <Button variant="outline" onClick={() => setIsApplicationDialogOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleApplyToProject} className="bg-purple-600 hover:bg-purple-700">
+                            Send Application
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -3,336 +3,310 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Trash2, Save, Plus, X } from 'lucide-react';
-import { useProjects } from '@/hooks/useProjects';
-import { useNavigate } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { AlertTriangle, Save, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useProjects } from '@/hooks/useProjects';
 
 interface ProjectSettingsProps {
   project: any;
 }
 
 const ProjectSettings = ({ project }: ProjectSettingsProps) => {
-  const [projectName, setProjectName] = useState(project.title || project.name || '');
-  const [projectGenre, setProjectGenre] = useState(project.genre || '');
-  const [projectDescription, setProjectDescription] = useState(project.description || '');
-  const [projectBpm, setProjectBpm] = useState(project.bpm || '');
-  const [projectKey, setProjectKey] = useState(project.key || '');
-  const [projectDaw, setProjectDaw] = useState(project.daw || '');
-  const [projectMood, setProjectMood] = useState(project.mood || '');
-  const [versionApproval, setVersionApproval] = useState(project.version_approval_enabled || false);
-  const [phases, setPhases] = useState(project.phases || ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete']);
-  const [newPhase, setNewPhase] = useState('');
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [formData, setFormData] = useState({
+    title: project.title || '',
+    description: project.description || '',
+    genre: project.genre || '',
+    status: project.status || 'active',
+    visibility: project.visibility || 'private',
+    deadline: project.deadline || '',
+    budget: project.budget || '',
+    bpm: project.bpm || '',
+    key: project.key || '',
+    daw: project.daw || '',
+    mood: project.mood || '',
+    version_approval_enabled: project.version_approval_enabled || false
+  });
   
-  const { updateProject, deleteProject } = useProjects();
-  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { updateProject, deleteProject } = useProjects();
 
-  const handleUpdateProject = async () => {
-    setIsUpdating(true);
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
     try {
       await updateProject(project.id, {
-        title: projectName,
-        name: projectName,
-        genre: projectGenre,
-        description: projectDescription,
-        bpm: projectBpm ? parseInt(projectBpm) : undefined,
-        key: projectKey || undefined,
-        daw: projectDaw || undefined,
-        mood: projectMood || undefined,
-        version_approval_enabled: versionApproval,
-        phases: phases
+        title: formData.title,
+        description: formData.description,
+        genre: formData.genre,
+        status: formData.status as any,
+        visibility: formData.visibility as any,
+        deadline: formData.deadline || null,
+        budget: formData.budget ? parseFloat(formData.budget) : null,
+        bpm: formData.bpm ? parseInt(formData.bpm) : null,
+        key: formData.key,
+        daw: formData.daw,
+        mood: formData.mood,
+        version_approval_enabled: formData.version_approval_enabled
       });
+      
       toast({
-        title: "Success",
-        description: "Project settings updated successfully",
+        title: "Settings saved",
+        description: "Project settings have been updated successfully.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update project settings",
+        description: "Failed to save project settings.",
         variant: "destructive",
       });
     } finally {
-      setIsUpdating(false);
+      setSaving(false);
     }
   };
 
   const handleDeleteProject = async () => {
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      await deleteProject(project.id);
-      toast({
-        title: "Success",
-        description: "Project deleted successfully",
-      });
-      navigate('/projects');
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete project",
-        variant: "destructive",
-      });
-      setIsDeleting(false);
+    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      try {
+        await deleteProject(project.id);
+        toast({
+          title: "Project deleted",
+          description: "The project has been permanently deleted.",
+        });
+        // Navigate back will be handled by the hook
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete project.",
+          variant: "destructive",
+        });
+      }
     }
   };
-
-  const addPhase = () => {
-    if (newPhase.trim() && !phases.includes(newPhase.trim())) {
-      setPhases([...phases, newPhase.trim()]);
-      setNewPhase('');
-    }
-  };
-
-  const removePhase = (index: number) => {
-    if (phases.length > 1) {
-      setPhases(phases.filter((_, i) => i !== index));
-    }
-  };
-
-  const genres = [
-    'Pop', 'Rock', 'Hip Hop', 'R&B', 'Jazz', 'Blues', 'Country', 'Electronic',
-    'Classical', 'Folk', 'Reggae', 'Funk', 'Soul', 'Punk', 'Metal', 'Indie',
-    'Alternative', 'House', 'Techno', 'Trap', 'Lo-fi', 'Ambient', 'Other'
-  ];
-
-  const musicalKeys = [
-    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
-    'Cm', 'C#m', 'Dm', 'D#m', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'A#m', 'Bm'
-  ];
-
-  const daws = [
-    'Ableton Live', 'Logic Pro', 'Pro Tools', 'FL Studio', 'Cubase', 'Studio One',
-    'Reaper', 'GarageBand', 'Reason', 'Bitwig Studio', 'Other'
-  ];
 
   return (
     <div className="space-y-6">
-      {/* General Settings */}
+      {/* Basic Information */}
       <Card>
         <CardHeader>
-          <CardTitle>General Settings</CardTitle>
+          <CardTitle>Basic Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="project-name">Project Name</Label>
-            <Input
-              id="project-name"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              placeholder="Enter project name"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="project-genre">Genre</Label>
-              <Select value={projectGenre} onValueChange={setProjectGenre}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a genre" />
-                </SelectTrigger>
-                <SelectContent>
-                  {genres.map((genre) => (
-                    <SelectItem key={genre} value={genre}>
-                      {genre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="project-bpm">BPM</Label>
+              <Label htmlFor="title">Project Title</Label>
               <Input
-                id="project-bpm"
-                type="number"
-                value={projectBpm}
-                onChange={(e) => setProjectBpm(e.target.value)}
-                placeholder="120"
-                min="60"
-                max="200"
+                id="title"
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                placeholder="Enter project title"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="genre">Genre</Label>
+              <Input
+                id="genre"
+                value={formData.genre}
+                onChange={(e) => handleInputChange('genre', e.target.value)}
+                placeholder="e.g., Pop, Rock, Hip Hop"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="project-key">Key</Label>
-              <Select value={projectKey} onValueChange={setProjectKey}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select key" />
-                </SelectTrigger>
-                <SelectContent>
-                  {musicalKeys.map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {key}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="project-daw">DAW</Label>
-              <Select value={projectDaw} onValueChange={setProjectDaw}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select DAW" />
-                </SelectTrigger>
-                <SelectContent>
-                  {daws.map((daw) => (
-                    <SelectItem key={daw} value={daw}>
-                      {daw}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           <div>
-            <Label htmlFor="project-mood">Mood</Label>
-            <Input
-              id="project-mood"
-              value={projectMood}
-              onChange={(e) => setProjectMood(e.target.value)}
-              placeholder="e.g., Energetic, Melancholic, Uplifting"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="project-description">Description</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
-              id="project-description"
-              value={projectDescription}
-              onChange={(e) => setProjectDescription(e.target.value)}
-              placeholder="Enter project description"
-              rows={4}
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Describe your project..."
+              rows={3}
             />
           </div>
 
-          <Button 
-            onClick={handleUpdateProject}
-            disabled={isUpdating}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isUpdating ? 'Updating...' : 'Save Changes'}
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="on_hold">On Hold</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="visibility">Visibility</Label>
+              <Select value={formData.visibility} onValueChange={(value) => handleInputChange('visibility', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="connections_only">Connections Only</SelectItem>
+                  <SelectItem value="public">Public</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Project Phases */}
+      {/* Technical Details */}
       <Card>
         <CardHeader>
-          <CardTitle>Project Phases</CardTitle>
+          <CardTitle>Technical Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            {phases.map((phase, index) => (
-              <div key={index} className="flex items-center justify-between p-2 border rounded">
-                <span>{phase}</span>
-                {phases.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removePhase(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="bpm">BPM</Label>
+              <Input
+                id="bpm"
+                type="number"
+                value={formData.bpm}
+                onChange={(e) => handleInputChange('bpm', e.target.value)}
+                placeholder="120"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="key">Key</Label>
+              <Input
+                id="key"
+                value={formData.key}
+                onChange={(e) => handleInputChange('key', e.target.value)}
+                placeholder="C Major"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="daw">DAW</Label>
+              <Input
+                id="daw"
+                value={formData.daw}
+                onChange={(e) => handleInputChange('daw', e.target.value)}
+                placeholder="Pro Tools, Logic, etc."
+              />
+            </div>
           </div>
-          
-          <div className="flex space-x-2">
+
+          <div>
+            <Label htmlFor="mood">Mood/Style</Label>
             <Input
-              value={newPhase}
-              onChange={(e) => setNewPhase(e.target.value)}
-              placeholder="Add new phase"
-              onKeyPress={(e) => e.key === 'Enter' && addPhase()}
+              id="mood"
+              value={formData.mood}
+              onChange={(e) => handleInputChange('mood', e.target.value)}
+              placeholder="Upbeat, melancholic, energetic..."
             />
-            <Button onClick={addPhase} variant="outline">
-              <Plus className="w-4 h-4" />
-            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* File Settings */}
+      {/* Project Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>File Settings</CardTitle>
+          <CardTitle>Timeline & Budget</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="deadline">Deadline</Label>
+              <Input
+                id="deadline"
+                type="date"
+                value={formData.deadline}
+                onChange={(e) => handleInputChange('deadline', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="budget">Budget ($)</Label>
+              <Input
+                id="budget"
+                type="number"
+                value={formData.budget}
+                onChange={(e) => handleInputChange('budget', e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Collaboration Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Collaboration Settings</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="version-approval">Enable Version Approvals</Label>
-              <p className="text-sm text-gray-500">Require owner approval for file uploads</p>
+              <Label htmlFor="version-approval">Version Approval</Label>
+              <p className="text-sm text-gray-500">Require approval for new file versions</p>
             </div>
             <Switch
               id="version-approval"
-              checked={versionApproval}
-              onCheckedChange={setVersionApproval}
+              checked={formData.version_approval_enabled}
+              onCheckedChange={(checked) => handleInputChange('version_approval_enabled', checked)}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Project Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Project Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-500">Project ID</span>
-            <span className="text-sm text-gray-900 font-mono">{project.id}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-500">Created</span>
-            <span className="text-sm text-gray-900">{new Date(project.created_at).toLocaleDateString()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-500">Last Updated</span>
-            <span className="text-sm text-gray-900">{new Date(project.updated_at).toLocaleDateString()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-500">Owner</span>
-            <span className="text-sm text-gray-900">You</span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Actions */}
+      <div className="flex items-center justify-between">
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-purple-600 hover:bg-purple-700"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {saving ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </div>
+
+      <Separator />
 
       {/* Danger Zone */}
       <Card className="border-red-200">
         <CardHeader>
-          <CardTitle className="text-red-700">Danger Zone</CardTitle>
+          <CardTitle className="text-red-600 flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2" />
+            Danger Zone
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-red-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-red-800 mb-2">Delete Project</h3>
-            <p className="text-sm text-red-600 mb-4">
-              Once you delete a project, there is no going back. This will permanently delete all files, messages, and collaborator data.
-            </p>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteProject}
-              disabled={isDeleting}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {isDeleting ? 'Deleting...' : 'Delete Project'}
-            </Button>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-red-600 mb-2">Delete Project</h4>
+              <p className="text-sm text-gray-600 mb-4">
+                This action cannot be undone. All project data, files, and collaborations will be permanently deleted.
+              </p>
+              <Button 
+                variant="destructive" 
+                onClick={handleDeleteProject}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Project
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

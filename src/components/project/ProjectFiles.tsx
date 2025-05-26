@@ -65,11 +65,11 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
         .from('project_files')
         .select(`
           *,
-          uploader:uploaded_by (
+          uploader:profiles!project_files_uploaded_by_fkey (
             name,
             username
           ),
-          approver:approved_by (
+          approver:profiles!project_files_approved_by_fkey (
             name,
             username
           )
@@ -97,7 +97,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
         .from('project_files')
         .select(`
           *,
-          uploader:uploaded_by (
+          uploader:profiles!project_files_uploaded_by_fkey (
             name,
             username
           )
@@ -188,7 +188,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
           }])
           .select(`
             *,
-            uploader:uploaded_by (
+            uploader:profiles!project_files_uploaded_by_fkey (
               name,
               username
             )
@@ -207,7 +207,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
             .insert([{
               user_id: projectSettings.owner_id,
               title: 'File Upload Requires Approval',
-              message: `${data.uploader.name} uploaded "${file.name}" and requires your approval.`,
+              message: `${data.uploader?.name || 'Unknown'} uploaded "${file.name}" and requires your approval.`,
               type: 'file_approval',
               payload: { file_id: data.id, project_id: projectId }
             }]);
@@ -446,7 +446,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                         <span>•</span>
                         <span>v{file.version}</span>
                         <span>•</span>
-                        <span>by {file.uploader?.name}</span>
+                        <span>by {file.uploader?.name || 'Unknown'}</span>
                       </div>
                       {file.version_notes && (
                         <p className="text-sm text-gray-600 mt-1">{file.version_notes}</p>
@@ -514,7 +514,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                         <span>•</span>
                         <span>v{file.version}</span>
                         <span>•</span>
-                        <span>by {file.uploader?.name}</span>
+                        <span>by {file.uploader?.name || 'Unknown'}</span>
                         <span>•</span>
                         <span>{new Date(file.created_at).toLocaleDateString()}</span>
                       </div>
@@ -570,7 +570,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                     {getStatusBadge(version)}
                   </div>
                   <p className="text-sm text-gray-500">
-                    by {version.uploader?.name} • {new Date(version.created_at).toLocaleDateString()}
+                    by {version.uploader?.name || 'Unknown'} • {new Date(version.created_at).toLocaleDateString()}
                   </p>
                   {version.version_notes && (
                     <p className="text-sm text-gray-600 mt-1">{version.version_notes}</p>
