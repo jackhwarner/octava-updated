@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,12 +20,11 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
   const [loading, setLoading] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<any>(null);
-  const [versionNotes, setVersionNotes] = useState('');
-  const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [fileVersions, setFileVersions] = useState([]);
   const [projectSettings, setProjectSettings] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -151,8 +150,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     return null;
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = event.target.files;
+  const handleFileUpload = async (selectedFiles: FileList) => {
     if (!selectedFiles || selectedFiles.length === 0) return;
 
     setUploading(true);
@@ -184,7 +182,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
             approved_at: needsApproval ? null : new Date().toISOString(),
             approved_by: needsApproval ? null : currentUser.id,
             parent_file_id: existingFile?.id || null,
-            version_notes: versionNotes || null
+            version_notes: null
           }])
           .select(`
             *,
@@ -229,10 +227,36 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
       });
     } finally {
       setUploading(false);
-      setVersionNotes('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files;
+    if (selectedFiles) {
+      handleFileUpload(selectedFiles);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files);
     }
   };
 
@@ -344,77 +368,55 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     <div className="space-y-6">
       {/* Upload Area */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Upload Files</CardTitle>
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              onClick={handleDownloadAll}
-              disabled={files.length === 0}
-            >
-              <Archive className="w-4 h-4 mr-2" />
-              Download All
-            </Button>
-          </div>
         </CardHeader>
         <CardContent>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+          <div 
+            className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
+              dragActive ? 'border-purple-400 bg-purple-50' : 'border-gray-300'
+            }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
             <div className="text-center">
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <div className="mt-4">
-                <Dialog open={isVersionDialogOpen} onOpenChange={setIsVersionDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      disabled={uploading}
-                      className="bg-purple-600 hover:bg-purple-700"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      {uploading ? 'Uploading...' : 'Choose Files'}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Upload Files</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="file-input">Select Files</Label>
-                        <Input
-                          id="file-input"
-                          ref={fileInputRef}
-                          type="file"
-                          multiple
-                          onChange={handleFileUpload}
-                          accept="audio/*,video/*,image/*,.pdf,.txt,.doc,.docx"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="version-notes">Version Notes (optional)</Label>
-                        <Textarea
-                          id="version-notes"
-                          value={versionNotes}
-                          onChange={(e) => setVersionNotes(e.target.value)}
-                          placeholder="Describe changes in this version..."
-                          rows={3}
-                        />
-                      </div>
-                      {projectSettings?.version_approval_enabled && !isOwner && (
-                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-                          <div className="flex items-center space-x-2">
-                            <AlertCircle className="w-4 h-4 text-yellow-600" />
-                            <span className="text-sm text-yellow-800">
-                              Files will require approval from the project owner before being published.
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <Button
+                  disabled={uploading}
+                  className="bg-purple-600 hover:bg-purple-700"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  {uploading ? 'Uploading...' : 'Choose Files'}
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleFileInputChange}
+                  accept="audio/*,video/*,image/*,.pdf,.txt,.doc,.docx"
+                  className="hidden"
+                />
               </div>
               <p className="mt-2 text-sm text-gray-500">
                 Upload audio, video, images, documents, and more
               </p>
+              <p className="text-xs text-gray-400">
+                Drag and drop files here or click to browse
+              </p>
+              {projectSettings?.version_approval_enabled && !isOwner && (
+                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                  <div className="flex items-center justify-center space-x-2">
+                    <AlertCircle className="w-4 h-4 text-yellow-600" />
+                    <span className="text-sm text-yellow-800">
+                      Files will require approval from the project owner before being published.
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
@@ -481,8 +483,16 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
 
       {/* Files List */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Project Files ({approvedFiles.length})</CardTitle>
+          <Button
+            variant="outline"
+            onClick={handleDownloadAll}
+            disabled={files.length === 0}
+          >
+            <Archive className="w-4 h-4 mr-2" />
+            Download All
+          </Button>
         </CardHeader>
         <CardContent>
           {approvedFiles.length === 0 ? (
