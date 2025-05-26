@@ -8,11 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus, Search, Filter, Calendar, Users, Music, FolderPlus, Folder, MoreVertical, Edit, Trash2, Share2, Eye, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/use-toast';
+
 const Projects = () => {
   const navigate = useNavigate();
   const {
@@ -34,6 +37,11 @@ const Projects = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
+  const [isAddToFolderDialogOpen, setIsAddToFolderDialogOpen] = useState(false);
+  const [selectedProjectForFolder, setSelectedProjectForFolder] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<any>(null);
+  
   const [newProject, setNewProject] = useState({
     title: '',
     description: '',
@@ -52,6 +60,7 @@ const Projects = () => {
     description: '',
     color: '#6366f1'
   });
+  
   const getProjectStatus = (project: any) => {
     if (!project.phases || project.phases.length === 0) {
       return {
@@ -78,6 +87,7 @@ const Projects = () => {
       };
     }
   };
+  
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || project.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFolder = selectedFolder === 'all' || selectedFolder === 'none' && !project.folder_id || project.folder_id === selectedFolder;
@@ -85,6 +95,7 @@ const Projects = () => {
     const matchesStatus = statusFilter === 'all' || projectStatus.label.toLowerCase().replace(' ', '_') === statusFilter;
     return matchesSearch && matchesFolder && matchesStatus;
   });
+  
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -118,6 +129,7 @@ const Projects = () => {
       console.error('Error creating project:', error);
     }
   };
+  
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -136,19 +148,49 @@ const Projects = () => {
       console.error('Error creating folder:', error);
     }
   };
-  const handleDeleteProject = async (projectId: string) => {
-    if (window.confirm('Are you sure you want to delete this project?')) {
+  
+  const handleDeleteProject = async () => {
+    if (projectToDelete) {
       try {
-        await deleteProject(projectId);
+        await deleteProject(projectToDelete.id);
         toast({
           title: "Success",
           description: "Project deleted successfully"
         });
+        setDeleteDialogOpen(false);
+        setProjectToDelete(null);
       } catch (error) {
         console.error('Error deleting project:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete project",
+          variant: "destructive"
+        });
       }
     }
   };
+  
+  const handleAddToFolder = async (folderId: string) => {
+    if (selectedProjectForFolder) {
+      try {
+        await updateProject(selectedProjectForFolder.id, { folder_id: folderId || null });
+        toast({
+          title: "Success",
+          description: folderId ? "Project added to folder" : "Project removed from folder"
+        });
+        setIsAddToFolderDialogOpen(false);
+        setSelectedProjectForFolder(null);
+      } catch (error) {
+        console.error('Error updating project folder:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update project folder",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+  
   const handleShareProject = (project: any) => {
     // Copy project URL to clipboard
     const url = `${window.location.origin}/projects/${project.id}`;
@@ -158,12 +200,15 @@ const Projects = () => {
       description: "Project sharing link copied to clipboard"
     });
   };
+  
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
+  
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
+  
   if (loading) {
     return <div className="p-8">
         <div className="animate-pulse">
@@ -174,6 +219,7 @@ const Projects = () => {
         </div>
       </div>;
   }
+  
   return <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -360,6 +406,60 @@ const Projects = () => {
               </form>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={isAddToFolderDialogOpen} onOpenChange={setIsAddToFolderDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add to Folder</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Select a folder</Label>
+                  <Select onValueChange={handleAddToFolder}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a folder" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">No folder</SelectItem>
+                      {folders.map(folder => (
+                        <SelectItem key={folder.id} value={folder.id}>
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded mr-2" style={{ backgroundColor: folder.color }} />
+                            {folder.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setIsAddToFolderDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => setIsFolderDialogOpen(true)}>
+                    Create New Folder
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete "{projectToDelete?.title || projectToDelete?.name}"? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteProject} className="bg-red-600 hover:bg-red-700">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
@@ -424,12 +524,37 @@ const Projects = () => {
                         {folder.name}
                       </div>}
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Button variant="ghost" size="sm" onClick={() => handleShareProject(project)} title="Share project">
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                    
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleShareProject(project)}>
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        setSelectedProjectForFolder(project);
+                        setIsAddToFolderDialogOpen(true);
+                      }}>
+                        <FolderPlus className="w-4 h-4 mr-2" />
+                        Add to Folder
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          setProjectToDelete(project);
+                          setDeleteDialogOpen(true);
+                        }}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardHeader>
               

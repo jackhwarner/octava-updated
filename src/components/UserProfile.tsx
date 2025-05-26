@@ -1,29 +1,86 @@
+
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useProfile } from '@/hooks/useProfile';
-import { useProjects } from '@/hooks/useProjects';
+import { supabase } from '@/integrations/supabase/client';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { AboutTab } from '@/components/profile/AboutTab';
 import { MusicTab } from '@/components/profile/MusicTab';
 import { ProjectsTab } from '@/components/profile/ProjectsTab';
 import { LinksTab } from '@/components/profile/LinksTab';
-import { EditProfileDialog } from '@/components/profile/EditProfileDialog';
+import { Profile } from '@/hooks/useProfile';
 
-const Profile = () => {
-  const { profile, loading, updateProfile } = useProfile();
-  const { projects } = useProjects();
-  const [showEditDialog, setShowEditDialog] = useState(false);
+const UserProfile = () => {
+  const { userId } = useParams();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [cityName, setCityName] = useState('');
+  const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-    if (profile?.zip_code && profile.zip_code.length === 5) {
-      fetchCityName(profile.zip_code);
-    } else if (profile?.location) {
-      setCityName(profile.location);
+    if (userId) {
+      fetchUserProfile();
+      fetchUserProjects();
     }
-  }, [profile]);
+  }, [userId]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+
+      const mappedProfile: Profile = {
+        ...data,
+        visibility: data.visibility === 'unlisted' ? 'connections_only' : data.visibility as 'public' | 'private' | 'connections_only'
+      };
+      
+      setProfile(mappedProfile);
+
+      if (data?.zip_code && data.zip_code.length === 5) {
+        fetchCityName(data.zip_code);
+      } else if (data?.location) {
+        setCityName(data.location);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          collaborators:project_collaborators (
+            id,
+            user_id,
+            role,
+            status,
+            profiles (
+              name,
+              username
+            )
+          )
+        `)
+        .eq('owner_id', userId)
+        .eq('visibility', 'public');
+
+      if (error) throw error;
+      setProjects(data || []);
+    } catch (error) {
+      console.error('Error fetching user projects:', error);
+    }
+  };
 
   const fetchCityName = async (zipCode: string) => {
     try {
@@ -56,17 +113,20 @@ const Profile = () => {
     );
   }
 
+  if (!profile) {
+    return (
+      <div className="p-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">User Not Found</h1>
+          <p className="text-gray-600">The user profile you're looking for doesn't exist or is private.</p>
+        </div>
+      </div>
+    );
+  }
+
   // Calculate stats from actual data
   const activeProjects = projects.filter(p => p.status === 'active').length;
   const totalCollaborations = projects.reduce((acc, p) => acc + (p.collaborators?.length || 0), 0);
-
-  const handleUpdateProfile = async (updates: Partial<typeof profile>) => {
-    await updateProfile(updates);
-    // Refetch city name if zip code was updated
-    if (updates.zip_code && updates.zip_code.length === 5) {
-      fetchCityName(updates.zip_code);
-    }
-  };
 
   return (
     <TooltipProvider>
@@ -75,8 +135,8 @@ const Profile = () => {
           <ProfileHeader 
             profile={profile}
             cityName={cityName}
-            onEditClick={() => setShowEditDialog(true)}
-            isOwnProfile={true}
+            onEditClick={() => {}}
+            isOwnProfile={false}
           />
 
           <ProfileStats 
@@ -110,16 +170,9 @@ const Profile = () => {
             </TabsContent>
           </Tabs>
         </div>
-
-        <EditProfileDialog
-          open={showEditDialog}
-          onOpenChange={setShowEditDialog}
-          profile={profile}
-          onSave={handleUpdateProfile}
-        />
       </div>
     </TooltipProvider>
   );
 };
 
-export default Profile;
+export default UserProfile;

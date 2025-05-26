@@ -15,6 +15,7 @@ import Privacy from "./pages/Privacy";
 import Subscription from "./pages/Subscription";
 import ProfileSetup from "./components/ProfileSetup";
 import ProjectDetail from "./components/ProjectDetail";
+import UserProfile from "./components/UserProfile";
 import AuthWrapper from "./components/AuthWrapper";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/projects" element={<AuthWrapper><Index /></AuthWrapper>} />
             <Route path="/projects/:projectId" element={<AuthWrapper><ProjectDetail /></AuthWrapper>} />
             <Route path="/profile" element={<AuthWrapper><Index /></AuthWrapper>} />
+            <Route path="/profile/:userId" element={<AuthWrapper><UserProfile /></AuthWrapper>} />
             <Route path="/settings" element={<AuthWrapper><Index /></AuthWrapper>} />
             <Route path="/support" element={<AuthWrapper><Index /></AuthWrapper>} />
             <Route path="*" element={<NotFound />} />

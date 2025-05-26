@@ -1,9 +1,13 @@
-import { Home, Search, MessageCircle, FolderOpen, Settings, HelpCircle, User, Bell } from 'lucide-react';
+
+import { Home, Search, MessageCircle, FolderOpen, Settings, HelpCircle, User, Bell, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import NotificationsPanel from './NotificationsPanel';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useProfile } from '@/hooks/useProfile';
+import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 
 interface SidebarProps {
@@ -17,6 +21,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
   const navigate = useNavigate();
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
+  const { profile } = useProfile();
 
   // Get only recent notifications for the dropdown
   const recentNotifications = notifications.slice(0, 3);
@@ -54,6 +59,20 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
     if (!notification.is_read) {
       markAsRead(notification.id);
     }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
@@ -147,15 +166,26 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         <div className="mt-auto mb-3">
           <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
             <DropdownMenuTrigger asChild>
-              <button className="w-11 h-11 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all" aria-label="User menu">
+              <button className="w-11 h-11 rounded-full flex items-center justify-center hover:ring-2 hover:ring-purple-300 transition-all" aria-label="User menu">
+                <Avatar className="w-11 h-11">
+                  <AvatarImage src={profile?.avatar_url || profile?.profile_picture_url} />
+                  <AvatarFallback className="bg-gray-300 text-gray-700">
+                    {getInitials(profile?.name || profile?.full_name || 'User')}
+                  </AvatarFallback>
+                </Avatar>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80 p-3 mr-32">
               <div className="flex items-center p-3 mb-2">
-                <div className="w-10 h-10 bg-gray-300 rounded-full mr-4"></div>
+                <Avatar className="w-10 h-10 mr-4">
+                  <AvatarImage src={profile?.avatar_url || profile?.profile_picture_url} />
+                  <AvatarFallback className="bg-gray-300 text-gray-700">
+                    {getInitials(profile?.name || profile?.full_name || 'User')}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
-                  <p className="font-medium text-base">Alex Rodriguez</p>
-                  <p className="text-sm text-gray-500">@alex_producer</p>
+                  <p className="font-medium text-base">{profile?.name || profile?.full_name || 'User'}</p>
+                  <p className="text-sm text-gray-500">@{profile?.username || 'username'}</p>
                 </div>
               </div>
               <DropdownMenuSeparator />
@@ -171,6 +201,11 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               <DropdownMenuItem onClick={() => setActiveTab('support')} className="py-3 cursor-pointer">
                 <HelpCircle className="w-4 h-4 mr-3" />
                 <span>Support</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="py-3 cursor-pointer text-red-600">
+                <LogOut className="w-4 h-4 mr-3" />
+                <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
