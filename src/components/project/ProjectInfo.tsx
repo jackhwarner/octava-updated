@@ -8,20 +8,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar, Users, Clock, Music, Zap, Settings as SettingsIcon, CheckCircle2, Circle, Edit, Plus, X } from 'lucide-react';
+import { Calendar, Users, Clock, Music, Zap, Settings as SettingsIcon, CheckCircle2, Circle, Edit, Plus, X, GripVertical, MessageSquare, FileText, ListTodo } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProjectInfoProps {
   project: any;
+  stats?: {
+    totalFiles: number;
+    totalTodos: number;
+    completedTodos: number;
+    teamSize: number;
+    totalMessages: number;
+  };
 }
 
-const ProjectInfo = ({ project }: ProjectInfoProps) => {
+const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
   const [currentPhase, setCurrentPhase] = useState(project.current_phase_index || 0);
   const [updatingPhase, setUpdatingPhase] = useState(false);
   const [isEditingPhases, setIsEditingPhases] = useState(false);
   const [phases, setPhases] = useState(project.phases || ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete']);
   const [newPhase, setNewPhase] = useState('');
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const { updateProject } = useProjects();
   const { toast } = useToast();
 
@@ -85,35 +93,44 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'on_hold':
-        return 'bg-blue-100 text-blue-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (draggedIndex !== null && draggedIndex !== index) {
+      const newPhases = [...phases];
+      const draggedPhase = newPhases[draggedIndex];
+      newPhases.splice(draggedIndex, 1);
+      newPhases.splice(index, 0, draggedPhase);
+      setPhases(newPhases);
+      setDraggedIndex(index);
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'In Progress';
-      case 'on_hold':
-        return 'On Hold';
-      case 'completed':
-        return 'Complete';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return status;
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const getProjectStatus = () => {
+    if (!phases || phases.length === 0) {
+      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
+    }
+    
+    if (currentPhase === 0) {
+      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
+    } else if (currentPhase >= phases.length - 1) {
+      return { label: 'Completed', color: 'bg-green-100 text-green-800' };
+    } else {
+      return { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' };
     }
   };
+
+  const projectStatus = getProjectStatus();
 
   return (
     <div className="space-y-6">
@@ -122,7 +139,8 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">12</p>
+              <FileText className="w-6 h-6 mx-auto text-purple-600 mb-2" />
+              <p className="text-2xl font-bold text-purple-600">{stats?.totalFiles || 0}</p>
               <p className="text-sm text-gray-600">Files</p>
             </div>
           </CardContent>
@@ -131,7 +149,8 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">45</p>
+              <MessageSquare className="w-6 h-6 mx-auto text-blue-600 mb-2" />
+              <p className="text-2xl font-bold text-blue-600">{stats?.totalMessages || 0}</p>
               <p className="text-sm text-gray-600">Messages</p>
             </div>
           </CardContent>
@@ -140,7 +159,8 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">8</p>
+              <ListTodo className="w-6 h-6 mx-auto text-green-600 mb-2" />
+              <p className="text-2xl font-bold text-green-600">{stats?.completedTodos || 0}/{stats?.totalTodos || 0}</p>
               <p className="text-sm text-gray-600">Tasks Done</p>
             </div>
           </CardContent>
@@ -149,7 +169,8 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">{(project.collaborators?.length || 0) + 1}</p>
+              <Users className="w-6 h-6 mx-auto text-orange-600 mb-2" />
+              <p className="text-2xl font-bold text-orange-600">{stats?.teamSize || (project.collaborators?.length || 0) + 1}</p>
               <p className="text-sm text-gray-600">Team Members</p>
             </div>
           </CardContent>
@@ -167,8 +188,8 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium">Progress</span>
-                <Badge className={getStatusColor(project.status)}>
-                  {getStatusLabel(project.status)}
+                <Badge className={projectStatus.color}>
+                  {projectStatus.label}
                 </Badge>
               </div>
               <span className="text-sm text-gray-500">
@@ -287,7 +308,7 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
               <Users className="w-4 h-4 text-gray-400" />
               <div>
                 <p className="text-sm text-gray-600">Team Size</p>
-                <p className="text-sm font-medium">{(project.collaborators?.length || 0) + 1}</p>
+                <p className="text-sm font-medium">{stats?.teamSize || (project.collaborators?.length || 0) + 1}</p>
               </div>
             </div>
           </div>
@@ -312,8 +333,18 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   {phases.map((phase, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 border rounded">
-                      <span>{phase}</span>
+                    <div 
+                      key={index} 
+                      className="flex items-center justify-between p-2 border rounded cursor-move hover:bg-gray-50"
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <GripVertical className="w-4 h-4 text-gray-400" />
+                        <span>{phase}</span>
+                      </div>
                       {phases.length > 1 && (
                         <Button
                           variant="ghost"

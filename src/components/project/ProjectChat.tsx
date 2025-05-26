@@ -16,16 +16,53 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchMessages();
+    getCurrentUser();
   }, [projectId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Set up real-time listener for new messages
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel('project-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          console.log('New message received:', payload);
+          fetchMessages(); // Refetch to get complete data with profiles
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId]);
+
+  const getCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+    }
+  };
 
   const fetchMessages = async () => {
     try {
@@ -33,7 +70,7 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
         .from('messages')
         .select(`
           *,
-          profiles:sender_id (
+          sender_profile:profiles!messages_sender_id_fkey (
             name,
             username
           )
@@ -64,19 +101,18 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
 
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!currentUser) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('messages')
         .insert([{
           content: newMessage,
-          sender_id: user.id,
+          sender_id: currentUser.id,
           project_id: projectId
         }])
         .select(`
           *,
-          profiles:sender_id (
+          sender_profile:profiles!messages_sender_id_fkey (
             name,
             username
           )
@@ -85,6 +121,7 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
 
       if (error) throw error;
 
+      // Add message to local state immediately for better UX
       setMessages(prev => [...prev, data]);
       setNewMessage('');
     } catch (error) {
@@ -124,9 +161,7 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
   };
 
   const isCurrentUser = (senderId: string) => {
-    // This would need to be compared with actual current user ID
-    // For now, we'll use a simple check
-    return false; // Placeholder
+    return currentUser?.id === senderId;
   };
 
   if (loading) {
@@ -157,17 +192,17 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
             </div>
           ) : (
             messages.map((message) => {
-              const currentUser = isCurrentUser(message.sender_id);
+              const currentUserMessage = isCurrentUser(message.sender_id);
               return (
                 <div
                   key={message.id}
-                  className={`flex ${currentUser ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${currentUserMessage ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex space-x-3 max-w-[70%] ${currentUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                    {!currentUser && (
+                  <div className={`flex space-x-3 max-w-[70%] ${currentUserMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                    {!currentUserMessage && (
                       <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-xs text-purple-700">
-                          {getInitials(message.profiles?.name || 'User')}
+                          {getInitials(message.sender_profile?.name || 'User')}
                         </span>
                       </div>
                     )}
@@ -175,20 +210,20 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
                     <div className="flex flex-col">
                       <div
                         className={`px-4 py-2 rounded-lg ${
-                          currentUser
+                          currentUserMessage
                             ? 'bg-purple-600 text-white'
                             : 'bg-gray-100 text-gray-900'
                         }`}
                       >
-                        {!currentUser && (
+                        {!currentUserMessage && (
                           <p className="text-xs font-medium mb-1 opacity-75">
-                            {message.profiles?.name || 'User'}
+                            {message.sender_profile?.name || 'User'}
                           </p>
                         )}
                         <p className="text-sm">{message.content}</p>
                       </div>
                       
-                      <span className={`text-xs text-gray-500 mt-1 ${currentUser ? 'text-right' : 'text-left'}`}>
+                      <span className={`text-xs text-gray-500 mt-1 ${currentUserMessage ? 'text-right' : 'text-left'}`}>
                         {formatTime(message.created_at)}
                       </span>
                     </div>

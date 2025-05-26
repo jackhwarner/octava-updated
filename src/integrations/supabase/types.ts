@@ -468,6 +468,30 @@ export type Database = {
           },
         ]
       }
+      project_file_deletions: {
+        Row: {
+          deleted_at: string
+          deleted_by: string
+          file_id: string
+          id: string
+          project_id: string
+        }
+        Insert: {
+          deleted_at?: string
+          deleted_by: string
+          file_id: string
+          id?: string
+          project_id: string
+        }
+        Update: {
+          deleted_at?: string
+          deleted_by?: string
+          file_id?: string
+          id?: string
+          project_id?: string
+        }
+        Relationships: []
+      }
       project_files: {
         Row: {
           approved_at: string | null

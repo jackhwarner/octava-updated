@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File, ListTodo } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
+import { useProjectStats } from '@/hooks/useProjectStats';
 import { supabase } from '@/integrations/supabase/client';
 import Sidebar from './Sidebar';
 import ProjectFiles from './project/ProjectFiles';
@@ -17,25 +17,75 @@ const ProjectDetail = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { projects, loading } = useProjects();
+  const { stats, loading: statsLoading, refetch: refetchStats } = useProjectStats(projectId || '');
   const [project, setProject] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [mainActiveTab, setMainActiveTab] = useState('projects');
   const [recentFiles, setRecentFiles] = useState([]);
-  const [projectStats, setProjectStats] = useState({
-    totalFiles: 0,
-    totalTodos: 0,
-    completedTodos: 0,
-    teamSize: 0
-  });
 
   useEffect(() => {
     const foundProject = projects.find(p => p.id === projectId);
     setProject(foundProject);
     if (foundProject) {
       fetchRecentFiles();
-      fetchProjectStats();
     }
   }, [projectId, projects]);
+
+  // Set up real-time listeners for stats updates
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel('project-stats-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_files',
+          filter: `project_id=eq.${projectId}`
+        },
+        () => refetchStats()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_todos',
+          filter: `project_id=eq.${projectId}`
+        },
+        () => refetchStats()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `project_id=eq.${projectId}`
+        },
+        () => refetchStats()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_file_deletions',
+          filter: `project_id=eq.${projectId}`
+        },
+        () => {
+          refetchStats();
+          fetchRecentFiles();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId, refetchStats]);
 
   const fetchRecentFiles = async () => {
     try {
@@ -57,46 +107,6 @@ const ProjectDetail = () => {
       setRecentFiles(data || []);
     } catch (error) {
       console.error('Error fetching recent files:', error);
-    }
-  };
-
-  const fetchProjectStats = async () => {
-    try {
-      // Get file count
-      const { data: files, error: filesError } = await supabase
-        .from('project_files')
-        .select('id')
-        .eq('project_id', projectId)
-        .eq('is_pending_approval', false);
-
-      // Get todo counts
-      const { data: todos, error: todosError } = await supabase
-        .from('project_todos')
-        .select('id, completed')
-        .eq('project_id', projectId);
-
-      // Get collaborator count
-      const { data: collaborators, error: collabError } = await supabase
-        .from('project_collaborators')
-        .select('id')
-        .eq('project_id', projectId)
-        .eq('status', 'accepted');
-
-      if (!filesError && !todosError && !collabError) {
-        const totalFiles = files?.length || 0;
-        const totalTodos = todos?.length || 0;
-        const completedTodos = todos?.filter(t => t.completed).length || 0;
-        const teamSize = (collaborators?.length || 0) + 1; // +1 for owner
-
-        setProjectStats({
-          totalFiles,
-          totalTodos,
-          completedTodos,
-          teamSize
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching project stats:', error);
     }
   };
 
@@ -136,6 +146,25 @@ const ProjectDetail = () => {
         </div>
       </div>;
   }
+
+  const getProjectStatus = (project: any) => {
+    if (!project.phases || project.phases.length === 0) {
+      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
+    }
+    
+    const currentPhase = project.current_phase_index || 0;
+    const totalPhases = project.phases.length;
+    
+    if (currentPhase === 0) {
+      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
+    } else if (currentPhase >= totalPhases - 1) {
+      return { label: 'Completed', color: 'bg-green-100 text-green-800' };
+    } else {
+      return { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' };
+    }
+  };
+
+  const projectStatus = getProjectStatus(project);
 
   const getStatusColor = status => {
     switch (status) {
@@ -229,7 +258,7 @@ const ProjectDetail = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <ProjectInfo project={project} />;
+        return <ProjectInfo project={project} stats={stats} />;
       case 'files':
         return <ProjectFiles projectId={project.id} />;
       case 'todos':
@@ -241,7 +270,7 @@ const ProjectDetail = () => {
       case 'settings':
         return <ProjectSettings project={project} />;
       default:
-        return <ProjectInfo project={project} />;
+        return <ProjectInfo project={project} stats={stats} />;
     }
   };
 
@@ -265,8 +294,8 @@ const ProjectDetail = () => {
           </h1>
           
           <div className="flex items-center space-x-2 mb-3">
-            <Badge className={getStatusColor(project.status)}>
-              {getStatusLabel(project.status)}
+            <Badge className={projectStatus.color}>
+              {projectStatus.label}
             </Badge>
             <Badge variant="outline">{project.genre || 'No Genre'}</Badge>
           </div>
@@ -314,9 +343,6 @@ const ProjectDetail = () => {
                     <button className="p-1 text-gray-400 hover:text-gray-600">
                       <Download className="w-3 h-3" />
                     </button>
-                    <button className="p-1 text-gray-400 hover:text-red-600">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
                   </div>
                 </div>
               ))
@@ -337,15 +363,19 @@ const ProjectDetail = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Files</span>
-              <span className="text-gray-900">{projectStats.totalFiles}</span>
+              <span className="text-gray-900">{statsLoading ? '...' : stats.totalFiles}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Todos</span>
-              <span className="text-gray-900">{projectStats.completedTodos}/{projectStats.totalTodos}</span>
+              <span className="text-gray-900">{statsLoading ? '...' : `${stats.completedTodos}/${stats.totalTodos}`}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500">Messages</span>
+              <span className="text-gray-900">{statsLoading ? '...' : stats.totalMessages}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Team Size</span>
-              <span className="text-gray-900">{projectStats.teamSize}</span>
+              <span className="text-gray-900">{statsLoading ? '...' : stats.teamSize}</span>
             </div>
           </div>
         </div>
