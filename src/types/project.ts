@@ -11,10 +11,12 @@ export interface Project {
   created_at: string;
   updated_at: string;
   deadline?: string;
+  budget?: number;
   folder_id?: string;
   bpm?: number;
   key?: string;
   daw?: string;
+  mood?: string;
   phases?: string[];
   current_phase_index?: number;
   version_approval_enabled?: boolean;

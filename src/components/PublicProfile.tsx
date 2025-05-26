@@ -1,21 +1,17 @@
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useProfile } from '@/hooks/useProfile';
-import { useProjects } from '@/hooks/useProjects';
+import { usePublicProfile } from '@/hooks/usePublicProfile';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { AboutTab } from '@/components/profile/AboutTab';
 import { MusicTab } from '@/components/profile/MusicTab';
-import { ProjectsTab } from '@/components/profile/ProjectsTab';
-import { LinksTab } from '@/components/profile/LinksTab';
-import { EditProfileDialog } from '@/components/profile/EditProfileDialog';
 
-const Profile = () => {
-  const { profile, loading, updateProfile } = useProfile();
-  const { projects } = useProjects();
-  const [showEditDialog, setShowEditDialog] = useState(false);
+const PublicProfile = () => {
+  const { userId } = useParams<{ userId: string }>();
+  const { profile, loading } = usePublicProfile(userId);
   const [cityName, setCityName] = useState('');
 
   useEffect(() => {
@@ -57,17 +53,28 @@ const Profile = () => {
     );
   }
 
-  // Calculate stats from actual data
-  const activeProjects = projects.filter(p => p.status === 'active').length;
-  const totalCollaborations = projects.reduce((acc, p) => acc + (p.collaborators?.length || 0), 0);
+  if (!profile) {
+    return (
+      <div className="p-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Profile not found</h1>
+          <p className="text-gray-600">This user profile doesn't exist or is private.</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleUpdateProfile = async (updates: Partial<typeof profile>) => {
-    await updateProfile(updates);
-    // Refetch city name if zip code was updated
-    if (updates.zip_code && updates.zip_code.length === 5) {
-      fetchCityName(updates.zip_code);
-    }
-  };
+  // Check if profile is private and we're not the owner
+  if (profile.visibility === 'private') {
+    return (
+      <div className="p-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Private Profile</h1>
+          <p className="text-gray-600">This profile is private and cannot be viewed.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <TooltipProvider>
@@ -76,22 +83,20 @@ const Profile = () => {
           <ProfileHeader 
             profile={profile}
             cityName={cityName}
-            onEditClick={() => setShowEditDialog(true)}
-            isOwnProfile={true}
+            onEditClick={() => {}}
+            isOwnProfile={false}
           />
 
           <ProfileStats 
-            totalCollaborations={totalCollaborations}
-            activeProjects={activeProjects}
+            totalCollaborations={0}
+            activeProjects={0}
             profile={profile}
           />
 
           <Tabs defaultValue="about" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="about">About</TabsTrigger>
               <TabsTrigger value="music">Music</TabsTrigger>
-              <TabsTrigger value="projects">Projects</TabsTrigger>
-              <TabsTrigger value="links">Links</TabsTrigger>
             </TabsList>
 
             <TabsContent value="about" className="space-y-6">
@@ -101,26 +106,11 @@ const Profile = () => {
             <TabsContent value="music" className="space-y-6">
               <MusicTab />
             </TabsContent>
-
-            <TabsContent value="projects" className="space-y-6">
-              <ProjectsTab projects={projects} />
-            </TabsContent>
-
-            <TabsContent value="links" className="space-y-6">
-              <LinksTab />
-            </TabsContent>
           </Tabs>
         </div>
-
-        <EditProfileDialog
-          open={showEditDialog}
-          onOpenChange={setShowEditDialog}
-          profile={profile}
-          onSave={handleUpdateProfile}
-        />
       </div>
     </TooltipProvider>
   );
 };
 
-export default Profile;
+export default PublicProfile;

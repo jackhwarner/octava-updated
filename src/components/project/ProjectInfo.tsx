@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -264,6 +265,12 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
                 <div className="flex items-center space-x-2">
                   <SettingsIcon className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-600">DAW: {project.daw}</span>
+                </div>
+              )}
+              
+              {project.mood && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Mood: {project.mood}</span>
                 </div>
               )}
             </div>

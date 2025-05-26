@@ -25,9 +25,11 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
     status: project.status || 'active',
     visibility: project.visibility || 'private',
     deadline: project.deadline || '',
+    budget: project.budget || '',
     bpm: project.bpm || '',
     key: project.key || '',
     daw: project.daw || '',
+    mood: project.mood || '',
     version_approval_enabled: project.version_approval_enabled || false
   });
   
@@ -49,9 +51,11 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
         status: formData.status as any,
         visibility: formData.visibility as any,
         deadline: formData.deadline || null,
+        budget: formData.budget ? parseFloat(formData.budget) : null,
         bpm: formData.bpm ? parseInt(formData.bpm) : null,
         key: formData.key,
         daw: formData.daw,
+        mood: formData.mood,
         version_approval_enabled: formData.version_approval_enabled
       });
       
@@ -201,23 +205,46 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
               />
             </div>
           </div>
+
+          <div>
+            <Label htmlFor="mood">Mood/Style</Label>
+            <Input
+              id="mood"
+              value={formData.mood}
+              onChange={(e) => handleInputChange('mood', e.target.value)}
+              placeholder="Upbeat, melancholic, energetic..."
+            />
+          </div>
         </CardContent>
       </Card>
 
       {/* Project Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>Timeline</CardTitle>
+          <CardTitle>Timeline & Budget</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="deadline">Deadline</Label>
-            <Input
-              id="deadline"
-              type="date"
-              value={formData.deadline}
-              onChange={(e) => handleInputChange('deadline', e.target.value)}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="deadline">Deadline</Label>
+              <Input
+                id="deadline"
+                type="date"
+                value={formData.deadline}
+                onChange={(e) => handleInputChange('deadline', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="budget">Budget ($)</Label>
+              <Input
+                id="budget"
+                type="number"
+                value={formData.budget}
+                onChange={(e) => handleInputChange('budget', e.target.value)}
+                placeholder="0"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
