@@ -56,6 +56,22 @@ export const useMusic = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `music/${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('music')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('music')
+        .getPublicUrl(filePath);
+
       // Create audio element to get duration
       const audio = document.createElement('audio');
       audio.src = URL.createObjectURL(file);
@@ -70,12 +86,12 @@ export const useMusic = () => {
         .from('songs')
         .insert([{
           title,
-          file_url: `music/${user.id}/${file.name}`,
+          file_url: publicUrl,
           file_type: file.type,
           duration,
           file_size: file.size,
           user_id: user.id,
-          visibility: 'public',
+          visibility: 'public' as const,
           play_count: 0
         }])
         .select()
@@ -105,13 +121,20 @@ export const useMusic = () => {
 
   const incrementPlayCount = async (trackId: string, userId: string) => {
     try {
-      // Increment track play count
-      const { error: trackError } = await supabase
-        .from('songs')
-        .update({ play_count: supabase.sql`play_count + 1` })
-        .eq('id', trackId);
+      // Increment track play count using RPC or raw SQL
+      const { error: trackError } = await supabase.rpc('increment_play_count', {
+        track_id: trackId
+      });
 
-      if (trackError) throw trackError;
+      if (trackError) {
+        // Fallback to regular update
+        const { error: fallbackError } = await supabase
+          .from('songs')
+          .update({ play_count: tracks.find(t => t.id === trackId)?.play_count + 1 || 1 })
+          .eq('id', trackId);
+
+        if (fallbackError) throw fallbackError;
+      }
 
       // Update local state
       setTracks(prev => prev.map(track => 
@@ -120,15 +143,14 @@ export const useMusic = () => {
           : track
       ));
 
-      // Increment user's total play count in profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ 
-          total_plays: supabase.sql`COALESCE(total_plays, 0) + 1`
-        })
-        .eq('id', userId);
+      // Increment user's total play count
+      const { error: profileError } = await supabase.rpc('increment_user_plays', {
+        user_id: userId
+      });
 
-      if (profileError) console.error('Error updating user play count:', profileError);
+      if (profileError) {
+        console.error('Error updating user play count:', profileError);
+      }
     } catch (error) {
       console.error('Error incrementing play count:', error);
     }

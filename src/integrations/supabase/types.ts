@@ -316,6 +316,7 @@ export type Database = {
           profile_picture_url: string | null
           role: string | null
           skills: string[] | null
+          total_plays: number
           updated_at: string | null
           username: string | null
           visibility: Database["public"]["Enums"]["visibility_type"] | null
@@ -337,6 +338,7 @@ export type Database = {
           profile_picture_url?: string | null
           role?: string | null
           skills?: string[] | null
+          total_plays?: number
           updated_at?: string | null
           username?: string | null
           visibility?: Database["public"]["Enums"]["visibility_type"] | null
@@ -358,6 +360,7 @@ export type Database = {
           profile_picture_url?: string | null
           role?: string | null
           skills?: string[] | null
+          total_plays?: number
           updated_at?: string | null
           username?: string | null
           visibility?: Database["public"]["Enums"]["visibility_type"] | null
@@ -856,6 +859,7 @@ export type Database = {
           file_type: string | null
           file_url: string
           id: string
+          play_count: number
           project_id: string | null
           title: string
           user_id: string
@@ -868,6 +872,7 @@ export type Database = {
           file_type?: string | null
           file_url: string
           id?: string
+          play_count?: number
           project_id?: string | null
           title: string
           user_id: string
@@ -880,6 +885,7 @@ export type Database = {
           file_type?: string | null
           file_url?: string
           id?: string
+          play_count?: number
           project_id?: string | null
           title?: string
           user_id?: string

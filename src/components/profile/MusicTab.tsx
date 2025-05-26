@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Play, Pause, Upload, Plus, Trash2, Clock } from 'lucide-react';
+import { Play, Pause, Upload, Plus, Trash2, Clock, Volume2 } from 'lucide-react';
 import { useMusic } from '@/hooks/useMusic';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -13,6 +13,8 @@ export const MusicTab = () => {
   const { tracks, loading, uploading, uploadTrack, deleteTrack, incrementPlayCount } = useMusic();
   const { profile } = useProfile();
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [uploadTitle, setUploadTitle] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -37,8 +39,17 @@ export const MusicTab = () => {
       const audio = new Audio(track.file_url);
       audioRef.current = audio;
       
+      audio.addEventListener('loadedmetadata', () => {
+        setDuration(audio.duration);
+      });
+
+      audio.addEventListener('timeupdate', () => {
+        setCurrentTime(audio.currentTime);
+      });
+      
       audio.addEventListener('ended', () => {
         setIsPlaying(null);
+        setCurrentTime(0);
       });
       
       try {
@@ -107,7 +118,7 @@ export const MusicTab = () => {
             {tracks.length > 0 ? (
               tracks.map((track) => (
                 <div key={track.id} className="flex items-center justify-between p-5 border rounded-lg hover:bg-gray-50">
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 flex-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -120,14 +131,29 @@ export const MusicTab = () => {
                         <Play className="w-4 h-4 text-purple-600" />
                       )}
                     </Button>
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-medium">{track.title}</h4>
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
                         <Clock className="w-3 h-3" />
                         <span>{formatDuration(track.duration)}</span>
                         <span>•</span>
+                        <Volume2 className="w-3 h-3" />
                         <span>{track.play_count} plays</span>
                       </div>
+                      {isPlaying === track.id && (
+                        <div className="mt-2">
+                          <div className="w-full bg-gray-200 rounded-full h-1">
+                            <div 
+                              className="bg-purple-600 h-1 rounded-full transition-all duration-100"
+                              style={{ width: `${(currentTime / duration) * 100}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>{formatDuration(currentTime)}</span>
+                            <span>{formatDuration(duration)}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <Button 

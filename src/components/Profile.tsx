@@ -38,7 +38,7 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Error fetching city name:', error);
-      setCityName(profile?.location || '');
+      setCityName(profile?.location || 'Location not available');
     }
   };
 

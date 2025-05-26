@@ -14,11 +14,11 @@ export interface RecentFile {
   uploader: {
     name: string;
     username: string;
-  };
+  } | null;
   projects: {
     title: string;
     name: string;
-  };
+  } | null;
 }
 
 export const useRecentFiles = () => {
@@ -30,6 +30,21 @@ export const useRecentFiles = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      // Get projects the user has access to
+      const { data: accessibleProjects, error: projectsError } = await supabase
+        .from('projects')
+        .select('id')
+        .or(`owner_id.eq.${user.id},id.in.(${await getUserCollaboratorProjects(user.id)})`);
+
+      if (projectsError) throw projectsError;
+
+      const projectIds = accessibleProjects?.map(p => p.id) || [];
+
+      if (projectIds.length === 0) {
         setLoading(false);
         return;
       }
@@ -53,7 +68,7 @@ export const useRecentFiles = () => {
             name
           )
         `)
-        .eq('uploaded_by', user.id)
+        .in('project_id', projectIds)
         .eq('is_pending_approval', false)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -70,6 +85,16 @@ export const useRecentFiles = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getUserCollaboratorProjects = async (userId: string): Promise<string> => {
+    const { data } = await supabase
+      .from('project_collaborators')
+      .select('project_id')
+      .eq('user_id', userId)
+      .eq('status', 'accepted');
+    
+    return data?.map(p => p.project_id).join(',') || '';
   };
 
   useEffect(() => {
