@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -107,8 +108,37 @@ export const useFolders = () => {
     }
   };
 
+  const updateFolder = async (folderId: string, updates: Partial<Pick<Folder, 'name' | 'description' | 'color'>>) => {
+    try {
+      const { data, error } = await supabase
+        .from('project_folders')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', folderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setFolders(prev => prev.map(folder => folder.id === folderId ? data : folder));
+      return data;
+    } catch (error) {
+      console.error('Error updating folder:', error);
+      throw error;
+    }
+  };
+
   const deleteFolder = async (folderId: string) => {
     try {
+      // First, remove all projects from this folder
+      await supabase
+        .from('projects')
+        .update({ folder_id: null })
+        .eq('folder_id', folderId);
+
+      // Then delete the folder
       const { error } = await supabase
         .from('project_folders')
         .delete()
@@ -140,6 +170,7 @@ export const useFolders = () => {
     folders,
     loading,
     createFolder,
+    updateFolder,
     deleteFolder,
     refetch: fetchFolders
   };

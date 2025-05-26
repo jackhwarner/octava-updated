@@ -36,7 +36,7 @@ export const ProjectActions = ({ project, folders, onUpdate, onDelete, onShare }
             <MoreVertical className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="bg-white border shadow-md z-50">
           <DropdownMenuItem onClick={() => onShare(project)}>
             <Share2 className="w-4 h-4 mr-2" />
             Share
@@ -46,7 +46,10 @@ export const ProjectActions = ({ project, folders, onUpdate, onDelete, onShare }
             Add to Folder
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-red-600">
+          <DropdownMenuItem 
+            onClick={() => setDeleteDialogOpen(true)} 
+            className="text-red-600 focus:text-red-600"
+          >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete
           </DropdownMenuItem>
@@ -54,7 +57,7 @@ export const ProjectActions = ({ project, folders, onUpdate, onDelete, onShare }
       </DropdownMenu>
 
       <Dialog open={isAddToFolderDialogOpen} onOpenChange={setIsAddToFolderDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Add to Folder</DialogTitle>
           </DialogHeader>
@@ -65,7 +68,7 @@ export const ProjectActions = ({ project, folders, onUpdate, onDelete, onShare }
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a folder" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border shadow-md">
                   <SelectItem value="remove">No folder</SelectItem>
                   {folders.map(folder => (
                     <SelectItem key={folder.id} value={folder.id}>
@@ -91,7 +94,7 @@ export const ProjectActions = ({ project, folders, onUpdate, onDelete, onShare }
       </Dialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Project</AlertDialogTitle>
             <AlertDialogDescription>

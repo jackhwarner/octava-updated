@@ -9,6 +9,7 @@ import { FolderCard } from './projects/FolderCard';
 import { ProjectFilters } from './projects/ProjectFilters';
 import { CreateProjectDialog } from './projects/CreateProjectDialog';
 import { CreateFolderDialog } from './projects/CreateFolderDialog';
+import { FolderSettings } from './projects/FolderSettings';
 import { EmptyState } from './projects/EmptyState';
 
 const Projects = () => {
@@ -120,6 +121,7 @@ const Projects = () => {
   };
 
   const filteredProjects = getFilteredProjects();
+  const currentFolder = getCurrentFolder();
 
   if (loading) {
     return (
@@ -151,7 +153,7 @@ const Projects = () => {
       </div>
 
       {/* Breadcrumb Navigation */}
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -163,12 +165,17 @@ const Projects = () => {
               <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{getCurrentFolder()?.name}</BreadcrumbPage>
+                  <BreadcrumbPage>{currentFolder?.name}</BreadcrumbPage>
                 </BreadcrumbItem>
               </>
             )}
           </BreadcrumbList>
         </Breadcrumb>
+
+        {/* Folder Settings - Only show when inside a folder */}
+        {currentFolder && (
+          <FolderSettings folder={currentFolder} />
+        )}
       </div>
 
       {/* Filters */}
@@ -197,7 +204,7 @@ const Projects = () => {
           {searchTerm 
             ? `Search Results (${filteredProjects.length})` 
             : currentFolderId 
-              ? getCurrentFolder()?.name 
+              ? currentFolder?.name 
               : 'Projects'
           }
         </h2>
@@ -219,7 +226,7 @@ const Projects = () => {
           <EmptyState
             searchTerm={searchTerm}
             currentFolderId={currentFolderId}
-            currentFolderName={getCurrentFolder()?.name}
+            currentFolderName={currentFolder?.name}
             onCreateProject={() => {}} // This will be handled by the CreateProjectDialog trigger
           />
         )}
