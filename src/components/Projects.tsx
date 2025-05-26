@@ -19,10 +19,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
+import { useFolders } from '@/hooks/useFolders';
 
 const Projects = () => {
   const navigate = useNavigate();
-  const { projects, loading, addProject, deleteProject } = useProjects();
+  const { projects, loading: projectsLoading, addProject, deleteProject, addProjectToFolder } = useProjects();
+  const { folders, loading: foldersLoading, createFolder } = useFolders();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
@@ -35,11 +37,31 @@ const Projects = () => {
   const [projectDeadline, setProjectDeadline] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
 
-  const folders = [
-    { id: 'pop', name: 'Pop Projects', count: projects.filter(p => p.genre === 'Pop').length, type: 'folder' },
-    { id: 'hip-hop', name: 'Hip-Hop Projects', count: projects.filter(p => p.genre === 'Hip-Hop').length, type: 'folder' },
-    { id: 'collaborations', name: 'Collaborations', count: projects.filter(p => p.collaborators && p.collaborators.length > 0).length, type: 'folder' },
-  ];
+  const loading = projectsLoading || foldersLoading;
+
+  // Create dynamic folder data with counts, matching the original hardcoded structure
+  const dynamicFolders = folders.map(folder => {
+    let count = 0;
+    
+    // Calculate counts based on folder logic (keeping original logic)
+    if (folder.name === 'Pop Projects') {
+      count = projects.filter(p => p.genre === 'Pop').length;
+    } else if (folder.name === 'Hip-Hop Projects') {
+      count = projects.filter(p => p.genre === 'Hip-Hop').length;
+    } else if (folder.name === 'Collaborations') {
+      count = projects.filter(p => p.collaborators && p.collaborators.length > 0).length;
+    } else {
+      // For custom folders, count projects actually in that folder
+      count = projects.filter(p => p.folder_id === folder.id).length;
+    }
+
+    return {
+      id: folder.id,
+      name: folder.name,
+      count,
+      type: 'folder' as const
+    };
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -74,15 +96,19 @@ const Projects = () => {
   const displayProjects = currentFolderId === null 
     ? projects 
     : projects.filter(project => {
-        switch (currentFolderId) {
-          case 'pop':
-            return project.genre === 'Pop';
-          case 'hip-hop':
-            return project.genre === 'Hip-Hop';
-          case 'collaborations':
-            return project.collaborators && project.collaborators.length > 0;
-          default:
-            return true;
+        const folder = folders.find(f => f.id === currentFolderId);
+        if (!folder) return false;
+        
+        // Keep original filtering logic for default folders
+        if (folder.name === 'Pop Projects') {
+          return project.genre === 'Pop';
+        } else if (folder.name === 'Hip-Hop Projects') {
+          return project.genre === 'Hip-Hop';
+        } else if (folder.name === 'Collaborations') {
+          return project.collaborators && project.collaborators.length > 0;
+        } else {
+          // For custom folders, filter by actual folder_id
+          return project.folder_id === currentFolderId;
         }
       });
 
@@ -130,10 +156,24 @@ const Projects = () => {
     setShowAddToFolderDialog(true);
   };
 
-  const handleSaveToFolder = () => {
-    setShowAddToFolderDialog(false);
-    setSelectedProjectId(null);
-    setNewFolderName('');
+  const handleSaveToFolder = async (folderId?: string) => {
+    try {
+      if (selectedProjectId) {
+        if (folderId) {
+          await addProjectToFolder(selectedProjectId, folderId);
+        } else if (newFolderName.trim()) {
+          const newFolder = await createFolder(newFolderName.trim());
+          if (newFolder) {
+            await addProjectToFolder(selectedProjectId, newFolder.id);
+          }
+        }
+      }
+      setShowAddToFolderDialog(false);
+      setSelectedProjectId(null);
+      setNewFolderName('');
+    } catch (error) {
+      console.error('Failed to add project to folder:', error);
+    }
   };
 
   const handleOpenProject = (projectId: string) => {
@@ -199,7 +239,7 @@ const Projects = () => {
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Folders</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {folders.map((folder) => (
+            {dynamicFolders.map((folder) => (
               <Card 
                 key={folder.id} 
                 className="hover:shadow-lg transition-shadow cursor-pointer"
@@ -412,12 +452,12 @@ const Projects = () => {
             <div className="space-y-2">
               <Label>Existing Folders</Label>
               <div className="space-y-2">
-                {folders.map((folder) => (
+                {dynamicFolders.map((folder) => (
                   <Button 
                     key={folder.id}
                     variant="outline" 
                     className="w-full justify-start"
-                    onClick={handleSaveToFolder}
+                    onClick={() => handleSaveToFolder(folder.id)}
                   >
                     <Folder className="w-4 h-4 mr-2" />
                     {folder.name}
@@ -443,7 +483,8 @@ const Projects = () => {
             </Button>
             <Button 
               className="bg-purple-600 hover:bg-purple-700"
-              onClick={handleSaveToFolder}
+              onClick={() => handleSaveToFolder()}
+              disabled={!newFolderName.trim()}
             >
               Save
             </Button>

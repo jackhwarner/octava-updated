@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -131,6 +130,7 @@ export const useProjects = () => {
     visibility?: 'public' | 'private' | 'connections_only';
     deadline?: string;
     budget?: number;
+    folder_id?: string;
   }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -146,7 +146,8 @@ export const useProjects = () => {
         owner_id: user.id,
         deadline: projectData.deadline,
         budget: projectData.budget,
-        status: 'active' as const
+        status: 'active' as const,
+        folder_id: projectData.folder_id
       };
 
       const { data, error } = await supabase
@@ -183,6 +184,7 @@ export const useProjects = () => {
     visibility?: 'public' | 'private' | 'connections_only';
     deadline?: string;
     budget?: number;
+    folder_id?: string;
   }) => {
     try {
       // Map our interface values to database values with proper typing
@@ -254,6 +256,15 @@ export const useProjects = () => {
     }
   };
 
+  const addProjectToFolder = async (projectId: string, folderId: string) => {
+    try {
+      await updateProject(projectId, { folder_id: folderId });
+    } catch (error) {
+      console.error('Error adding project to folder:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -264,6 +275,7 @@ export const useProjects = () => {
     addProject,
     updateProject,
     deleteProject,
+    addProjectToFolder,
     refetch: fetchProjects
   };
 };

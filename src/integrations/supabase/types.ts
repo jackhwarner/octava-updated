@@ -552,12 +552,43 @@ export type Database = {
           },
         ]
       }
+      project_folders: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           budget: number | null
           created_at: string | null
           deadline: string | null
           description: string | null
+          folder_id: string | null
           genre: string | null
           id: string
           name: string | null
@@ -572,6 +603,7 @@ export type Database = {
           created_at?: string | null
           deadline?: string | null
           description?: string | null
+          folder_id?: string | null
           genre?: string | null
           id?: string
           name?: string | null
@@ -586,6 +618,7 @@ export type Database = {
           created_at?: string | null
           deadline?: string | null
           description?: string | null
+          folder_id?: string | null
           genre?: string | null
           id?: string
           name?: string | null
@@ -596,6 +629,13 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["visibility_type"] | null
         }
         Relationships: [
+          {
+            foreignKeyName: "projects_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "project_folders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "projects_owner_id_fkey"
             columns: ["owner_id"]
@@ -883,6 +923,10 @@ export type Database = {
     Functions: {
       are_mutual_followers: {
         Args: { user1_id: string; user2_id: string }
+        Returns: boolean
+      }
+      user_can_access_project: {
+        Args: { project_id: string; user_id: string }
         Returns: boolean
       }
     }
