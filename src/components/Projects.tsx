@@ -1,17 +1,10 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Folder, Music, Users, MoreHorizontal, ChevronRight, Home } from 'lucide-react';
-import { 
-  Breadcrumb, 
-  BreadcrumbItem, 
-  BreadcrumbLink, 
-  BreadcrumbList, 
-  BreadcrumbSeparator,
-  BreadcrumbPage
-} from '@/components/ui/breadcrumb';
+import { Plus, Music, Users, MoreHorizontal } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,23 +16,12 @@ import { useProjects } from '@/hooks/useProjects';
 const Projects = () => {
   const navigate = useNavigate();
   const { projects, loading, addProject, deleteProject } = useProjects();
-  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
-  const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
-  const [showAddToFolderDialog, setShowAddToFolderDialog] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState('');
   const [projectGenre, setProjectGenre] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [projectVisibility, setProjectVisibility] = useState('private');
   const [projectDeadline, setProjectDeadline] = useState('');
-  const [newFolderName, setNewFolderName] = useState('');
-
-  const folders = [
-    { id: 'pop', name: 'Pop Projects', count: projects.filter(p => p.genre === 'Pop').length, type: 'folder' },
-    { id: 'hip-hop', name: 'Hip-Hop Projects', count: projects.filter(p => p.genre === 'Hip-Hop').length, type: 'folder' },
-    { id: 'collaborations', name: 'Collaborations', count: projects.filter(p => p.collaborators && p.collaborators.length > 0).length, type: 'folder' },
-  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -71,31 +53,6 @@ const Projects = () => {
     }
   };
 
-  const displayProjects = currentFolderId === null 
-    ? projects 
-    : projects.filter(project => {
-        switch (currentFolderId) {
-          case 'pop':
-            return project.genre === 'Pop';
-          case 'hip-hop':
-            return project.genre === 'Hip-Hop';
-          case 'collaborations':
-            return project.collaborators && project.collaborators.length > 0;
-          default:
-            return true;
-        }
-      });
-
-  const handleFolderClick = (folderId: string, folderName: string) => {
-    setCurrentFolderId(folderId);
-    setCurrentFolderName(folderName);
-  };
-
-  const handleBackToRoot = () => {
-    setCurrentFolderId(null);
-    setCurrentFolderName(null);
-  };
-
   const handleCreateProject = async () => {
     try {
       await addProject({
@@ -125,39 +82,8 @@ const Projects = () => {
     }
   };
 
-  const handleAddToFolder = (projectId: string) => {
-    setSelectedProjectId(projectId);
-    setShowAddToFolderDialog(true);
-  };
-
-  const handleSaveToFolder = () => {
-    setShowAddToFolderDialog(false);
-    setSelectedProjectId(null);
-    setNewFolderName('');
-  };
-
   const handleOpenProject = (projectId: string) => {
     navigate(`/projects/${projectId}`);
-  };
-
-  const renderBreadcrumb = () => {
-    if (currentFolderId === null) return null;
-    
-    return (
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink onClick={handleBackToRoot} className="cursor-pointer">
-              <Home className="w-4 h-4" />
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{currentFolderName}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-    );
   };
 
   if (loading) {
@@ -192,42 +118,10 @@ const Projects = () => {
         <Button variant="outline">Filter</Button>
       </div>
 
-      {renderBreadcrumb()}
-
-      {/* Folders Section */}
-      {currentFolderId === null && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Folders</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {folders.map((folder) => (
-              <Card 
-                key={folder.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => handleFolderClick(folder.id, folder.name)}
-              >
-                <CardContent className="p-6 flex items-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                    <Folder className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{folder.name}</h3>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Music className="w-4 h-4 mr-1" />
-                      {folder.count} projects
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Projects Section */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Projects</h2>
-        {displayProjects.length === 0 ? (
+        <h2 className="text-xl font-semibold mb-4">Your Projects</h2>
+        {projects.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <p className="text-gray-500 mb-4">No projects found</p>
@@ -242,7 +136,7 @@ const Projects = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {displayProjects.map((project) => (
+            {projects.map((project) => (
               <Card key={project.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -259,9 +153,6 @@ const Projects = () => {
                       <DropdownMenuContent>
                         <DropdownMenuItem>Edit Project</DropdownMenuItem>
                         <DropdownMenuItem>Share</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAddToFolder(project.id)}>
-                          Add to Folder
-                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-red-600"
                           onClick={() => handleDeleteProject(project.id)}
@@ -394,58 +285,6 @@ const Projects = () => {
               disabled={!projectName.trim()}
             >
               Create Project
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add to Folder Dialog */}
-      <Dialog open={showAddToFolderDialog} onOpenChange={setShowAddToFolderDialog}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Add to Folder</DialogTitle>
-            <DialogDescription>
-              Choose a folder for this project or create a new one.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label>Existing Folders</Label>
-              <div className="space-y-2">
-                {folders.map((folder) => (
-                  <Button 
-                    key={folder.id}
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={handleSaveToFolder}
-                  >
-                    <Folder className="w-4 h-4 mr-2" />
-                    {folder.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="new-folder">Create New Folder</Label>
-              <Input 
-                id="new-folder"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="Enter folder name"
-                className="w-full"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddToFolderDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              className="bg-purple-600 hover:bg-purple-700"
-              onClick={handleSaveToFolder}
-            >
-              Save
             </Button>
           </DialogFooter>
         </DialogContent>
