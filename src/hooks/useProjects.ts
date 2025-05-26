@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +16,6 @@ export interface Project {
   updated_at: string;
   deadline?: string;
   budget?: number;
-  folder_id?: string;
   collaborators?: Array<{
     id: string;
     user_id: string;
@@ -41,7 +41,7 @@ export const useProjects = () => {
         return;
       }
 
-      // Get projects owned by user - simplified query to avoid recursion
+      // Get projects owned by user
       const { data: ownedProjects, error: ownedError } = await supabase
         .from('projects')
         .select('*')
@@ -78,8 +78,28 @@ export const useProjects = () => {
         }
       }
 
+      // Get projects where user is a collaborator
+      const { data: userCollabProjects, error: userCollabError } = await supabase
+        .from('project_collaborators')
+        .select(`
+          project_id,
+          projects (*)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'accepted');
+
+      let collabProjects: any[] = [];
+      if (!userCollabError && userCollabProjects) {
+        collabProjects = userCollabProjects
+          .map(cp => cp.projects)
+          .filter(p => p !== null);
+      }
+
+      // Combine all projects
+      const allProjects = [...(ownedProjects || []), ...collabProjects];
+
       // Map to our interface
-      const mappedProjects: Project[] = (ownedProjects || []).map(project => {
+      const mappedProjects: Project[] = allProjects.map(project => {
         const projectCollaborators = collaboratorsData.filter(c => c.project_id === project.id);
         
         return {
@@ -111,12 +131,12 @@ export const useProjects = () => {
     visibility?: 'public' | 'private' | 'connections_only';
     deadline?: string;
     budget?: number;
-    folder_id?: string;
   }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Map our interface values to database values with proper typing
       const dbData = {
         title: projectData.title,
         name: projectData.name || projectData.title,
@@ -126,7 +146,6 @@ export const useProjects = () => {
         owner_id: user.id,
         deadline: projectData.deadline,
         budget: projectData.budget,
-        folder_id: projectData.folder_id,
         status: 'active' as const
       };
 
@@ -138,7 +157,7 @@ export const useProjects = () => {
 
       if (error) throw error;
 
-      await fetchProjects();
+      await fetchProjects(); // Refresh the list
       toast({
         title: "Success",
         description: "Project created successfully",
@@ -243,6 +262,7 @@ export const useProjects = () => {
     projects,
     loading,
     addProject,
+    updateProject,
     deleteProject,
     refetch: fetchProjects
   };
