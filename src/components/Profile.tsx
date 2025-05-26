@@ -8,7 +8,7 @@ import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { AboutTab } from '@/components/profile/AboutTab';
 import { MusicTab } from '@/components/profile/MusicTab';
-import { ProjectsTab } from '@/components/profile/ProjectsTab';
+import ProjectsTab from '@/components/profile/ProjectsTab';
 import { LinksTab } from '@/components/profile/LinksTab';
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog';
 
