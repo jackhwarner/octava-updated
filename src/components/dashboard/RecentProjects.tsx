@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
+import { useNavigate } from 'react-router-dom';
 
 interface RecentProjectsProps {
   onNavigate: (tab: string) => void;
@@ -13,6 +14,7 @@ const RecentProjects = ({
   onNavigate
 }: RecentProjectsProps) => {
   const { projects, loading } = useProjects();
+  const navigate = useNavigate();
 
   // Get the 2 most recent projects
   const recentProjects = projects
@@ -49,6 +51,12 @@ const RecentProjects = ({
     }
   };
 
+  const getProjectProgress = (project: any) => {
+    if (!project.phases || project.phases.length === 0) return 0;
+    const currentPhase = project.current_phase_index || 0;
+    return Math.round((currentPhase / (project.phases.length - 1)) * 100);
+  };
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -66,7 +74,7 @@ const RecentProjects = ({
   };
 
   const handleProjectClick = (projectId: string) => {
-    onNavigate('projects');
+    navigate(`/projects/${projectId}`);
   };
 
   if (loading) {
@@ -119,6 +127,7 @@ const RecentProjects = ({
                       {project.collaborators?.length || 0} collaborators
                     </div>
                     <div>Updated {formatTimeAgo(project.updated_at)}</div>
+                    <div>{getProjectProgress(project)}% complete</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">

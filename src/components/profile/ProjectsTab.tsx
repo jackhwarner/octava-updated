@@ -84,7 +84,7 @@ export const ProjectsTab = ({ projects }: ProjectsTabProps) => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Music className="w-4 h-4" />
                 <span>{project.genre || 'No genre'}</span>
@@ -92,10 +92,6 @@ export const ProjectsTab = ({ projects }: ProjectsTabProps) => {
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4" />
                 <span>{project.deadline ? formatDate(project.deadline) : 'No deadline'}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Clock className="w-4 h-4" />
-                <span>{project.bpm ? `${project.bpm} BPM` : 'No BPM'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Users className="w-4 h-4" />
@@ -120,18 +116,11 @@ export const ProjectsTab = ({ projects }: ProjectsTabProps) => {
               </div>
             </div>
 
-            {(project.key || project.mood) && (
+            {project.key && (
               <div className="flex gap-2 mt-3">
-                {project.key && (
-                  <Badge variant="outline" className="text-xs">
-                    Key: {project.key}
-                  </Badge>
-                )}
-                {project.mood && (
-                  <Badge variant="outline" className="text-xs">
-                    {project.mood}
-                  </Badge>
-                )}
+                <Badge variant="outline" className="text-xs">
+                  Key: {project.key}
+                </Badge>
               </div>
             )}
           </CardContent>
