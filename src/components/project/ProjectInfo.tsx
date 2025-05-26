@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Users, Clock, Music, Zap, Settings as SettingsIcon, CheckCircle2, Circle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Calendar, Users, Clock, Music, Zap, Settings as SettingsIcon, CheckCircle2, Circle, Edit, Plus, X } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectInfoProps {
   project: any;
@@ -17,10 +19,12 @@ interface ProjectInfoProps {
 const ProjectInfo = ({ project }: ProjectInfoProps) => {
   const [currentPhase, setCurrentPhase] = useState(project.current_phase_index || 0);
   const [updatingPhase, setUpdatingPhase] = useState(false);
+  const [isEditingPhases, setIsEditingPhases] = useState(false);
+  const [phases, setPhases] = useState(project.phases || ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete']);
+  const [newPhase, setNewPhase] = useState('');
   const { updateProject } = useProjects();
   const { toast } = useToast();
 
-  const phases = project.phases || ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete'];
   const progressPercentage = phases.length > 1 ? (currentPhase / (phases.length - 1)) * 100 : 0;
 
   const handlePhaseChange = async (newPhaseIndex: string) => {
@@ -45,6 +49,39 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
       });
     } finally {
       setUpdatingPhase(false);
+    }
+  };
+
+  const handleUpdatePhases = async () => {
+    try {
+      await updateProject(project.id, {
+        phases: phases
+      });
+      
+      setIsEditingPhases(false);
+      toast({
+        title: "Success",
+        description: "Project phases updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update project phases",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addPhase = () => {
+    if (newPhase.trim() && !phases.includes(newPhase.trim())) {
+      setPhases([...phases, newPhase.trim()]);
+      setNewPhase('');
+    }
+  };
+
+  const removePhase = (index: number) => {
+    if (phases.length > 1) {
+      setPhases(phases.filter((_, i) => i !== index));
     }
   };
 
@@ -80,10 +117,49 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-purple-600">12</p>
+              <p className="text-sm text-gray-600">Files</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-600">45</p>
+              <p className="text-sm text-gray-600">Messages</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">8</p>
+              <p className="text-sm text-gray-600">Tasks Done</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-orange-600">{(project.collaborators?.length || 0) + 1}</p>
+              <p className="text-sm text-gray-600">Team Members</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Project Overview */}
       <Card>
         <CardHeader>
-          <CardTitle>Project Overview</CardTitle>
+          <CardTitle>Project Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Status and Progress */}
@@ -138,41 +214,45 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
             </div>
           )}
 
-          {/* Project Metadata */}
-          <div className="grid grid-cols-2 gap-4">
-            {project.genre && (
-              <div className="flex items-center space-x-2">
-                <Music className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">Genre: {project.genre}</span>
-              </div>
-            )}
+          {/* Project Metadata Grid */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              {project.genre && (
+                <div className="flex items-center space-x-2">
+                  <Music className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">Genre: {project.genre}</span>
+                </div>
+              )}
+              
+              {project.bpm && (
+                <div className="flex items-center space-x-2">
+                  <Zap className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">BPM: {project.bpm}</span>
+                </div>
+              )}
+              
+              {project.key && (
+                <div className="flex items-center space-x-2">
+                  <Music className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">Key: {project.key}</span>
+                </div>
+              )}
+            </div>
             
-            {project.bpm && (
-              <div className="flex items-center space-x-2">
-                <Zap className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">BPM: {project.bpm}</span>
-              </div>
-            )}
-            
-            {project.key && (
-              <div className="flex items-center space-x-2">
-                <Music className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">Key: {project.key}</span>
-              </div>
-            )}
-            
-            {project.daw && (
-              <div className="flex items-center space-x-2">
-                <SettingsIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">DAW: {project.daw}</span>
-              </div>
-            )}
-            
-            {project.mood && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Mood: {project.mood}</span>
-              </div>
-            )}
+            <div className="space-y-4">
+              {project.daw && (
+                <div className="flex items-center space-x-2">
+                  <SettingsIcon className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">DAW: {project.daw}</span>
+                </div>
+              )}
+              
+              {project.mood && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Mood: {project.mood}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Timeline */}
@@ -216,8 +296,61 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
 
       {/* Project Phases Timeline */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Project Phases</CardTitle>
+          <Dialog open={isEditingPhases} onOpenChange={setIsEditingPhases}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Phases
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Project Phases</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  {phases.map((phase, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 border rounded">
+                      <span>{phase}</span>
+                      {phases.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePhase(index)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Input
+                    value={newPhase}
+                    onChange={(e) => setNewPhase(e.target.value)}
+                    placeholder="Add new phase"
+                    onKeyPress={(e) => e.key === 'Enter' && addPhase()}
+                  />
+                  <Button onClick={addPhase} variant="outline">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setIsEditingPhases(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleUpdatePhases} className="bg-purple-600 hover:bg-purple-700">
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -261,45 +394,6 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">12</p>
-              <p className="text-sm text-gray-600">Files</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">45</p>
-              <p className="text-sm text-gray-600">Messages</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">8</p>
-              <p className="text-sm text-gray-600">Tasks Done</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">{(project.collaborators?.length || 0) + 1}</p>
-              <p className="text-sm text-gray-600">Team Members</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };

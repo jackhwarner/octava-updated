@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,18 +31,14 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchFiles();
     fetchProjectSettings();
-    fetchCurrentUser();
   }, [projectId]);
 
   const fetchCurrentUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Error fetching current user:', error);
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUser(user);
   };
 
   const fetchProjectSettings = async () => {
@@ -65,7 +62,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
         .from('project_files')
         .select(`
           *,
-          uploader:uploaded_by (
+          uploader:uploaded_by!inner (
             name,
             username
           ),
@@ -97,7 +94,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
         .from('project_files')
         .select(`
           *,
-          uploader:uploaded_by (
+          uploader:uploaded_by!inner (
             name,
             username
           )
@@ -158,18 +155,15 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     setUploading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!currentUser) throw new Error('User not authenticated');
 
-      const isOwner = user.id === projectSettings?.owner_id;
+      const isOwner = currentUser.id === projectSettings?.owner_id;
       const needsApproval = projectSettings?.version_approval_enabled && !isOwner;
 
       for (const file of Array.from(selectedFiles)) {
-        // Check if file already exists
         const existingFile = files.find(f => f.file_name === file.name);
         const version = existingFile ? (existingFile.version || 1) + 1 : 1;
 
-        // Insert file record into database
         const { data, error } = await supabase
           .from('project_files')
           .insert([{
@@ -178,18 +172,18 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
             file_size: file.size,
             file_type: file.type,
             file_path: `projects/${projectId}/${file.name}`,
-            uploaded_by: user.id,
+            uploaded_by: currentUser.id,
             description: `File uploaded: ${file.name}`,
             version: version,
             is_pending_approval: needsApproval,
             approved_at: needsApproval ? null : new Date().toISOString(),
-            approved_by: needsApproval ? null : user.id,
+            approved_by: needsApproval ? null : currentUser.id,
             parent_file_id: existingFile?.id || null,
             version_notes: versionNotes || null
           }])
           .select(`
             *,
-            uploader:uploaded_by (
+            uploader:uploaded_by!inner (
               name,
               username
             )
@@ -198,10 +192,8 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
 
         if (error) throw error;
 
-        // Add to local state
         setFiles(prev => [data, ...prev]);
 
-        // Create notification if approval is needed
         if (needsApproval) {
           await supabase
             .from('notifications')
@@ -221,6 +213,8 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
           ? "Files uploaded and pending approval from project owner."
           : `${selectedFiles.length} file(s) uploaded to the project.`,
       });
+      
+      setIsVersionDialogOpen(false);
     } catch (error) {
       console.error('Error uploading files:', error);
       toast({
@@ -231,7 +225,6 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     } finally {
       setUploading(false);
       setVersionNotes('');
-      setIsVersionDialogOpen(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -240,15 +233,14 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
 
   const handleApproveFile = async (fileId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!currentUser) throw new Error('User not authenticated');
 
       const { error } = await supabase
         .from('project_files')
         .update({
           is_pending_approval: false,
           approved_at: new Date().toISOString(),
-          approved_by: user.id
+          approved_by: currentUser.id
         })
         .eq('id', fileId);
 
@@ -260,7 +252,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
               ...file, 
               is_pending_approval: false, 
               approved_at: new Date().toISOString(),
-              approved_by: user.id
+              approved_by: currentUser.id
             }
           : file
       ));
@@ -304,18 +296,10 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
   };
 
   const handleDownloadAll = async () => {
-    // This would typically create a zip file on the server
-    // For now, we'll show a placeholder message
     toast({
       title: "Download All",
       description: "Zip download feature would be implemented here.",
     });
-  };
-
-  const handleImagePreview = (file: any) => {
-    if (file.file_type?.startsWith('image/')) {
-      setPreviewImage(file.file_path);
-    }
   };
 
   const openVersionHistory = (file: any) => {
@@ -507,19 +491,15 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center space-x-2">
-                        <p className="font-medium text-gray-900">{file.file_name}</p>
-                        {getStatusIcon(file)}
-                        {getStatusBadge(file)}
-                      </div>
+                      <p className="font-medium text-gray-900">{file.file_name}</p>
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span>{formatFileSize(file.file_size || 0)}</span>
                         <span>•</span>
                         <span>v{file.version}</span>
                         <span>•</span>
-                        <span>{new Date(file.created_at).toLocaleDateString()}</span>
-                        <span>•</span>
                         <span>by {file.uploader?.name}</span>
+                        <span>•</span>
+                        <span>{new Date(file.created_at).toLocaleDateString()}</span>
                       </div>
                       {file.version_notes && (
                         <p className="text-sm text-gray-600 mt-1">{file.version_notes}</p>
@@ -528,24 +508,13 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                   </div>
                   
                   <div className="flex items-center space-x-2">
+                    {getStatusIcon(file)}
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={() => openVersionHistory(file)}
                     >
                       <History className="w-4 h-4" />
-                    </Button>
-                    {file.file_type?.startsWith('image/') && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleImagePreview(file)}
-                      >
-                        <Image className="w-4 h-4" />
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="sm">
-                      <Download className="w-4 h-4" />
                     </Button>
                     <Button 
                       variant="ghost" 
@@ -575,42 +544,21 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                 <div>
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">v{version.version}</span>
-                    {version.version === selectedFile?.version && (
-                      <Badge variant="outline">Current</Badge>
-                    )}
+                    <span className="text-sm text-gray-500">
+                      by {version.uploader?.name} on {new Date(version.created_at).toLocaleDateString()}
+                    </span>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {new Date(version.created_at).toLocaleString()} by {version.uploader?.name}
-                  </p>
                   {version.version_notes && (
-                    <p className="text-sm text-gray-500 mt-1">{version.version_notes}</p>
+                    <p className="text-sm text-gray-600 mt-1">{version.version_notes}</p>
                   )}
                 </div>
-                <div className="flex space-x-2">
-                  <Button variant="ghost" size="sm">
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm">
                     <Download className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
             ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Image Preview Dialog */}
-      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Image Preview</DialogTitle>
-          </DialogHeader>
-          <div className="flex justify-center">
-            {previewImage && (
-              <img
-                src={previewImage}
-                alt="Preview"
-                className="max-w-full max-h-[70vh] object-contain rounded-lg"
-              />
-            )}
           </div>
         </DialogContent>
       </Dialog>

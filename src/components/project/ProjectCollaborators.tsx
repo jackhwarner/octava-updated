@@ -2,22 +2,22 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserPlus, Crown, Mail, Phone, MapPin, Calendar, Users, Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UserPlus, Crown, User, Mail, CheckCircle, Clock, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import ProjectLookingFor from './ProjectLookingFor';
 
 interface ProjectCollaboratorsProps {
   project: any;
 }
 
 const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
-  const [collaborators, setCollaborators] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [collaborators, setCollaborators] = useState(project.collaborators || []);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('Collaborator');
@@ -25,90 +25,34 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
 
-  const roleOptions = [
-    'Collaborator',
-    'Producer',
-    'Vocalist',
-    'Instrumentalist',
-    'Songwriter',
-    'Engineer',
-    'Mixing Engineer',
-    'Mastering Engineer',
-    'Session Musician',
-    'Creative Director'
-  ];
-
   useEffect(() => {
+    fetchCurrentUser();
     fetchCollaborators();
-    getCurrentUser();
   }, [project.id]);
 
-  const getCurrentUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Error getting current user:', error);
-    }
+  const fetchCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUser(user);
   };
 
   const fetchCollaborators = async () => {
     try {
-      // Get project collaborators
-      const { data: collabData, error: collabError } = await supabase
+      const { data, error } = await supabase
         .from('project_collaborators')
         .select(`
           *,
           profiles (
-            id,
             name,
             username,
-            email,
-            avatar_url,
-            bio,
-            location,
-            role
+            avatar_url
           )
         `)
-        .eq('project_id', project.id)
-        .eq('status', 'accepted');
+        .eq('project_id', project.id);
 
-      if (collabError) throw collabError;
-
-      // Get project owner info
-      const { data: ownerData, error: ownerError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', project.owner_id)
-        .single();
-
-      if (ownerError) throw ownerError;
-
-      // Combine owner and collaborators
-      const allMembers = [
-        {
-          id: 'owner',
-          profiles: ownerData,
-          role_name: 'Project Owner',
-          status: 'accepted',
-          is_owner: true
-        },
-        ...(collabData || []).map(collab => ({
-          ...collab,
-          is_owner: false
-        }))
-      ];
-
-      setCollaborators(allMembers);
+      if (error) throw error;
+      setCollaborators(data || []);
     } catch (error) {
       console.error('Error fetching collaborators:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load collaborators",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -117,14 +61,14 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
 
     setIsInviting(true);
     try {
-      // Find user by email
-      const { data: userProfile, error: userError } = await supabase
+      // First, find the user by email
+      const { data: userProfile, error: profileError } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('email', inviteEmail)
+        .select('id, name, username')
+        .eq('email', inviteEmail.trim())
         .single();
 
-      if (userError || !userProfile) {
+      if (profileError || !userProfile) {
         toast({
           title: "User not found",
           description: "No user found with that email address",
@@ -133,60 +77,63 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
         return;
       }
 
-      // Check if already invited
-      const { data: existingInvite } = await supabase
-        .from('project_collaborators')
-        .select('id')
-        .eq('project_id', project.id)
-        .eq('user_id', userProfile.id)
-        .single();
-
-      if (existingInvite) {
+      // Check if already a collaborator
+      const existingCollaborator = collaborators.find(c => c.user_id === userProfile.id);
+      if (existingCollaborator) {
         toast({
-          title: "Already invited",
+          title: "Already a collaborator",
           description: "This user is already part of the project",
           variant: "destructive",
         });
         return;
       }
 
-      // Create collaboration invite
-      const { error: inviteError } = await supabase
+      // Create collaboration invitation
+      const { data, error } = await supabase
         .from('project_collaborators')
         .insert([{
           project_id: project.id,
           user_id: userProfile.id,
           role_name: inviteRole,
           status: 'pending'
-        }]);
+        }])
+        .select(`
+          *,
+          profiles (
+            name,
+            username,
+            avatar_url
+          )
+        `)
+        .single();
 
-      if (inviteError) throw inviteError;
+      if (error) throw error;
 
       // Create notification
       await supabase
         .from('notifications')
         .insert([{
           user_id: userProfile.id,
-          title: 'Project Collaboration Invite',
-          message: `You've been invited to collaborate on "${project.title}" as a ${inviteRole}.`,
-          type: 'project_invite',
-          payload: { project_id: project.id }
+          title: 'Project Collaboration Invitation',
+          message: `You've been invited to collaborate on "${project.title}"`,
+          type: 'collaboration_invite',
+          payload: { project_id: project.id, collaboration_id: data.id }
         }]);
 
-      toast({
-        title: "Invitation sent",
-        description: "The user has been invited to join the project",
-      });
-
+      setCollaborators(prev => [...prev, data]);
       setInviteEmail('');
       setInviteRole('Collaborator');
       setIsInviteDialogOpen(false);
-      fetchCollaborators();
+      
+      toast({
+        title: "Invitation sent",
+        description: `Collaboration invitation sent to ${userProfile.name}`,
+      });
     } catch (error) {
       console.error('Error inviting collaborator:', error);
       toast({
         title: "Error",
-        description: "Failed to send invitation",
+        description: "Failed to send collaboration invitation",
         variant: "destructive",
       });
     } finally {
@@ -218,42 +165,45 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
     }
   };
 
-  const getInitials = (name: string) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'pending':
+        return <Clock className="w-4 h-4 text-yellow-600" />;
+      default:
+        return null;
+    }
   };
 
-  const getRoleBadgeColor = (role: string, isOwner: boolean) => {
-    if (isOwner) return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    if (role?.toLowerCase().includes('producer')) return 'bg-purple-100 text-purple-800 border-purple-300';
-    if (role?.toLowerCase().includes('engineer')) return 'bg-blue-100 text-blue-800 border-blue-300';
-    if (role?.toLowerCase().includes('vocalist')) return 'bg-pink-100 text-pink-800 border-pink-300';
-    return 'bg-gray-100 text-gray-800 border-gray-300';
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>;
+      case 'pending':
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Pending</Badge>;
+      case 'declined':
+        return <Badge variant="outline" className="text-red-600 border-red-600">Declined</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   const isOwner = currentUser?.id === project.owner_id;
 
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-20 bg-gray-200 rounded"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
+      {/* Looking For Section */}
+      <ProjectLookingFor projectId={project.id} />
+
+      {/* Team Members */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <Users className="w-5 h-5" />
-            <span>Team Members ({collaborators.length})</span>
-          </CardTitle>
+          <CardTitle>Team Members ({collaborators.length + 1})</CardTitle>
           {isOwner && (
             <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
               <DialogTrigger asChild>
@@ -264,7 +214,7 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Invite Collaborator</DialogTitle>
+                  <DialogTitle>Invite Team Member</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -274,7 +224,7 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
                       type="email"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="Enter collaborator's email"
+                      placeholder="collaborator@example.com"
                     />
                   </div>
                   <div>
@@ -284,11 +234,15 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {roleOptions.map((role) => (
-                          <SelectItem key={role} value={role}>
-                            {role}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="Collaborator">Collaborator</SelectItem>
+                        <SelectItem value="Producer">Producer</SelectItem>
+                        <SelectItem value="Vocalist">Vocalist</SelectItem>
+                        <SelectItem value="Guitarist">Guitarist</SelectItem>
+                        <SelectItem value="Bassist">Bassist</SelectItem>
+                        <SelectItem value="Drummer">Drummer</SelectItem>
+                        <SelectItem value="Keyboardist">Keyboardist</SelectItem>
+                        <SelectItem value="Songwriter">Songwriter</SelectItem>
+                        <SelectItem value="Engineer">Engineer</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -301,7 +255,7 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
                       disabled={isInviting || !inviteEmail.trim()}
                       className="bg-purple-600 hover:bg-purple-700"
                     >
-                      {isInviting ? 'Sending...' : 'Send Invite'}
+                      {isInviting ? 'Sending...' : 'Send Invitation'}
                     </Button>
                   </div>
                 </div>
@@ -311,151 +265,82 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {/* Project Owner */}
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-purple-50">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-purple-700">
+                    {getInitials('Project Owner')}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">You</p>
+                  <div className="flex items-center space-x-2">
+                    <Crown className="w-4 h-4 text-yellow-600" />
+                    <span className="text-sm text-gray-600">Project Owner</span>
+                  </div>
+                </div>
+              </div>
+              <Badge className="bg-purple-100 text-purple-800">Owner</Badge>
+            </div>
+
+            {/* Collaborators */}
             {collaborators.map((collaborator) => (
-              <div
-                key={collaborator.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="relative">
-                    {collaborator.profiles.avatar_url ? (
-                      <img
-                        src={collaborator.profiles.avatar_url}
+              <div key={collaborator.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                    {collaborator.profiles?.avatar_url ? (
+                      <img 
+                        src={collaborator.profiles.avatar_url} 
                         alt={collaborator.profiles.name}
-                        className="w-12 h-12 rounded-full"
+                        className="w-10 h-10 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-purple-700">
-                          {getInitials(collaborator.profiles.name || 'Unknown')}
-                        </span>
-                      </div>
-                    )}
-                    {collaborator.is_owner && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center">
-                        <Crown className="w-3 h-3 text-yellow-800" />
-                      </div>
+                      <span className="text-sm font-medium text-gray-700">
+                        {getInitials(collaborator.profiles?.name || 'U')}
+                      </span>
                     )}
                   </div>
-                  
-                  <div className="flex-1">
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {collaborator.profiles?.name || 'Unknown User'}
+                    </p>
                     <div className="flex items-center space-x-2">
-                      <h4 className="font-medium text-gray-900">
-                        {collaborator.profiles.name || 'Unknown User'}
-                      </h4>
-                      {collaborator.is_owner && (
-                        <span className="text-sm text-gray-500">(You)</span>
-                      )}
+                      <User className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">{collaborator.role_name}</span>
+                      {getStatusIcon(collaborator.status)}
                     </div>
-                    
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Badge 
-                        variant="outline" 
-                        className={getRoleBadgeColor(collaborator.role_name, collaborator.is_owner)}
-                      >
-                        {collaborator.role_name}
-                      </Badge>
-                      {collaborator.profiles.role && collaborator.profiles.role !== collaborator.role_name && (
-                        <Badge variant="outline" className="text-gray-600">
-                          {collaborator.profiles.role}
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                      {collaborator.profiles.email && (
-                        <div className="flex items-center space-x-1">
-                          <Mail className="w-3 h-3" />
-                          <span>{collaborator.profiles.email}</span>
-                        </div>
-                      )}
-                      {collaborator.profiles.location && (
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="w-3 h-3" />
-                          <span>{collaborator.profiles.location}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {collaborator.profiles.bio && (
-                      <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                        {collaborator.profiles.bio}
-                      </p>
-                    )}
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  {collaborator.joined_at && (
-                    <div className="text-right text-xs text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="w-3 h-3" />
-                        <span>Joined {new Date(collaborator.joined_at).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {isOwner && !collaborator.is_owner && (
+                  {getStatusBadge(collaborator.status)}
+                  {isOwner && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleRemoveCollaborator(collaborator.id)}
                       className="text-red-600 hover:text-red-700"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <X className="w-4 h-4" />
                     </Button>
                   )}
                 </div>
               </div>
             ))}
+
+            {collaborators.length === 0 && (
+              <div className="text-center py-8">
+                <User className="mx-auto h-12 w-12 text-gray-400" />
+                <p className="mt-2 text-gray-500">No collaborators yet</p>
+                {isOwner && (
+                  <p className="text-sm text-gray-400">Invite team members to start collaborating</p>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
-
-      {/* Team Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">{collaborators.length}</p>
-              <p className="text-sm text-gray-600">Total Members</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">
-                {collaborators.filter(c => c.role_name?.toLowerCase().includes('producer')).length}
-              </p>
-              <p className="text-sm text-gray-600">Producers</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">
-                {collaborators.filter(c => c.role_name?.toLowerCase().includes('engineer')).length}
-              </p>
-              <p className="text-sm text-gray-600">Engineers</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">
-                {collaborators.filter(c => c.role_name?.toLowerCase().includes('vocalist')).length}
-              </p>
-              <p className="text-sm text-gray-600">Vocalists</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };

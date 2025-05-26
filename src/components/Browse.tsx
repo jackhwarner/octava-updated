@@ -2,10 +2,10 @@
 import { useState } from 'react';
 import BrowseFilters from './browse/BrowseFilters';
 import SearchResults from './browse/SearchResults';
-import SpotlightProjects from './browse/SpotlightProjects';
+import BulletinBoard from './browse/BulletinBoard';
 import SuggestedCollaborators from './browse/SuggestedCollaborators';
 import { useCollaborators } from '@/hooks/useCollaborators';
-import { useProjects } from '@/hooks/useProjects';
+import { useProfile } from '@/hooks/useProfile';
 
 const Browse = () => {
   const [selectedRole, setSelectedRole] = useState('');
@@ -17,7 +17,7 @@ const Browse = () => {
   const [hasSearched, setHasSearched] = useState(false);
 
   const { suggestedCollaborators, loading: collaboratorsLoading } = useCollaborators();
-  const { projects, loading: projectsLoading } = useProjects();
+  const { profile, loading: profileLoading } = useProfile();
 
   // Convert profiles to expected format for search results
   const profiles = suggestedCollaborators.map(collaborator => ({
@@ -44,25 +44,11 @@ const Browse = () => {
     avatar: null
   }));
 
-  // Convert projects to spotlight format
-  const spotlightProjects = projects
-    .filter(p => p.visibility === 'public' && p.status === 'active')
-    .slice(0, 3)
-    .map(project => ({
-      id: parseInt(project.id) || 0,
-      title: project.title || project.name || 'Untitled Project',
-      genre: project.genre || 'Various',
-      lookingFor: ['Musician', 'Producer'], // This would need to be stored in project data
-      collaborators: project.collaborators?.length || 0,
-      deadline: project.deadline ? new Date(project.deadline).toLocaleDateString() : '1 month',
-      budget: project.budget ? `$${project.budget}` : '$200-500'
-    }));
-
   const handleSearch = () => {
     setHasSearched(true);
   };
 
-  if (collaboratorsLoading || projectsLoading) {
+  if (collaboratorsLoading || profileLoading) {
     return (
       <div className="p-10">
         <div className="animate-pulse">
@@ -106,7 +92,7 @@ const Browse = () => {
         <SearchResults profiles={profiles} />
       ) : (
         <div className="space-y-10">
-          <SpotlightProjects projects={spotlightProjects} />
+          <BulletinBoard userProfile={profile} />
           <SuggestedCollaborators collaborators={suggestedCollaboratorsFormatted} />
         </div>
       )}

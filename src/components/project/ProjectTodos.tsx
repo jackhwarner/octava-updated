@@ -49,7 +49,7 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
         .from('project_todos')
         .select(`
           *,
-          creator:created_by (
+          creator:created_by!inner (
             name,
             username
           )
@@ -89,7 +89,7 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
         }])
         .select(`
           *,
-          creator:created_by (
+          creator:created_by!inner (
             name,
             username
           )
