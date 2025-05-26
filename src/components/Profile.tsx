@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -77,7 +76,6 @@ const Profile = () => {
             profile={profile}
             cityName={cityName}
             onEditClick={() => setShowEditDialog(true)}
-            isOwnProfile={true}
           />
 
           <ProfileStats 

@@ -13,7 +13,6 @@ import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/use-toast';
-
 const Projects = () => {
   const navigate = useNavigate();
   const {
@@ -25,7 +24,7 @@ const Projects = () => {
   } = useProjects();
   const {
     folders,
-    createFolder
+    addFolder
   } = useFolders();
   const {
     toast
@@ -39,7 +38,7 @@ const Projects = () => {
     title: '',
     description: '',
     genre: '',
-    visibility: 'private' as 'private' | 'public' | 'connections_only',
+    visibility: 'private',
     deadline: '',
     budget: '',
     folder_id: '',
@@ -53,7 +52,6 @@ const Projects = () => {
     description: '',
     color: '#6366f1'
   });
-
   const getProjectStatus = (project: any) => {
     if (!project.phases || project.phases.length === 0) {
       return {
@@ -80,7 +78,6 @@ const Projects = () => {
       };
     }
   };
-
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || project.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFolder = selectedFolder === 'all' || selectedFolder === 'none' && !project.folder_id || project.folder_id === selectedFolder;
@@ -88,7 +85,6 @@ const Projects = () => {
     const matchesStatus = statusFilter === 'all' || projectStatus.label.toLowerCase().replace(' ', '_') === statusFilter;
     return matchesSearch && matchesFolder && matchesStatus;
   });
-
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -105,7 +101,7 @@ const Projects = () => {
         title: '',
         description: '',
         genre: '',
-        visibility: 'private' as 'private' | 'public' | 'connections_only',
+        visibility: 'private',
         deadline: '',
         budget: '',
         folder_id: '',
@@ -122,11 +118,10 @@ const Projects = () => {
       console.error('Error creating project:', error);
     }
   };
-
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createFolder(newFolder.name, newFolder.description);
+      await addFolder(newFolder);
       setIsFolderDialogOpen(false);
       setNewFolder({
         name: '',
@@ -141,7 +136,6 @@ const Projects = () => {
       console.error('Error creating folder:', error);
     }
   };
-
   const handleDeleteProject = async (projectId: string) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
@@ -155,7 +149,6 @@ const Projects = () => {
       }
     }
   };
-
   const handleShareProject = (project: any) => {
     // Copy project URL to clipboard
     const url = `${window.location.origin}/projects/${project.id}`;
@@ -165,15 +158,12 @@ const Projects = () => {
       description: "Project sharing link copied to clipboard"
     });
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
-
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-
   if (loading) {
     return <div className="p-8">
         <div className="animate-pulse">
@@ -184,7 +174,6 @@ const Projects = () => {
         </div>
       </div>;
   }
-
   return <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
