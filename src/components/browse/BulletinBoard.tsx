@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, DollarSign, Clock } from 'lucide-react';
+import { Briefcase, MapPin, Clock } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
@@ -146,13 +146,6 @@ const BulletinBoard = ({ userProfile }: BulletinBoardProps) => {
                   </div>
 
                   <div className="space-y-2 text-sm text-gray-600">
-                    {project.budget && (
-                      <div className="flex items-center space-x-1">
-                        <DollarSign className="w-4 h-4" />
-                        <span>Budget: ${project.budget}</span>
-                      </div>
-                    )}
-                    
                     {project.deadline && (
                       <div className="flex items-center space-x-1">
                         <Clock className="w-4 h-4" />
