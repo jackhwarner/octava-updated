@@ -8,9 +8,11 @@ import SpotlightProjects from './browse/SpotlightProjects';
 import BulletinBoard from './browse/BulletinBoard';
 import SuggestedCollaborators from './browse/SuggestedCollaborators';
 import { useProfile } from '@/hooks/useProfile';
+import { useCollaborators } from '@/hooks/useCollaborators';
 
 const Browse = () => {
   const { profile } = useProfile();
+  const { suggestedCollaborators } = useCollaborators();
   const [activeTab, setActiveTab] = useState('projects');
 
   return (
@@ -72,7 +74,7 @@ const Browse = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <SuggestedCollaborators />
+                    <SuggestedCollaborators collaborators={suggestedCollaborators} />
                   </CardContent>
                 </Card>
               </TabsContent>
