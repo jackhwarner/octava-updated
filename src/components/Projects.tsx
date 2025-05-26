@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -280,7 +279,7 @@ const Projects = () => {
 
       {/* Projects Section */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-2 mb-4">
           <h2 className="text-xl font-semibold">
             {currentFolderId ? currentFolderName : 'Projects'}
           </h2>

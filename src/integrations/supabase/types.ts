@@ -9,45 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      conflicts: {
-        Row: {
-          created_at: string
-          description: string | null
-          end_date: string | null
-          end_time: string | null
-          id: string
-          is_all_day: boolean | null
-          start_date: string
-          start_time: string | null
-          title: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          end_date?: string | null
-          end_time?: string | null
-          id?: string
-          is_all_day?: boolean | null
-          start_date: string
-          start_time?: string | null
-          title: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          end_date?: string | null
-          end_time?: string | null
-          id?: string
-          is_all_day?: boolean | null
-          start_date?: string
-          start_time?: string | null
-          title?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       event_invites: {
         Row: {
           event_id: string
@@ -824,59 +785,6 @@ export type Database = {
           },
           {
             foreignKeyName: "thread_participants_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_availability: {
-        Row: {
-          availability_type: string
-          created_at: string | null
-          day_of_week: number | null
-          end_date: string | null
-          end_time: string | null
-          id: string
-          is_active: boolean | null
-          is_recurring: boolean | null
-          period: Database["public"]["Enums"]["availability_period"]
-          start_date: string | null
-          start_time: string | null
-          user_id: string
-        }
-        Insert: {
-          availability_type: string
-          created_at?: string | null
-          day_of_week?: number | null
-          end_date?: string | null
-          end_time?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_recurring?: boolean | null
-          period: Database["public"]["Enums"]["availability_period"]
-          start_date?: string | null
-          start_time?: string | null
-          user_id: string
-        }
-        Update: {
-          availability_type?: string
-          created_at?: string | null
-          day_of_week?: number | null
-          end_date?: string | null
-          end_time?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_recurring?: boolean | null
-          period?: Database["public"]["Enums"]["availability_period"]
-          start_date?: string | null
-          start_time?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_availability_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

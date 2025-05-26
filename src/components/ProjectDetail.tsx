@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File, Paperclip } from 'lucide-react';
-import { useFakeProjects } from '@/hooks/useFakeProjects';
+import { useProjects } from '@/hooks/useProjects';
 import Sidebar from './Sidebar';
 import ProjectFiles from './project/ProjectFiles';
 import ProjectChat from './project/ProjectChat';
@@ -14,7 +15,7 @@ import ProjectInfo from './project/ProjectInfo';
 const ProjectDetail = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { projects } = useFakeProjects();
+  const { projects, loading } = useProjects();
   const [project, setProject] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [mainActiveTab, setMainActiveTab] = useState('projects');
@@ -52,6 +53,22 @@ const ProjectDetail = () => {
   const handleMainNavigation = (tab: string) => {
     navigate(`/${tab}`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex">
+        <div className="fixed top-0 left-0 h-screen z-10">
+          <Sidebar activeTab={mainActiveTab} setActiveTab={handleMainNavigation} />
+        </div>
+        <div className="flex-1 ml-[90px] p-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
