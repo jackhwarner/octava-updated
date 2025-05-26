@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Search, Filter, Calendar, Users, Music, FolderPlus, Folder, MoreVertical, Edit, Trash2, Share2, Eye, ExternalLink } from 'lucide-react';
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+import { Plus, Search, Filter, Calendar, Users, Music, FolderPlus, Folder, MoreVertical, Edit, Trash2, Share2, Eye, ExternalLink, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useFolders } from '@/hooks/useFolders';
@@ -33,7 +34,7 @@ const Projects = () => {
     toast
   } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFolder, setSelectedFolder] = useState<string>('all');
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
@@ -48,12 +49,10 @@ const Projects = () => {
     genre: '',
     visibility: 'private',
     deadline: '',
-    budget: '',
     folder_id: '',
     bpm: '',
     key: '',
-    daw: '',
-    mood: ''
+    daw: ''
   });
   const [newFolder, setNewFolder] = useState({
     name: '',
@@ -88,13 +87,41 @@ const Projects = () => {
     }
   };
   
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || project.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFolder = selectedFolder === 'all' || selectedFolder === 'none' && !project.folder_id || project.folder_id === selectedFolder;
-    const projectStatus = getProjectStatus(project);
-    const matchesStatus = statusFilter === 'all' || projectStatus.label.toLowerCase().replace(' ', '_') === statusFilter;
-    return matchesSearch && matchesFolder && matchesStatus;
-  });
+  const getCurrentFolder = () => {
+    return folders.find(f => f.id === currentFolderId);
+  };
+
+  const getFilteredProjects = () => {
+    let projectsToShow = projects;
+
+    // If searching, show all projects regardless of folder
+    if (searchTerm) {
+      projectsToShow = projects.filter(project => 
+        project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        project.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    } else {
+      // If viewing a specific folder, show only projects in that folder
+      if (currentFolderId) {
+        projectsToShow = projects.filter(project => project.folder_id === currentFolderId);
+      } else {
+        // If on main page, show only projects without a folder
+        projectsToShow = projects.filter(project => !project.folder_id);
+      }
+    }
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      projectsToShow = projectsToShow.filter(project => {
+        const projectStatus = getProjectStatus(project);
+        return projectStatus.label.toLowerCase().replace(' ', '_') === statusFilter;
+      });
+    }
+
+    return projectsToShow;
+  };
+
+  const filteredProjects = getFilteredProjects();
   
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,12 +164,10 @@ const Projects = () => {
         genre: '',
         visibility: 'private',
         deadline: '',
-        budget: '',
         folder_id: '',
         bpm: '',
         key: '',
-        daw: '',
-        mood: ''
+        daw: ''
       });
       toast({
         title: "Success",
@@ -203,6 +228,14 @@ const Projects = () => {
       title: "Link copied",
       description: "Project sharing link copied to clipboard"
     });
+  };
+
+  const handleFolderClick = (folderId: string) => {
+    setCurrentFolderId(folderId);
+  };
+
+  const handleBackToMain = () => {
+    setCurrentFolderId(null);
   };
   
   const formatDate = (dateString: string) => {
@@ -407,7 +440,7 @@ const Projects = () => {
                       <SelectValue placeholder="Choose a folder" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No folder</SelectItem>
+                      <SelectItem value="remove">No folder</SelectItem>
                       {folders.map(folder => (
                         <SelectItem key={folder.id} value={folder.id}>
                           <div className="flex items-center">
@@ -450,30 +483,33 @@ const Projects = () => {
         </div>
       </div>
 
+      {/* Breadcrumb Navigation */}
+      <div className="mb-6">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={handleBackToMain} className="cursor-pointer">
+                Projects
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {currentFolderId && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{getCurrentFolder()?.name}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </>
+            )}
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+
       {/* Filters */}
       <div className="flex items-center space-x-4 mb-6">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input placeholder="Search projects..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
-        
-        <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All folders" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All folders</SelectItem>
-            <SelectItem value="none">No folder</SelectItem>
-            {folders.map(folder => <SelectItem key={folder.id} value={folder.id}>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded mr-2" style={{
-                backgroundColor: folder.color
-              }} />
-                  {folder.name}
-                </div>
-              </SelectItem>)}
-          </SelectContent>
-        </Select>
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-48">
@@ -486,127 +522,176 @@ const Projects = () => {
             <SelectItem value="completed">Completed</SelectItem>
           </SelectContent>
         </Select>
+
+        {currentFolderId && (
+          <Button variant="outline" onClick={handleBackToMain}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Projects
+          </Button>
+        )}
       </div>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map(project => {
-        const projectStatus = getProjectStatus(project);
-        const folder = folders.find(f => f.id === project.folder_id);
-        return <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">{project.title || project.name}</CardTitle>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Badge className={projectStatus.color}>
-                        {projectStatus.label}
-                      </Badge>
-                      {project.genre && <Badge variant="outline">{project.genre}</Badge>}
-                    </div>
-                    {folder && <div className="flex items-center text-sm text-gray-500 mb-2">
-                        <Folder className="w-4 h-4 mr-1" style={{
-                    color: folder.color
-                  }} />
-                        {folder.name}
-                      </div>}
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleShareProject(project)}>
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        setSelectedProjectForFolder(project);
-                        setIsAddToFolderDialogOpen(true);
-                      }}>
-                        <FolderPlus className="w-4 h-4 mr-2" />
-                        Add to Folder
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => {
-                          setProjectToDelete(project);
-                          setDeleteDialogOpen(true);
-                        }}
-                        className="text-red-600"
+      {/* Folders Section - Only show when not in a folder and not searching */}
+      {!currentFolderId && !searchTerm && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Folders</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {folders.map(folder => {
+              const projectCount = projects.filter(p => p.folder_id === folder.id).length;
+              return (
+                <Card 
+                  key={folder.id} 
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => handleFolderClick(folder.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-8 h-8 rounded flex items-center justify-center"
+                        style={{ backgroundColor: folder.color }}
                       >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {project.description || 'No description'}
-                </p>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      Created {formatDate(project.created_at)}
+                        <Folder className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-sm">{folder.name}</h3>
+                        <p className="text-xs text-gray-500">{projectCount} projects</p>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {project.collaborators?.length || 0} collaborators
-                    </div>
-                  </div>
-                  
-                  {project.bpm || project.key ? <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      {project.bpm && <div className="flex items-center">
-                          <Music className="w-4 h-4 mr-1" />
-                          {project.bpm} BPM
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Projects Grid */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">
+          {searchTerm ? `Search Results (${filteredProjects.length})` : 
+           currentFolderId ? getCurrentFolder()?.name : 'Projects'}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map(project => {
+          const projectStatus = getProjectStatus(project);
+          const folder = folders.find(f => f.id === project.folder_id);
+          return <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg mb-2">{project.title || project.name}</CardTitle>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Badge className={projectStatus.color}>
+                          {projectStatus.label}
+                        </Badge>
+                        {project.genre && <Badge variant="outline">{project.genre}</Badge>}
+                      </div>
+                      {folder && searchTerm && <div className="flex items-center text-sm text-gray-500 mb-2">
+                          <Folder className="w-4 h-4 mr-1" style={{
+                      color: folder.color
+                    }} />
+                          {folder.name}
                         </div>}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleShareProject(project)}>
+                          <Share2 className="w-4 h-4 mr-2" />
+                          Share
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedProjectForFolder(project);
+                          setIsAddToFolderDialogOpen(true);
+                        }}>
+                          <FolderPlus className="w-4 h-4 mr-2" />
+                          Add to Folder
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            setProjectToDelete(project);
+                            setDeleteDialogOpen(true);
+                          }}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    {project.description || 'No description'}
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        Created {formatDate(project.created_at)}
+                      </div>
+                      <div className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        {project.collaborators?.length || 0} collaborators
+                      </div>
+                    </div>
+                    
+                    {project.bpm || project.key ? <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        {project.bpm && <div className="flex items-center">
+                            <Music className="w-4 h-4 mr-1" />
+                            {project.bpm} BPM
+                          </div>}
                       {project.key && <span>Key: {project.key}</span>}
                     </div> : null}
+                    
+                    {project.collaborators && project.collaborators.length > 0 && <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500">Team:</span>
+                        <div className="flex -space-x-2">
+                          {project.collaborators.slice(0, 3).map((collaborator, index) => <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
+                              <span className="text-xs text-purple-700">
+                                {getInitials(collaborator.profiles?.name || 'U')}
+                              </span>
+                            </div>)}
+                          {project.collaborators.length > 3 && <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
+                              <span className="text-xs text-gray-600">+{project.collaborators.length - 3}</span>
+                            </div>}
+                        </div>
+                      </div>}
+                  </div>
                   
-                  {project.collaborators && project.collaborators.length > 0 && <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500">Team:</span>
-                      <div className="flex -space-x-2">
-                        {project.collaborators.slice(0, 3).map((collaborator, index) => <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
-                            <span className="text-xs text-purple-700">
-                              {getInitials(collaborator.profiles?.name || 'U')}
-                            </span>
-                          </div>)}
-                        {project.collaborators.length > 3 && <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
-                            <span className="text-xs text-gray-600">+{project.collaborators.length - 3}</span>
-                          </div>}
-                      </div>
-                    </div>}
-                </div>
-                
-                <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${project.id}`)} className="w-full bg-purple-500 hover:bg-purple-600 text-white hover:text-white">
-                    Open Project
-                  </Button>
-                  
-                </div>
-              </CardContent>
-            </Card>;
-      })}
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${project.id}`)} className="w-full bg-purple-500 hover:bg-purple-600 text-white hover:text-white">
+                      Open Project
+                    </Button>
+                    
+                  </div>
+                </CardContent>
+              </Card>;
+        })}
+        </div>
+        
+        {filteredProjects.length === 0 && <div className="text-center py-12">
+            <Music className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
+            <p className="text-gray-500 mb-4">
+              {searchTerm ? 'Try adjusting your search terms' : 
+               currentFolderId ? 'This folder is empty' : 
+               'Create your first project to get started'}
+            </p>
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Project
+            </Button>
+          </div>}
       </div>
-      
-      {filteredProjects.length === 0 && <div className="text-center py-12">
-          <Music className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
-          <p className="text-gray-500 mb-4">
-            {searchTerm || selectedFolder !== 'all' || statusFilter !== 'all' ? 'Try adjusting your filters or search terms' : 'Create your first project to get started'}
-          </p>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Project
-          </Button>
-        </div>}
     </div>;
 };
 export default Projects;
