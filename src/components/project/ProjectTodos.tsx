@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, CheckCircle2, Circle } from 'lucide-react';
+import { Plus, Trash2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,7 +24,7 @@ interface Todo {
   created_at: string;
   completed_at?: string;
   completed_by?: string;
-  profiles: {
+  creator: {
     name: string;
     username: string;
   };
@@ -49,7 +49,7 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
         .from('project_todos')
         .select(`
           *,
-          profiles:created_by (
+          creator:created_by (
             name,
             username
           )
@@ -89,7 +89,7 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
         }])
         .select(`
           *,
-          profiles:created_by (
+          creator:created_by (
             name,
             username
           )
@@ -247,7 +247,7 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
         <CardContent>
           {todos.length === 0 ? (
             <div className="text-center py-8">
-              <CheckCircle2 className="mx-auto h-12 w-12 text-gray-400" />
+              <CheckCircle className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2 text-gray-500">No todos yet. Add one to get started!</p>
             </div>
           ) : (
@@ -266,7 +266,7 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
                       <p className="text-sm text-gray-600 mt-1">{todo.description}</p>
                     )}
                     <p className="text-xs text-gray-500 mt-2">
-                      Created by {todo.profiles.name} on {new Date(todo.created_at).toLocaleDateString()}
+                      Created by {todo.creator?.name} on {new Date(todo.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <Button

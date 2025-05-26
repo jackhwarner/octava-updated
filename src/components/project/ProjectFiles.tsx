@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,13 +25,24 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [fileVersions, setFileVersions] = useState([]);
   const [projectSettings, setProjectSettings] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchFiles();
     fetchProjectSettings();
+    fetchCurrentUser();
   }, [projectId]);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
 
   const fetchProjectSettings = async () => {
     try {
@@ -55,11 +65,11 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
         .from('project_files')
         .select(`
           *,
-          profiles:uploaded_by (
+          uploader:uploaded_by (
             name,
             username
           ),
-          approved_by_profile:approved_by (
+          approver:approved_by (
             name,
             username
           )
@@ -87,7 +97,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
         .from('project_files')
         .select(`
           *,
-          profiles:uploaded_by (
+          uploader:uploaded_by (
             name,
             username
           )
@@ -179,7 +189,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
           }])
           .select(`
             *,
-            profiles:uploaded_by (
+            uploader:uploaded_by (
               name,
               username
             )
@@ -198,7 +208,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
             .insert([{
               user_id: projectSettings.owner_id,
               title: 'File Upload Requires Approval',
-              message: `${data.profiles.name} uploaded "${file.name}" and requires your approval.`,
+              message: `${data.uploader.name} uploaded "${file.name}" and requires your approval.`,
               type: 'file_approval',
               payload: { file_id: data.id, project_id: projectId }
             }]);
@@ -221,6 +231,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     } finally {
       setUploading(false);
       setVersionNotes('');
+      setIsVersionDialogOpen(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -313,8 +324,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     setIsHistoryDialogOpen(true);
   };
 
-  const { data: { user } } = await supabase.auth.getUser();
-  const isOwner = user?.id === projectSettings?.owner_id;
+  const isOwner = currentUser?.id === projectSettings?.owner_id;
   const pendingFiles = files.filter(file => file.is_pending_approval);
   const approvedFiles = files.filter(file => !file.is_pending_approval);
 
@@ -439,7 +449,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                         <span>•</span>
                         <span>v{file.version}</span>
                         <span>•</span>
-                        <span>by {file.profiles?.name}</span>
+                        <span>by {file.uploader?.name}</span>
                       </div>
                       {file.version_notes && (
                         <p className="text-sm text-gray-600 mt-1">{file.version_notes}</p>
@@ -509,7 +519,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                         <span>•</span>
                         <span>{new Date(file.created_at).toLocaleDateString()}</span>
                         <span>•</span>
-                        <span>by {file.profiles?.name}</span>
+                        <span>by {file.uploader?.name}</span>
                       </div>
                       {file.version_notes && (
                         <p className="text-sm text-gray-600 mt-1">{file.version_notes}</p>
@@ -570,7 +580,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                     )}
                   </div>
                   <p className="text-sm text-gray-600">
-                    {new Date(version.created_at).toLocaleString()} by {version.profiles?.name}
+                    {new Date(version.created_at).toLocaleString()} by {version.uploader?.name}
                   </p>
                   {version.version_notes && (
                     <p className="text-sm text-gray-500 mt-1">{version.version_notes}</p>
