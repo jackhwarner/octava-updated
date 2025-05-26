@@ -56,32 +56,67 @@ export const useMusic = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Upload file to storage
+      // First, create the storage bucket if it doesn't exist
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const musicBucket = buckets?.find(bucket => bucket.name === 'music');
+      
+      if (!musicBucket) {
+        console.log('Creating music bucket...');
+        const { error: bucketError } = await supabase.storage.createBucket('music', {
+          public: true,
+          allowedMimeTypes: ['audio/*'],
+          fileSizeLimit: 100 * 1024 * 1024 // 100MB
+        });
+        if (bucketError) {
+          console.error('Error creating bucket:', bucketError);
+        }
+      }
+
+      // Upload file to storage with unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `music/${user.id}/${fileName}`;
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading file to:', filePath);
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('music')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('music')
         .getPublicUrl(filePath);
 
+      console.log('File uploaded, public URL:', publicUrl);
+
       // Create audio element to get duration
       const audio = document.createElement('audio');
-      audio.src = URL.createObjectURL(file);
+      const audioBlob = URL.createObjectURL(file);
+      audio.src = audioBlob;
       
-      const duration = await new Promise<number>((resolve) => {
+      const duration = await new Promise<number>((resolve, reject) => {
         audio.addEventListener('loadedmetadata', () => {
-          resolve(Math.floor(audio.duration));
+          resolve(Math.floor(audio.duration) || 0);
+          URL.revokeObjectURL(audioBlob);
+        });
+        audio.addEventListener('error', () => {
+          console.error('Error loading audio metadata');
+          resolve(0);
+          URL.revokeObjectURL(audioBlob);
         });
       });
 
+      console.log('Audio duration:', duration);
+
+      // Insert record into database
       const { data, error } = await supabase
         .from('songs')
         .insert([{
@@ -97,8 +132,12 @@ export const useMusic = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database insert error:', error);
+        throw error;
+      }
 
+      console.log('Track record created:', data);
       setTracks(prev => [data, ...prev]);
       toast({
         title: "Success",
@@ -110,7 +149,7 @@ export const useMusic = () => {
       console.error('Error uploading track:', error);
       toast({
         title: "Error",
-        description: "Failed to upload track",
+        description: `Failed to upload track: ${error.message}`,
         variant: "destructive",
       });
       throw error;
@@ -121,10 +160,13 @@ export const useMusic = () => {
 
   const incrementPlayCount = async (trackId: string, userId: string) => {
     try {
-      // Increment track play count using raw SQL
+      const currentTrack = tracks.find(t => t.id === trackId);
+      if (!currentTrack) return;
+
+      // Increment track play count
       const { error: trackError } = await supabase
         .from('songs')
-        .update({ play_count: tracks.find(t => t.id === trackId)?.play_count + 1 || 1 })
+        .update({ play_count: currentTrack.play_count + 1 })
         .eq('id', trackId);
 
       if (trackError) throw trackError;
@@ -137,9 +179,17 @@ export const useMusic = () => {
       ));
 
       // Increment user's total play count
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('total_plays')
+        .eq('id', userId)
+        .single();
+
+      const newTotalPlays = (profileData?.total_plays || 0) + 1;
+
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ total_plays: (await supabase.from('profiles').select('total_plays').eq('id', userId).single()).data?.total_plays + 1 || 1 })
+        .update({ total_plays: newTotalPlays })
         .eq('id', userId);
 
       if (profileError) {

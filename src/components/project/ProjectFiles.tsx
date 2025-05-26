@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Upload, Download, Trash2, Plus, Play, FileText, Image, Video, File, Clock, CheckCircle, AlertCircle, History, Archive } from 'lucide-react';
+import { Upload, Download, Trash2, Plus, Play, FileText, Image, Video, File, Clock, CheckCircle, AlertCircle, History, Archive, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface ProjectFilesProps {
   projectId: string;
@@ -28,6 +28,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { notifyFileUpload } = useNotifications();
 
   useEffect(() => {
     fetchFiles();
@@ -174,61 +175,136 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
         console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
         
         // Check if file already exists
-        const existingFile = files.find(f => f.file_name === file.name);
-        const version = existingFile ? (existingFile.version || 1) + 1 : 1;
+        const existingFile = files.find(f => f.file_name === file.name && !f.is_pending_approval);
+        const allVersions = files.filter(f => f.file_name === file.name);
+        const version = Math.max(...allVersions.map(f => f.version || 1), 0) + 1;
 
-        const fileData = {
-          project_id: projectId,
-          file_name: file.name,
-          file_size: file.size,
-          file_type: file.type,
-          file_path: `projects/${projectId}/${file.name}`,
-          uploaded_by: currentUser.id,
-          description: `File uploaded: ${file.name}`,
-          version: version,
-          is_pending_approval: needsApproval,
-          approved_at: needsApproval ? null : new Date().toISOString(),
-          approved_by: needsApproval ? null : currentUser.id,
-          parent_file_id: existingFile?.id || null,
-          version_notes: null
-        };
+        // If file exists and approval is enabled, handle differently
+        if (existingFile && needsApproval) {
+          // For non-owners uploading existing files, create new version that needs approval
+          const fileData = {
+            project_id: projectId,
+            file_name: file.name,
+            file_size: file.size,
+            file_type: file.type,
+            file_path: `projects/${projectId}/${file.name}`,
+            uploaded_by: currentUser.id,
+            description: `Version ${version} of ${file.name}`,
+            version: version,
+            is_pending_approval: true,
+            approved_at: null,
+            approved_by: null,
+            parent_file_id: existingFile.id,
+            version_notes: `New version uploaded by ${currentUser.email}`
+          };
 
-        console.log('Inserting file data:', fileData);
+          const { data, error } = await supabase
+            .from('project_files')
+            .insert([fileData])
+            .select(`
+              *,
+              uploader:profiles!project_files_uploaded_by_fkey (
+                name,
+                username
+              )
+            `)
+            .single();
 
-        // Insert file record into database
-        const { data, error } = await supabase
-          .from('project_files')
-          .insert([fileData])
-          .select(`
-            *,
-            uploader:profiles!project_files_uploaded_by_fkey (
-              name,
-              username
-            )
-          `)
-          .single();
+          if (error) throw error;
+          setFiles(prev => [data, ...prev]);
 
-        if (error) {
-          console.error('Database insert error:', error);
-          throw error;
-        }
+          // Notify project owner
+          await notifyFileUpload(
+            projectSettings.owner_id,
+            file.name,
+            data.uploader?.name || currentUser.email || 'Unknown',
+            'Project' // We'd need project name here
+          );
 
-        console.log('File uploaded successfully:', data);
-
-        // Add to local state
-        setFiles(prev => [data, ...prev]);
-
-        // Create notification if approval is needed
-        if (needsApproval) {
+        } else if (existingFile && !needsApproval) {
+          // For owners or when approval is disabled, archive old version and create new approved version
           await supabase
-            .from('notifications')
-            .insert([{
-              user_id: projectSettings.owner_id,
-              title: 'File Upload Requires Approval',
-              message: `${data.uploader?.name || 'Unknown'} uploaded "${file.name}" and requires your approval.`,
-              type: 'file_approval',
-              payload: { file_id: data.id, project_id: projectId }
-            }]);
+            .from('project_files')
+            .update({ is_current_version: false })
+            .eq('file_name', file.name)
+            .eq('project_id', projectId);
+
+          const fileData = {
+            project_id: projectId,
+            file_name: file.name,
+            file_size: file.size,
+            file_type: file.type,
+            file_path: `projects/${projectId}/${file.name}`,
+            uploaded_by: currentUser.id,
+            description: `Version ${version} of ${file.name}`,
+            version: version,
+            is_pending_approval: false,
+            approved_at: new Date().toISOString(),
+            approved_by: currentUser.id,
+            parent_file_id: existingFile.id,
+            version_notes: `Updated by ${currentUser.email}`,
+            is_current_version: true
+          };
+
+          const { data, error } = await supabase
+            .from('project_files')
+            .insert([fileData])
+            .select(`
+              *,
+              uploader:profiles!project_files_uploaded_by_fkey (
+                name,
+                username
+              )
+            `)
+            .single();
+
+          if (error) throw error;
+          
+          // Remove old version from display and add new one
+          setFiles(prev => [data, ...prev.filter(f => f.id !== existingFile.id)]);
+
+        } else {
+          // New file
+          const fileData = {
+            project_id: projectId,
+            file_name: file.name,
+            file_size: file.size,
+            file_type: file.type,
+            file_path: `projects/${projectId}/${file.name}`,
+            uploaded_by: currentUser.id,
+            description: `File uploaded: ${file.name}`,
+            version: 1,
+            is_pending_approval: needsApproval,
+            approved_at: needsApproval ? null : new Date().toISOString(),
+            approved_by: needsApproval ? null : currentUser.id,
+            parent_file_id: null,
+            version_notes: null,
+            is_current_version: true
+          };
+
+          const { data, error } = await supabase
+            .from('project_files')
+            .insert([fileData])
+            .select(`
+              *,
+              uploader:profiles!project_files_uploaded_by_fkey (
+                name,
+                username
+              )
+            `)
+            .single();
+
+          if (error) throw error;
+          setFiles(prev => [data, ...prev]);
+
+          if (needsApproval) {
+            await notifyFileUpload(
+              projectSettings.owner_id,
+              file.name,
+              data.uploader?.name || currentUser.email || 'Unknown',
+              'Project' // We'd need project name here
+            );
+          }
         }
       }
 
@@ -284,12 +360,25 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     try {
       if (!currentUser) throw new Error('User not authenticated');
 
+      const fileToApprove = files.find(f => f.id === fileId);
+      if (!fileToApprove) return;
+
+      // If this is a new version of an existing file, archive the old current version
+      if (fileToApprove.parent_file_id) {
+        await supabase
+          .from('project_files')
+          .update({ is_current_version: false })
+          .eq('file_name', fileToApprove.file_name)
+          .eq('project_id', projectId);
+      }
+
       const { error } = await supabase
         .from('project_files')
         .update({
           is_pending_approval: false,
           approved_at: new Date().toISOString(),
-          approved_by: currentUser.id
+          approved_by: currentUser.id,
+          is_current_version: true
         })
         .eq('id', fileId);
 
@@ -301,20 +390,59 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
               ...file, 
               is_pending_approval: false, 
               approved_at: new Date().toISOString(),
-              approved_by: currentUser.id
+              approved_by: currentUser.id,
+              is_current_version: true
             }
+          : file.file_name === fileToApprove.file_name
+          ? { ...file, is_current_version: false }
           : file
       ));
 
       toast({
         title: "File approved",
-        description: "The file has been approved and is now available.",
+        description: "The file has been approved and is now the current version.",
       });
     } catch (error) {
       console.error('Error approving file:', error);
       toast({
         title: "Error",
         description: "Failed to approve file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRevertToVersion = async (versionId: string) => {
+    try {
+      const versionFile = fileVersions.find(f => f.id === versionId);
+      if (!versionFile) return;
+
+      // Set all versions of this file to not current
+      await supabase
+        .from('project_files')
+        .update({ is_current_version: false })
+        .eq('file_name', versionFile.file_name)
+        .eq('project_id', projectId);
+
+      // Set the selected version as current
+      await supabase
+        .from('project_files')
+        .update({ is_current_version: true })
+        .eq('id', versionId);
+
+      // Refresh files
+      fetchFiles();
+      setIsHistoryDialogOpen(false);
+
+      toast({
+        title: "Version reverted",
+        description: `Reverted to version ${versionFile.version} of ${versionFile.file_name}`,
+      });
+    } catch (error) {
+      console.error('Error reverting to version:', error);
+      toast({
+        title: "Error",
+        description: "Failed to revert to selected version",
         variant: "destructive",
       });
     }
@@ -345,8 +473,6 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
   };
 
   const handleDownloadAll = async () => {
-    // This would typically create a zip file on the server
-    // For now, we'll show a placeholder message
     toast({
       title: "Download All",
       description: "Zip download feature would be implemented here.",
@@ -367,7 +493,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
 
   const isOwner = currentUser?.id === projectSettings?.owner_id;
   const pendingFiles = files.filter(file => file.is_pending_approval);
-  const approvedFiles = files.filter(file => !file.is_pending_approval);
+  const approvedFiles = files.filter(file => !file.is_pending_approval && (file.is_current_version !== false));
 
   if (loading) {
     return (
@@ -594,9 +720,12 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {fileVersions.map((version) => (
               <div key={version.id} className="flex items-center justify-between p-3 border rounded">
-                <div>
+                <div className="flex-1">
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">v{version.version}</span>
+                    {version.is_current_version && (
+                      <Badge variant="outline" className="text-green-600 border-green-600">Current</Badge>
+                    )}
                     {getStatusBadge(version)}
                   </div>
                   <p className="text-sm text-gray-500">
@@ -606,9 +735,20 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                     <p className="text-sm text-gray-600 mt-1">{version.version_notes}</p>
                   )}
                 </div>
-                <Button variant="ghost" size="sm">
-                  <Download className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center space-x-2">
+                  {!version.is_current_version && !version.is_pending_approval && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleRevertToVersion(version.id)}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm">
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

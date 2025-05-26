@@ -5,10 +5,9 @@ import { Plus, Users, MessageSquare } from 'lucide-react';
 
 interface QuickActionsProps {
   onNavigate: (tab: string) => void;
-  onNewMessage: () => void;
 }
 
-const QuickActions = ({ onNavigate, onNewMessage }: QuickActionsProps) => {
+const QuickActions = ({ onNavigate }: QuickActionsProps) => {
   const handleQuickAction = (action: string) => {
     switch (action) {
       case 'new-project':
@@ -17,8 +16,8 @@ const QuickActions = ({ onNavigate, onNewMessage }: QuickActionsProps) => {
       case 'find-collaborators':
         onNavigate('browse');
         break;
-      case 'new-message':
-        onNewMessage();
+      case 'view-messages':
+        onNavigate('messages');
         break;
       default:
         break;
@@ -49,10 +48,10 @@ const QuickActions = ({ onNavigate, onNewMessage }: QuickActionsProps) => {
         <Button 
           variant="outline" 
           className="w-full justify-start"
-          onClick={() => handleQuickAction('new-message')}
+          onClick={() => handleQuickAction('view-messages')}
         >
           <MessageSquare className="w-4 h-4 mr-2" />
-          New Message
+          View Messages
         </Button>
       </CardContent>
     </Card>

@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import NotificationsPanel from './NotificationsPanel';
-import NewMessageDialog from './NewMessageDialog';
 import DashboardStats from './DashboardStats';
 import QuickActions from './dashboard/QuickActions';
 import OnlineCollaborators from './dashboard/OnlineCollaborators';
@@ -14,22 +13,20 @@ interface DashboardProps {
 
 const Dashboard = ({ onNavigate }: DashboardProps) => {
   const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
-  const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
   const [selectedCollaborator, setSelectedCollaborator] = useState<any>(null);
 
   const handleConnectCollaborator = (collaborator: any) => {
-    setSelectedCollaborator(collaborator);
-    setShowNewMessageDialog(true);
+    // Navigate to messages and potentially pre-select collaborator
+    if (onNavigate) {
+      onNavigate('messages');
+    }
   };
 
   const handleMessageCollaborator = (collaborator: any) => {
-    setSelectedCollaborator(collaborator);
-    setShowNewMessageDialog(true);
-  };
-
-  const handleNewMessage = () => {
-    setSelectedCollaborator(null);
-    setShowNewMessageDialog(true);
+    // Navigate to messages and potentially pre-select collaborator
+    if (onNavigate) {
+      onNavigate('messages');
+    }
   };
 
   return (
@@ -45,7 +42,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
       <div className="space-y-8">
         {/* Quick Actions and Recent Projects Row with adjusted spacing */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <QuickActions onNavigate={onNavigate || (() => {})} onNewMessage={handleNewMessage} />
+          <QuickActions onNavigate={onNavigate || (() => {})} />
           <div className="lg:col-span-2">
             <RecentProjects onNavigate={onNavigate || (() => {})} />
           </div>
@@ -61,12 +58,6 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
       <NotificationsPanel 
         isOpen={showNotificationsPanel} 
         onClose={() => setShowNotificationsPanel(false)} 
-      />
-      
-      <NewMessageDialog 
-        isOpen={showNewMessageDialog}
-        onClose={() => setShowNewMessageDialog(false)}
-        selectedCollaborator={selectedCollaborator}
       />
     </div>
   );
