@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
+import { useNavigate } from 'react-router-dom';
 
 interface RecentProjectsProps {
   onNavigate: (tab: string) => void;
@@ -13,39 +14,27 @@ const RecentProjects = ({
   onNavigate
 }: RecentProjectsProps) => {
   const { projects, loading } = useProjects();
+  const navigate = useNavigate();
 
   // Get the 2 most recent projects
   const recentProjects = projects
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
     .slice(0, 2);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'on_hold':
-        return 'bg-blue-100 text-blue-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const getProjectStatus = (project: any) => {
+    if (!project.phases || project.phases.length === 0) {
+      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
     }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'In Progress';
-      case 'completed':
-        return 'Complete';
-      case 'on_hold':
-        return 'On Hold';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return status;
+    
+    const currentPhase = project.current_phase_index || 0;
+    const totalPhases = project.phases.length;
+    
+    if (currentPhase === 0) {
+      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
+    } else if (currentPhase >= totalPhases - 1) {
+      return { label: 'Completed', color: 'bg-green-100 text-green-800' };
+    } else {
+      return { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' };
     }
   };
 
@@ -66,7 +55,7 @@ const RecentProjects = ({
   };
 
   const handleProjectClick = (projectId: string) => {
-    onNavigate('projects');
+    navigate(`/projects/${projectId}`);
   };
 
   if (loading) {
@@ -108,29 +97,32 @@ const RecentProjects = ({
               <p>No projects yet. Start by creating your first project!</p>
             </div>
           ) : (
-            recentProjects.map(project => (
-              <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <h3 className="font-medium">{project.title || project.name}</h3>
-                  <p className="text-sm text-gray-500">{project.description || 'No description'}</p>
-                  <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {project.collaborators?.length || 0} collaborators
+            recentProjects.map(project => {
+              const projectStatus = getProjectStatus(project);
+              return (
+                <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium">{project.title || project.name}</h3>
+                    <p className="text-sm text-gray-500">{project.description || 'No description'}</p>
+                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        {project.collaborators?.length || 0} collaborators
+                      </div>
+                      <div>Updated {formatTimeAgo(project.updated_at)}</div>
                     </div>
-                    <div>Updated {formatTimeAgo(project.updated_at)}</div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Badge className={projectStatus.color}>
+                      {projectStatus.label}
+                    </Badge>
+                    <Button size="sm" onClick={() => handleProjectClick(project.id)} className="bg-purple-600 hover:bg-purple-700">
+                      View Project
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Badge className={getStatusColor(project.status)}>
-                    {getStatusLabel(project.status)}
-                  </Badge>
-                  <Button size="sm" onClick={() => handleProjectClick(project.id)} className="bg-purple-600 hover:bg-purple-700">
-                    View Project
-                  </Button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </CardContent>
