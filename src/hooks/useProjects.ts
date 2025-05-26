@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -237,12 +238,20 @@ export const useProjects = () => {
 
       if (error) throw error;
 
+      // Helper function to safely convert phases to string array
+      const convertPhasesToStringArray = (phases: any): string[] => {
+        if (Array.isArray(phases)) {
+          return phases.filter(phase => typeof phase === 'string') as string[];
+        }
+        return ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete'];
+      };
+
       // Map back for our interface with proper type handling
       const mappedProject: Project = {
         ...data,
         status: data.status === 'paused' ? 'on_hold' : data.status as 'active' | 'completed' | 'on_hold' | 'cancelled',
         visibility: data.visibility === 'unlisted' ? 'connections_only' : data.visibility as 'public' | 'private' | 'connections_only',
-        phases: Array.isArray(data.phases) ? data.phases : ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete']
+        phases: convertPhasesToStringArray(data.phases)
       };
 
       setProjects(prev => prev.map(project => project.id === id ? mappedProject : project));
