@@ -7,8 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Calendar, Users, Clock, Music, Zap, Settings as SettingsIcon, CheckCircle2, Circle, Edit, Plus, X, GripVertical, MessageSquare, FileText, ListTodo } from 'lucide-react';
+import { Calendar, Users, Clock, Music, Zap, Settings as SettingsIcon, CheckCircle2, Circle, Edit, Plus, X, GripVertical, MessageSquare, FileText, ListTodo, AlertCircle } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useToast } from '@/hooks/use-toast';
 
@@ -34,6 +33,51 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
   const { toast } = useToast();
 
   const progressPercentage = phases.length > 1 ? (currentPhase / (phases.length - 1)) * 100 : 0;
+
+  const getDaysUntilDeadline = (deadline: string) => {
+    if (!deadline) return null;
+    const today = new Date();
+    const deadlineDate = new Date(deadline);
+    const diffTime = deadlineDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const formatDeadline = (deadline: string) => {
+    if (!deadline) return null;
+    const daysUntil = getDaysUntilDeadline(deadline);
+    if (daysUntil === null) return null;
+    
+    if (daysUntil < 0) {
+      return { 
+        text: `${Math.abs(daysUntil)} days overdue`, 
+        color: 'text-red-600',
+        bgColor: 'bg-red-100',
+        icon: AlertCircle
+      };
+    } else if (daysUntil === 0) {
+      return { 
+        text: 'Due today', 
+        color: 'text-red-600',
+        bgColor: 'bg-red-100',
+        icon: AlertCircle
+      };
+    } else if (daysUntil <= 7) {
+      return { 
+        text: `${daysUntil} days left`, 
+        color: 'text-orange-600',
+        bgColor: 'bg-orange-100',
+        icon: Clock
+      };
+    } else {
+      return { 
+        text: `${daysUntil} days left`, 
+        color: 'text-gray-600',
+        bgColor: 'bg-gray-100',
+        icon: Clock
+      };
+    }
+  };
 
   const handlePhaseChange = async (newPhaseIndex: string) => {
     const phaseIndex = parseInt(newPhaseIndex);
@@ -131,9 +175,24 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
   };
 
   const projectStatus = getProjectStatus();
+  const deadlineInfo = formatDeadline(project.deadline);
 
   return (
     <div className="space-y-6">
+      {/* Deadline Alert (if urgent) */}
+      {deadlineInfo && (deadlineInfo.color === 'text-red-600' || deadlineInfo.color === 'text-orange-600') && (
+        <Card className={`border-l-4 ${deadlineInfo.color === 'text-red-600' ? 'border-l-red-500' : 'border-l-orange-500'}`}>
+          <CardContent className="p-4">
+            <div className={`flex items-center space-x-2 ${deadlineInfo.bgColor} p-3 rounded`}>
+              <deadlineInfo.icon className={`w-5 h-5 ${deadlineInfo.color}`} />
+              <span className={`font-medium ${deadlineInfo.color}`}>
+                Deadline: {deadlineInfo.text}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -268,9 +327,12 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
                 </div>
               )}
               
-              {project.mood && (
+              {deadlineInfo && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Mood: {project.mood}</span>
+                  <deadlineInfo.icon className={`w-4 h-4 ${deadlineInfo.color}`} />
+                  <span className={`text-sm ${deadlineInfo.color}`}>
+                    Deadline: {deadlineInfo.text}
+                  </span>
                 </div>
               )}
             </div>
@@ -293,16 +355,6 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
                 <p className="text-sm font-medium">{new Date(project.updated_at).toLocaleDateString()}</p>
               </div>
             </div>
-            
-            {project.deadline && (
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-600">Deadline</p>
-                  <p className="text-sm font-medium">{new Date(project.deadline).toLocaleDateString()}</p>
-                </div>
-              </div>
-            )}
             
             <div className="flex items-center space-x-2">
               <Users className="w-4 h-4 text-gray-400" />

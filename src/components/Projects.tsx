@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Plus, Search, Filter, Calendar, Users, Music, FolderPlus, Folder, MoreVertical, Edit, Trash2, Share2, Eye, ExternalLink } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Plus, Search, Filter, Calendar, Users, Music, FolderPlus, Folder, MoreVertical, Edit, Trash2, Share2, Eye, ExternalLink, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useFolders } from '@/hooks/useFolders';
@@ -25,11 +26,11 @@ const Projects = () => {
   } = useProjects();
   const {
     folders,
-    createFolder
+    createFolder,
+    loading: foldersLoading
   } = useFolders();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFolder, setSelectedFolder] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -41,12 +42,10 @@ const Projects = () => {
     genre: '',
     visibility: 'private' as 'private' | 'public' | 'connections_only',
     deadline: '',
-    budget: '',
     folder_id: '',
     bpm: '',
     key: '',
-    daw: '',
-    mood: ''
+    daw: ''
   });
   const [newFolder, setNewFolder] = useState({
     name: '',
@@ -56,36 +55,53 @@ const Projects = () => {
 
   const getProjectStatus = (project: any) => {
     if (!project.phases || project.phases.length === 0) {
-      return {
-        label: 'Not Started',
-        color: 'bg-red-100 text-red-800'
-      };
+      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
     }
     const currentPhase = project.current_phase_index || 0;
     const totalPhases = project.phases.length;
     if (currentPhase === 0) {
-      return {
-        label: 'Not Started',
-        color: 'bg-red-100 text-red-800'
-      };
+      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
     } else if (currentPhase >= totalPhases - 1) {
-      return {
-        label: 'Completed',
-        color: 'bg-green-100 text-green-800'
-      };
+      return { label: 'Completed', color: 'bg-green-100 text-green-800' };
     } else {
-      return {
-        label: 'In Progress',
-        color: 'bg-yellow-100 text-yellow-800'
-      };
+      return { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' };
+    }
+  };
+
+  const getDaysUntilDeadline = (deadline: string) => {
+    if (!deadline) return null;
+    const today = new Date();
+    const deadlineDate = new Date(deadline);
+    const diffTime = deadlineDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const formatDeadline = (deadline: string) => {
+    if (!deadline) return null;
+    const daysUntil = getDaysUntilDeadline(deadline);
+    if (daysUntil === null) return null;
+    
+    if (daysUntil < 0) {
+      return { text: `${Math.abs(daysUntil)} days overdue`, color: 'text-red-600' };
+    } else if (daysUntil === 0) {
+      return { text: 'Due today', color: 'text-red-600' };
+    } else if (daysUntil <= 7) {
+      return { text: `${daysUntil} days left`, color: 'text-orange-600' };
+    } else {
+      return { text: `${daysUntil} days left`, color: 'text-gray-600' };
     }
   };
 
   const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || project.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFolder = selectedFolder === 'all' || selectedFolder === 'none' && !project.folder_id || project.folder_id === selectedFolder;
+    const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         project.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFolder = selectedFolder === 'all' || 
+                         (selectedFolder === 'none' && !project.folder_id) || 
+                         project.folder_id === selectedFolder;
     const projectStatus = getProjectStatus(project);
-    const matchesStatus = statusFilter === 'all' || projectStatus.label.toLowerCase().replace(' ', '_') === statusFilter;
+    const matchesStatus = statusFilter === 'all' || 
+                         projectStatus.label.toLowerCase().replace(' ', '_') === statusFilter;
     return matchesSearch && matchesFolder && matchesStatus;
   });
 
@@ -94,7 +110,6 @@ const Projects = () => {
     try {
       const projectData = {
         ...newProject,
-        budget: newProject.budget ? parseFloat(newProject.budget) : undefined,
         bpm: newProject.bpm ? parseInt(newProject.bpm) : undefined,
         deadline: newProject.deadline || undefined,
         folder_id: newProject.folder_id || undefined
@@ -105,14 +120,12 @@ const Projects = () => {
         title: '',
         description: '',
         genre: '',
-        visibility: 'private' as 'private' | 'public' | 'connections_only',
+        visibility: 'private',
         deadline: '',
-        budget: '',
         folder_id: '',
         bpm: '',
         key: '',
-        daw: '',
-        mood: ''
+        daw: ''
       });
       toast({
         title: "Success",
@@ -156,8 +169,19 @@ const Projects = () => {
     }
   };
 
+  const handleAddToFolder = async (projectId: string, folderId: string) => {
+    try {
+      await updateProject(projectId, { folder_id: folderId || null });
+      toast({
+        title: "Success",
+        description: folderId ? "Project added to folder" : "Project removed from folder"
+      });
+    } catch (error) {
+      console.error('Error updating project folder:', error);
+    }
+  };
+
   const handleShareProject = (project: any) => {
-    // Copy project URL to clipboard
     const url = `${window.location.origin}/projects/${project.id}`;
     navigator.clipboard.writeText(url);
     toast({
@@ -174,18 +198,23 @@ const Projects = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  if (loading) {
-    return <div className="p-8">
+  if (loading || foldersLoading) {
+    return (
+      <div className="p-8">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => <div key={i} className="h-64 bg-gray-200 rounded"></div>)}
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+            ))}
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
 
-  return <div className="p-8">
+  return (
+    <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
@@ -207,24 +236,31 @@ const Projects = () => {
               <form onSubmit={handleCreateFolder} className="space-y-4">
                 <div>
                   <Label htmlFor="folderName">Folder Name</Label>
-                  <Input id="folderName" value={newFolder.name} onChange={e => setNewFolder({
-                  ...newFolder,
-                  name: e.target.value
-                })} placeholder="Enter folder name" required />
+                  <Input
+                    id="folderName"
+                    value={newFolder.name}
+                    onChange={(e) => setNewFolder({ ...newFolder, name: e.target.value })}
+                    placeholder="Enter folder name"
+                    required
+                  />
                 </div>
                 <div>
                   <Label htmlFor="folderDescription">Description</Label>
-                  <Textarea id="folderDescription" value={newFolder.description} onChange={e => setNewFolder({
-                  ...newFolder,
-                  description: e.target.value
-                })} placeholder="Enter folder description" />
+                  <Textarea
+                    id="folderDescription"
+                    value={newFolder.description}
+                    onChange={(e) => setNewFolder({ ...newFolder, description: e.target.value })}
+                    placeholder="Enter folder description"
+                  />
                 </div>
                 <div>
                   <Label htmlFor="folderColor">Color</Label>
-                  <Input id="folderColor" type="color" value={newFolder.color} onChange={e => setNewFolder({
-                  ...newFolder,
-                  color: e.target.value
-                })} />
+                  <Input
+                    id="folderColor"
+                    type="color"
+                    value={newFolder.color}
+                    onChange={(e) => setNewFolder({ ...newFolder, color: e.target.value })}
+                  />
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsFolderDialogOpen(false)}>
@@ -253,93 +289,95 @@ const Projects = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="title">Project Title</Label>
-                    <Input id="title" value={newProject.title} onChange={e => setNewProject({
-                    ...newProject,
-                    title: e.target.value
-                  })} placeholder="Enter project title" required />
+                    <Input
+                      id="title"
+                      value={newProject.title}
+                      onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                      placeholder="Enter project title"
+                      required
+                    />
                   </div>
                   <div>
                     <Label htmlFor="genre">Genre</Label>
-                    <Input id="genre" value={newProject.genre} onChange={e => setNewProject({
-                    ...newProject,
-                    genre: e.target.value
-                  })} placeholder="e.g., Hip-Hop, Pop, Rock" />
+                    <Input
+                      id="genre"
+                      value={newProject.genre}
+                      onChange={(e) => setNewProject({ ...newProject, genre: e.target.value })}
+                      placeholder="e.g., Hip-Hop, Pop, Rock"
+                    />
                   </div>
                 </div>
 
                 <div>
                   <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" value={newProject.description} onChange={e => setNewProject({
-                  ...newProject,
-                  description: e.target.value
-                })} placeholder="Describe your project..." />
+                  <Textarea
+                    id="description"
+                    value={newProject.description}
+                    onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                    placeholder="Describe your project..."
+                  />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="bpm">BPM</Label>
-                    <Input id="bpm" type="number" value={newProject.bpm} onChange={e => setNewProject({
-                    ...newProject,
-                    bpm: e.target.value
-                  })} placeholder="120" />
+                    <Input
+                      id="bpm"
+                      type="number"
+                      value={newProject.bpm}
+                      onChange={(e) => setNewProject({ ...newProject, bpm: e.target.value })}
+                      placeholder="120"
+                    />
                   </div>
                   <div>
                     <Label htmlFor="key">Key</Label>
-                    <Input id="key" value={newProject.key} onChange={e => setNewProject({
-                    ...newProject,
-                    key: e.target.value
-                  })} placeholder="C Major" />
+                    <Input
+                      id="key"
+                      value={newProject.key}
+                      onChange={(e) => setNewProject({ ...newProject, key: e.target.value })}
+                      placeholder="C Major"
+                    />
                   </div>
                   <div>
                     <Label htmlFor="daw">DAW</Label>
-                    <Input id="daw" value={newProject.daw} onChange={e => setNewProject({
-                    ...newProject,
-                    daw: e.target.value
-                  })} placeholder="Pro Tools, Logic, etc." />
+                    <Input
+                      id="daw"
+                      value={newProject.daw}
+                      onChange={(e) => setNewProject({ ...newProject, daw: e.target.value })}
+                      placeholder="Pro Tools, Logic, etc."
+                    />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="deadline">Deadline</Label>
-                    <Input id="deadline" type="date" value={newProject.deadline} onChange={e => setNewProject({
-                    ...newProject,
-                    deadline: e.target.value
-                  })} />
+                    <Input
+                      id="deadline"
+                      type="date"
+                      value={newProject.deadline}
+                      onChange={(e) => setNewProject({ ...newProject, deadline: e.target.value })}
+                    />
                   </div>
-                  <div>
-                    <Label htmlFor="budget">Budget ($)</Label>
-                    <Input id="budget" type="number" value={newProject.budget} onChange={e => setNewProject({
-                    ...newProject,
-                    budget: e.target.value
-                  })} placeholder="5000" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="folder">Folder</Label>
-                    <Select value={newProject.folder_id} onValueChange={value => setNewProject({
-                    ...newProject,
-                    folder_id: value
-                  })}>
+                    <Select value={newProject.folder_id} onValueChange={(value) => setNewProject({ ...newProject, folder_id: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a folder" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">No folder</SelectItem>
-                        {folders.map(folder => <SelectItem key={folder.id} value={folder.id}>
+                        {folders.map((folder) => (
+                          <SelectItem key={folder.id} value={folder.id}>
                             {folder.name}
-                          </SelectItem>)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <Label htmlFor="visibility">Visibility</Label>
-                    <Select value={newProject.visibility} onValueChange={value => setNewProject({
-                    ...newProject,
-                    visibility: value
-                  })}>
+                    <Select value={newProject.visibility} onValueChange={(value: 'private' | 'public' | 'connections_only') => setNewProject({ ...newProject, visibility: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -350,14 +388,6 @@ const Projects = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="mood">Mood/Vibe</Label>
-                  <Input id="mood" value={newProject.mood} onChange={e => setNewProject({
-                  ...newProject,
-                  mood: e.target.value
-                })} placeholder="Energetic, Chill, Dark, etc." />
                 </div>
 
                 <div className="flex justify-end space-x-2">
@@ -378,7 +408,12 @@ const Projects = () => {
       <div className="flex items-center space-x-4 mb-6">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input placeholder="Search projects..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
+          <Input
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
         
         <Select value={selectedFolder} onValueChange={setSelectedFolder}>
@@ -388,14 +423,17 @@ const Projects = () => {
           <SelectContent>
             <SelectItem value="all">All folders</SelectItem>
             <SelectItem value="none">No folder</SelectItem>
-            {folders.map(folder => <SelectItem key={folder.id} value={folder.id}>
+            {folders.map((folder) => (
+              <SelectItem key={folder.id} value={folder.id}>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded mr-2" style={{
-                backgroundColor: folder.color
-              }} />
+                  <div
+                    className="w-3 h-3 rounded mr-2"
+                    style={{ backgroundColor: folder.color }}
+                  />
                   {folder.name}
                 </div>
-              </SelectItem>)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -412,12 +450,49 @@ const Projects = () => {
         </Select>
       </div>
 
+      {/* Display folders */}
+      {selectedFolder === 'all' && folders.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Folders</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {folders.map((folder) => {
+              const folderProjects = projects.filter(p => p.folder_id === folder.id);
+              return (
+                <Card
+                  key={folder.id}
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => setSelectedFolder(folder.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className="w-8 h-8 rounded flex items-center justify-center"
+                        style={{ backgroundColor: folder.color }}
+                      >
+                        <Folder className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{folder.name}</h3>
+                        <p className="text-sm text-gray-500">{folderProjects.length} projects</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map(project => {
-        const projectStatus = getProjectStatus(project);
-        const folder = folders.find(f => f.id === project.folder_id);
-        return <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+        {filteredProjects.map((project) => {
+          const projectStatus = getProjectStatus(project);
+          const folder = folders.find(f => f.id === project.folder_id);
+          const deadlineInfo = formatDeadline(project.deadline);
+          
+          return (
+            <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -426,21 +501,68 @@ const Projects = () => {
                       <Badge className={projectStatus.color}>
                         {projectStatus.label}
                       </Badge>
-                      {project.genre && <Badge variant="outline">{project.genre}</Badge>}
+                      {project.genre && (
+                        <Badge variant="outline">{project.genre}</Badge>
+                      )}
                     </div>
-                    {folder && <div className="flex items-center text-sm text-gray-500 mb-2">
-                        <Folder className="w-4 h-4 mr-1" style={{
-                    color: folder.color
-                  }} />
+                    {folder && (
+                      <div className="flex items-center text-sm text-gray-500 mb-2">
+                        <Folder className="w-4 h-4 mr-1" style={{ color: folder.color }} />
                         {folder.name}
-                      </div>}
+                      </div>
+                    )}
+                    {deadlineInfo && (
+                      <div className={`flex items-center text-sm ${deadlineInfo.color} mb-2`}>
+                        <Clock className="w-4 h-4 mr-1" />
+                        {deadlineInfo.text}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Button variant="ghost" size="sm" onClick={() => handleShareProject(project)} title="Share project">
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                    
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleShareProject(project)}>
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share
+                      </DropdownMenuItem>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="w-full">
+                          <div className="flex items-center px-2 py-1.5 text-sm">
+                            <Folder className="w-4 h-4 mr-2" />
+                            Add to folder
+                          </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent side="left">
+                          <DropdownMenuItem onClick={() => handleAddToFolder(project.id, '')}>
+                            Remove from folder
+                          </DropdownMenuItem>
+                          {folders.map((folder) => (
+                            <DropdownMenuItem
+                              key={folder.id}
+                              onClick={() => handleAddToFolder(project.id, folder.id)}
+                            >
+                              <div
+                                className="w-3 h-3 rounded mr-2"
+                                style={{ backgroundColor: folder.color }}
+                              />
+                              {folder.name}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteProject(project.id)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardHeader>
               
@@ -461,51 +583,77 @@ const Projects = () => {
                     </div>
                   </div>
                   
-                  {project.bpm || project.key ? <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      {project.bpm && <div className="flex items-center">
+                  {(project.bpm || project.key) && (
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      {project.bpm && (
+                        <div className="flex items-center">
                           <Music className="w-4 h-4 mr-1" />
                           {project.bpm} BPM
-                        </div>}
+                        </div>
+                      )}
                       {project.key && <span>Key: {project.key}</span>}
-                    </div> : null}
+                    </div>
+                  )}
                   
-                  {project.collaborators && project.collaborators.length > 0 && <div className="flex items-center space-x-2">
+                  {project.collaborators && project.collaborators.length > 0 && (
+                    <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-500">Team:</span>
                       <div className="flex -space-x-2">
-                        {project.collaborators.slice(0, 3).map((collaborator, index) => <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
+                        {project.collaborators.slice(0, 3).map((collaborator, index) => (
+                          <div
+                            key={index}
+                            className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white"
+                          >
                             <span className="text-xs text-purple-700">
                               {getInitials(collaborator.profiles?.name || 'U')}
                             </span>
-                          </div>)}
-                        {project.collaborators.length > 3 && <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
-                            <span className="text-xs text-gray-600">+{project.collaborators.length - 3}</span>
-                          </div>}
+                          </div>
+                        ))}
+                        {project.collaborators.length > 3 && (
+                          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
+                            <span className="text-xs text-gray-600">
+                              +{project.collaborators.length - 3}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    </div>}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${project.id}`)} className="w-full bg-purple-500 hover:bg-purple-600 text-white hover:text-white">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/projects/${project.id}`)}
+                    className="w-full bg-purple-500 hover:bg-purple-600 text-white hover:text-white"
+                  >
                     Open Project
                   </Button>
-                  
                 </div>
               </CardContent>
-            </Card>;
-      })}
+            </Card>
+          );
+        })}
       </div>
       
-      {filteredProjects.length === 0 && <div className="text-center py-12">
+      {filteredProjects.length === 0 && (
+        <div className="text-center py-12">
           <Music className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
           <p className="text-gray-500 mb-4">
-            {searchTerm || selectedFolder !== 'all' || statusFilter !== 'all' ? 'Try adjusting your filters or search terms' : 'Create your first project to get started'}
+            {searchTerm || selectedFolder !== 'all' || statusFilter !== 'all'
+              ? 'Try adjusting your filters or search terms'
+              : 'Create your first project to get started'}
           </p>
           <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700">
             <Plus className="w-4 h-4 mr-2" />
             Create Project
           </Button>
-        </div>}
-    </div>;
+        </div>
+      )}
+    </div>
+  );
 };
+
 export default Projects;
