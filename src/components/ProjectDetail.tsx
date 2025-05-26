@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File, ListTodo } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import Sidebar from './Sidebar';
 import ProjectFiles from './project/ProjectFiles';
@@ -11,6 +9,7 @@ import ProjectChat from './project/ProjectChat';
 import ProjectCollaborators from './project/ProjectCollaborators';
 import ProjectInfo from './project/ProjectInfo';
 import ProjectSettings from './project/ProjectSettings';
+import ProjectTodos from './project/ProjectTodos';
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
@@ -78,10 +77,10 @@ const ProjectDetail = () => {
         </div>
         <div className="flex-1 ml-[90px] p-8">
           <div className="flex items-center space-x-4 mb-6">
-            <Button variant="ghost" onClick={() => navigate('/projects')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Projects
-            </Button>
+            <button onClick={() => navigate('/projects')} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Projects</span>
+            </button>
           </div>
           <div className="text-center">
             <p className="text-gray-500">Project not found</p>
@@ -163,6 +162,7 @@ const ProjectDetail = () => {
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: Info },
     { id: 'files', label: 'Files', icon: FileText },
+    { id: 'todos', label: 'To-Do', icon: ListTodo },
     { id: 'chat', label: 'Chat', icon: MessageSquare },
     { id: 'collaborators', label: 'Team', icon: Users },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -174,6 +174,8 @@ const ProjectDetail = () => {
         return <ProjectInfo project={project} />;
       case 'files':
         return <ProjectFiles projectId={project.id} />;
+      case 'todos':
+        return <ProjectTodos projectId={project.id} />;
       case 'chat':
         return <ProjectChat projectId={project.id} />;
       case 'collaborators':
@@ -196,10 +198,10 @@ const ProjectDetail = () => {
       <div className="w-[320px] ml-[90px] bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
         <div className="p-6 border-b">
-          <Button variant="ghost" onClick={() => navigate('/projects')} className="mb-4 -ml-2">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Projects
-          </Button>
+          <button onClick={() => navigate('/projects')} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-4 -ml-2">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Projects</span>
+          </button>
           
           <h1 className="text-xl font-bold text-gray-900 mb-2">
             {project.title || project.name}
@@ -258,12 +260,12 @@ const ProjectDetail = () => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <button className="p-1 text-gray-400 hover:text-gray-600">
                     <Download className="w-3 h-3" />
-                  </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
+                  </button>
+                  <button className="p-1 text-gray-400 hover:text-red-600">
                     <Trash2 className="w-3 h-3" />
-                  </Button>
+                  </button>
                 </div>
               </div>
             ))}
@@ -295,7 +297,7 @@ const ProjectDetail = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Top Bar - Removed quick actions */}
+        {/* Top Bar */}
         <div className="bg-white border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -320,7 +322,7 @@ const ProjectDetail = () => {
                     {project.collaborators.slice(0, 4).map((collaborator, index) => (
                       <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
                         <span className="text-xs text-purple-700">
-                          {getInitials(collaborator.name)}
+                          {getInitials(collaborator.profiles?.name || 'U')}
                         </span>
                       </div>
                     ))}

@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Trash2, Save } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Trash2, Save, Plus, X } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +20,13 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
   const [projectName, setProjectName] = useState(project.title || project.name || '');
   const [projectGenre, setProjectGenre] = useState(project.genre || '');
   const [projectDescription, setProjectDescription] = useState(project.description || '');
+  const [projectBpm, setProjectBpm] = useState(project.bpm || '');
+  const [projectKey, setProjectKey] = useState(project.key || '');
+  const [projectDaw, setProjectDaw] = useState(project.daw || '');
+  const [projectMood, setProjectMood] = useState(project.mood || '');
+  const [versionApproval, setVersionApproval] = useState(project.version_approval_enabled || false);
+  const [phases, setPhases] = useState(project.phases || ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete']);
+  const [newPhase, setNewPhase] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -33,7 +41,13 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
         title: projectName,
         name: projectName,
         genre: projectGenre,
-        description: projectDescription
+        description: projectDescription,
+        bpm: projectBpm ? parseInt(projectBpm) : undefined,
+        key: projectKey || undefined,
+        daw: projectDaw || undefined,
+        mood: projectMood || undefined,
+        version_approval_enabled: versionApproval,
+        phases: phases
       });
       toast({
         title: "Success",
@@ -73,10 +87,33 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
     }
   };
 
+  const addPhase = () => {
+    if (newPhase.trim() && !phases.includes(newPhase.trim())) {
+      setPhases([...phases, newPhase.trim()]);
+      setNewPhase('');
+    }
+  };
+
+  const removePhase = (index: number) => {
+    if (phases.length > 1) {
+      setPhases(phases.filter((_, i) => i !== index));
+    }
+  };
+
   const genres = [
     'Pop', 'Rock', 'Hip Hop', 'R&B', 'Jazz', 'Blues', 'Country', 'Electronic',
     'Classical', 'Folk', 'Reggae', 'Funk', 'Soul', 'Punk', 'Metal', 'Indie',
     'Alternative', 'House', 'Techno', 'Trap', 'Lo-fi', 'Ambient', 'Other'
+  ];
+
+  const musicalKeys = [
+    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+    'Cm', 'C#m', 'Dm', 'D#m', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'A#m', 'Bm'
+  ];
+
+  const daws = [
+    'Ableton Live', 'Logic Pro', 'Pro Tools', 'FL Studio', 'Cubase', 'Studio One',
+    'Reaper', 'GarageBand', 'Reason', 'Bitwig Studio', 'Other'
   ];
 
   return (
@@ -97,20 +134,79 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="project-genre">Genre</Label>
+              <Select value={projectGenre} onValueChange={setProjectGenre}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  {genres.map((genre) => (
+                    <SelectItem key={genre} value={genre}>
+                      {genre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="project-bpm">BPM</Label>
+              <Input
+                id="project-bpm"
+                type="number"
+                value={projectBpm}
+                onChange={(e) => setProjectBpm(e.target.value)}
+                placeholder="120"
+                min="60"
+                max="200"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="project-key">Key</Label>
+              <Select value={projectKey} onValueChange={setProjectKey}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select key" />
+                </SelectTrigger>
+                <SelectContent>
+                  {musicalKeys.map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {key}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="project-daw">DAW</Label>
+              <Select value={projectDaw} onValueChange={setProjectDaw}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select DAW" />
+                </SelectTrigger>
+                <SelectContent>
+                  {daws.map((daw) => (
+                    <SelectItem key={daw} value={daw}>
+                      {daw}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div>
-            <Label htmlFor="project-genre">Genre</Label>
-            <Select value={projectGenre} onValueChange={setProjectGenre}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a genre" />
-              </SelectTrigger>
-              <SelectContent>
-                {genres.map((genre) => (
-                  <SelectItem key={genre} value={genre}>
-                    {genre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="project-mood">Mood</Label>
+            <Input
+              id="project-mood"
+              value={projectMood}
+              onChange={(e) => setProjectMood(e.target.value)}
+              placeholder="e.g., Energetic, Melancholic, Uplifting"
+            />
           </div>
 
           <div>
@@ -132,6 +228,64 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
             <Save className="w-4 h-4 mr-2" />
             {isUpdating ? 'Updating...' : 'Save Changes'}
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Project Phases */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Project Phases</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            {phases.map((phase, index) => (
+              <div key={index} className="flex items-center justify-between p-2 border rounded">
+                <span>{phase}</span>
+                {phases.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removePhase(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex space-x-2">
+            <Input
+              value={newPhase}
+              onChange={(e) => setNewPhase(e.target.value)}
+              placeholder="Add new phase"
+              onKeyPress={(e) => e.key === 'Enter' && addPhase()}
+            />
+            <Button onClick={addPhase} variant="outline">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* File Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>File Settings</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="version-approval">Enable Version Approvals</Label>
+              <p className="text-sm text-gray-500">Require owner approval for file uploads</p>
+            </div>
+            <Switch
+              id="version-approval"
+              checked={versionApproval}
+              onCheckedChange={setVersionApproval}
+            />
+          </div>
         </CardContent>
       </Card>
 

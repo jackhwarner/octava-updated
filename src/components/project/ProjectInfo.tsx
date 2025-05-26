@@ -1,10 +1,13 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Target, Clock, DollarSign, Calendar, Users, TrendingUp, Activity } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar, Users, Clock, Music, Zap, Settings as SettingsIcon, CheckCircle2, Circle } from 'lucide-react';
+import { useProjects } from '@/hooks/useProjects';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectInfoProps {
@@ -12,249 +15,287 @@ interface ProjectInfoProps {
 }
 
 const ProjectInfo = ({ project }: ProjectInfoProps) => {
-  const [stats, setStats] = useState({
-    fileCount: 0,
-    messageCount: 0,
-    collaboratorCount: 0
-  });
-  const [loading, setLoading] = useState(true);
+  const [currentPhase, setCurrentPhase] = useState(project.current_phase_index || 0);
+  const [updatingPhase, setUpdatingPhase] = useState(false);
+  const { updateProject } = useProjects();
+  const { toast } = useToast();
 
-  useEffect(() => {
-    fetchProjectStats();
-  }, [project.id]);
+  const phases = project.phases || ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete'];
+  const progressPercentage = phases.length > 1 ? (currentPhase / (phases.length - 1)) * 100 : 0;
 
-  const fetchProjectStats = async () => {
+  const handlePhaseChange = async (newPhaseIndex: string) => {
+    const phaseIndex = parseInt(newPhaseIndex);
+    setUpdatingPhase(true);
+    
     try {
-      // Fetch file count
-      const { count: fileCount } = await supabase
-        .from('project_files')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', project.id);
-
-      // Fetch message count
-      const { count: messageCount } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', project.id);
-
-      // Fetch collaborator count
-      const { count: collaboratorCount } = await supabase
-        .from('project_collaborators')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', project.id)
-        .eq('status', 'accepted');
-
-      setStats({
-        fileCount: fileCount || 0,
-        messageCount: messageCount || 0,
-        collaboratorCount: (collaboratorCount || 0) + 1 // +1 for owner
+      await updateProject(project.id, {
+        current_phase_index: phaseIndex
+      });
+      
+      setCurrentPhase(phaseIndex);
+      toast({
+        title: "Success",
+        description: `Project phase updated to ${phases[phaseIndex]}`,
       });
     } catch (error) {
-      console.error('Error fetching project stats:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update project phase",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setUpdatingPhase(false);
     }
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'on_hold':
+        return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
-  const progressPercentage = project.status === 'completed' ? 100 : 
-                            project.status === 'active' ? 65 : 
-                            project.status === 'on_hold' ? 30 : 15;
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'In Progress';
+      case 'on_hold':
+        return 'On Hold';
+      case 'completed':
+        return 'Complete';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main Info */}
-      <div className="lg:col-span-2 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Project Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700 leading-relaxed">
-              {project.description || 'No description provided.'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Project Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Overall Progress</span>
-                <span className="text-sm text-gray-500">{progressPercentage}%</span>
+    <div className="space-y-6">
+      {/* Project Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Project Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Status and Progress */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium">Progress</span>
+                <Badge className={getStatusColor(project.status)}>
+                  {getStatusLabel(project.status)}
+                </Badge>
               </div>
-              <Progress value={progressPercentage} className="w-full" />
-              
-              <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {loading ? '...' : stats.fileCount}
-                  </div>
-                  <div className="text-sm text-gray-500">Files Uploaded</div>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {loading ? '...' : stats.messageCount}
-                  </div>
-                  <div className="text-sm text-gray-500">Messages Sent</div>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {loading ? '...' : stats.collaboratorCount}
-                  </div>
-                  <div className="text-sm text-gray-500">Team Members</div>
-                </div>
-              </div>
+              <span className="text-sm text-gray-500">
+                {Math.round(progressPercentage)}% Complete
+              </span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm text-gray-900">Project created</p>
-                  <p className="text-xs text-gray-500">{new Date(project.created_at).toLocaleDateString()}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm text-gray-900">Project last updated</p>
-                  <p className="text-xs text-gray-500">{new Date(project.updated_at).toLocaleDateString()}</p>
-                </div>
-              </div>
-              
-              {stats.fileCount > 0 && (
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm text-gray-900">Files uploaded</p>
-                    <p className="text-xs text-gray-500">{stats.fileCount} files added to project</p>
-                  </div>
-                </div>
-              )}
-
-              {stats.messageCount > 0 && (
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm text-gray-900">Team collaboration</p>
-                    <p className="text-xs text-gray-500">{stats.messageCount} messages exchanged</p>
-                  </div>
-                </div>
-              )}
+            
+            <Progress value={progressPercentage} className="mb-4" />
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Current Phase:</span>
+              <Select 
+                value={currentPhase.toString()} 
+                onValueChange={handlePhaseChange}
+                disabled={updatingPhase}
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {phases.map((phase, index) => (
+                    <SelectItem key={index} value={index.toString()}>
+                      <div className="flex items-center space-x-2">
+                        {index <= currentPhase ? (
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <Circle className="w-4 h-4 text-gray-400" />
+                        )}
+                        <span>{phase}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
 
-      {/* Sidebar Info */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Project Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <Target className="w-4 h-4 text-gray-500" />
-              <div>
-                <p className="text-sm font-medium">Genre</p>
-                <p className="text-sm text-gray-600">{project.genre || 'Not specified'}</p>
-              </div>
+          {/* Project Description */}
+          {project.description && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Description</h3>
+              <p className="text-sm text-gray-600">{project.description}</p>
             </div>
+          )}
 
-            {project.deadline && (
-              <div className="flex items-center space-x-3">
-                <Calendar className="w-4 h-4 text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium">Deadline</p>
-                  <p className="text-sm text-gray-600">{new Date(project.deadline).toLocaleDateString()}</p>
-                </div>
+          {/* Project Metadata */}
+          <div className="grid grid-cols-2 gap-4">
+            {project.genre && (
+              <div className="flex items-center space-x-2">
+                <Music className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">Genre: {project.genre}</span>
               </div>
             )}
+            
+            {project.bpm && (
+              <div className="flex items-center space-x-2">
+                <Zap className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">BPM: {project.bpm}</span>
+              </div>
+            )}
+            
+            {project.key && (
+              <div className="flex items-center space-x-2">
+                <Music className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">Key: {project.key}</span>
+              </div>
+            )}
+            
+            {project.daw && (
+              <div className="flex items-center space-x-2">
+                <SettingsIcon className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">DAW: {project.daw}</span>
+              </div>
+            )}
+            
+            {project.mood && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Mood: {project.mood}</span>
+              </div>
+            )}
+          </div>
 
-            {project.budget && (
-              <div className="flex items-center space-x-3">
-                <DollarSign className="w-4 h-4 text-gray-500" />
+          {/* Timeline */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-sm text-gray-600">Created</p>
+                <p className="text-sm font-medium">{new Date(project.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-sm text-gray-600">Last Updated</p>
+                <p className="text-sm font-medium">{new Date(project.updated_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+            
+            {project.deadline && (
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4 text-gray-400" />
                 <div>
-                  <p className="text-sm font-medium">Budget</p>
-                  <p className="text-sm text-gray-600">${project.budget}</p>
+                  <p className="text-sm text-gray-600">Deadline</p>
+                  <p className="text-sm font-medium">{new Date(project.deadline).toLocaleDateString()}</p>
                 </div>
               </div>
             )}
             
-            <div className="flex items-center space-x-3">
-              <Target className="w-4 h-4 text-gray-500" />
+            <div className="flex items-center space-x-2">
+              <Users className="w-4 h-4 text-gray-400" />
               <div>
-                <p className="text-sm font-medium">Visibility</p>
-                <p className="text-sm text-gray-600 capitalize">{project.visibility}</p>
+                <p className="text-sm text-gray-600">Team Size</p>
+                <p className="text-sm font-medium">{(project.collaborators?.length || 0) + 1}</p>
               </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Project Phases Timeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Project Phases</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {phases.map((phase, index) => (
+              <div key={index} className="flex items-center space-x-4">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  index <= currentPhase 
+                    ? 'bg-purple-600 text-white' 
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {index < currentPhase ? (
+                    <CheckCircle2 className="w-4 h-4" />
+                  ) : index === currentPhase ? (
+                    <Circle className="w-4 h-4 fill-current" />
+                  ) : (
+                    <Circle className="w-4 h-4" />
+                  )}
+                </div>
+                
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className={`font-medium ${
+                      index <= currentPhase ? 'text-gray-900' : 'text-gray-500'
+                    }`}>
+                      {phase}
+                    </span>
+                    {index === currentPhase && (
+                      <Badge variant="outline" className="text-purple-600 border-purple-600">
+                        Current
+                      </Badge>
+                    )}
+                    {index < currentPhase && (
+                      <Badge variant="outline" className="text-green-600 border-green-600">
+                        Complete
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-purple-600">12</p>
+              <p className="text-sm text-gray-600">Files</p>
             </div>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button className="w-full bg-purple-600 hover:bg-purple-700">
-              Schedule Session
-            </Button>
-            <Button variant="outline" className="w-full">
-              Export Project
-            </Button>
-            <Button variant="outline" className="w-full">
-              Share Project
-            </Button>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-600">45</p>
+              <p className="text-sm text-gray-600">Messages</p>
+            </div>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardHeader>
-            <CardTitle>Project Stats</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Files</span>
-                <Badge variant="outline">{loading ? '...' : stats.fileCount}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Messages</span>
-                <Badge variant="outline">{loading ? '...' : stats.messageCount}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Team Members</span>
-                <Badge variant="outline">{loading ? '...' : stats.collaboratorCount}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Status</span>
-                <Badge className={
-                  project.status === 'active' ? 'bg-yellow-100 text-yellow-800' :
-                  project.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  project.status === 'on_hold' ? 'bg-blue-100 text-blue-800' :
-                  'bg-red-100 text-red-800'
-                }>
-                  {project.status === 'active' ? 'In Progress' :
-                   project.status === 'on_hold' ? 'On Hold' :
-                   project.status === 'completed' ? 'Complete' :
-                   'Cancelled'}
-                </Badge>
-              </div>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">8</p>
+              <p className="text-sm text-gray-600">Tasks Done</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-orange-600">{(project.collaborators?.length || 0) + 1}</p>
+              <p className="text-sm text-gray-600">Team Members</p>
             </div>
           </CardContent>
         </Card>

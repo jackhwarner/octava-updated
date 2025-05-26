@@ -133,6 +133,12 @@ export const useProjects = () => {
     deadline?: string;
     budget?: number;
     folder_id?: string;
+    bpm?: number;
+    key?: string;
+    daw?: string;
+    mood?: string;
+    phases?: string[];
+    version_approval_enabled?: boolean;
   }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -149,7 +155,14 @@ export const useProjects = () => {
         deadline: projectData.deadline,
         budget: projectData.budget,
         status: 'active' as const,
-        folder_id: projectData.folder_id
+        folder_id: projectData.folder_id,
+        bpm: projectData.bpm,
+        key: projectData.key,
+        daw: projectData.daw,
+        mood: projectData.mood,
+        phases: projectData.phases || ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete'],
+        current_phase_index: 0,
+        version_approval_enabled: projectData.version_approval_enabled || false
       };
 
       const { data, error } = await supabase
@@ -187,6 +200,13 @@ export const useProjects = () => {
     deadline?: string;
     budget?: number;
     folder_id?: string;
+    bpm?: number;
+    key?: string;
+    daw?: string;
+    mood?: string;
+    phases?: string[];
+    current_phase_index?: number;
+    version_approval_enabled?: boolean;
   }) => {
     try {
       // Map our interface values to database values with proper typing

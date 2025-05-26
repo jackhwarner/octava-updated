@@ -372,6 +372,7 @@ export type Database = {
           joined_at: string | null
           project_id: string
           role: string | null
+          role_name: string | null
           status: Database["public"]["Enums"]["collaboration_status"] | null
           user_id: string
         }
@@ -381,6 +382,7 @@ export type Database = {
           joined_at?: string | null
           project_id: string
           role?: string | null
+          role_name?: string | null
           status?: Database["public"]["Enums"]["collaboration_status"] | null
           user_id: string
         }
@@ -390,6 +392,7 @@ export type Database = {
           joined_at?: string | null
           project_id?: string
           role?: string | null
+          role_name?: string | null
           status?: Database["public"]["Enums"]["collaboration_status"] | null
           user_id?: string
         }
@@ -464,6 +467,8 @@ export type Database = {
       }
       project_files: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           created_at: string | null
           description: string | null
           file_name: string
@@ -471,10 +476,16 @@ export type Database = {
           file_size: number | null
           file_type: string | null
           id: string
+          is_pending_approval: boolean | null
+          parent_file_id: string | null
           project_id: string
           uploaded_by: string
+          version: number | null
+          version_notes: string | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           description?: string | null
           file_name: string
@@ -482,10 +493,16 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           id?: string
+          is_pending_approval?: boolean | null
+          parent_file_id?: string | null
           project_id: string
           uploaded_by: string
+          version?: number | null
+          version_notes?: string | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           description?: string | null
           file_name?: string
@@ -493,10 +510,28 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           id?: string
+          is_pending_approval?: boolean | null
+          parent_file_id?: string | null
           project_id?: string
           uploaded_by?: string
+          version?: number | null
+          version_notes?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "project_files_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_files_parent_file_id_fkey"
+            columns: ["parent_file_id"]
+            isOneToOne: false
+            referencedRelation: "project_files"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "project_files_project_id_fkey"
             columns: ["project_id"]
@@ -543,50 +578,132 @@ export type Database = {
         }
         Relationships: []
       }
+      project_todos: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          project_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          project_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          project_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_todos_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_todos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_todos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
+          bpm: number | null
           budget: number | null
           created_at: string | null
+          current_phase_index: number | null
+          daw: string | null
           deadline: string | null
           description: string | null
           folder_id: string | null
           genre: string | null
           id: string
+          key: string | null
+          mood: string | null
           name: string | null
           owner_id: string
+          phases: Json | null
           status: Database["public"]["Enums"]["project_status"] | null
           title: string | null
           updated_at: string | null
+          version_approval_enabled: boolean | null
           visibility: Database["public"]["Enums"]["visibility_type"] | null
         }
         Insert: {
+          bpm?: number | null
           budget?: number | null
           created_at?: string | null
+          current_phase_index?: number | null
+          daw?: string | null
           deadline?: string | null
           description?: string | null
           folder_id?: string | null
           genre?: string | null
           id?: string
+          key?: string | null
+          mood?: string | null
           name?: string | null
           owner_id: string
+          phases?: Json | null
           status?: Database["public"]["Enums"]["project_status"] | null
           title?: string | null
           updated_at?: string | null
+          version_approval_enabled?: boolean | null
           visibility?: Database["public"]["Enums"]["visibility_type"] | null
         }
         Update: {
+          bpm?: number | null
           budget?: number | null
           created_at?: string | null
+          current_phase_index?: number | null
+          daw?: string | null
           deadline?: string | null
           description?: string | null
           folder_id?: string | null
           genre?: string | null
           id?: string
+          key?: string | null
+          mood?: string | null
           name?: string | null
           owner_id?: string
+          phases?: Json | null
           status?: Database["public"]["Enums"]["project_status"] | null
           title?: string | null
           updated_at?: string | null
+          version_approval_enabled?: boolean | null
           visibility?: Database["public"]["Enums"]["visibility_type"] | null
         }
         Relationships: [
