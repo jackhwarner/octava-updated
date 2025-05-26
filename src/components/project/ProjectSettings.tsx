@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Project } from '@/types/project';
 import { useForm } from 'react-hook-form';
@@ -17,7 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePicker } from "@/components/ui/date-picker"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { useProjectOperations } from '@/hooks/useProjectOperations';
 
 const formSchema = z.object({
@@ -58,14 +58,14 @@ const ProjectSettings = ({ project, onUpdate }: ProjectSettingsProps) => {
     },
   })
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       const updates = {
         title: data.title,
         description: data.description,
         genre: data.genre,
         visibility: data.visibility,
-        deadline: data.deadline || undefined,
+        deadline: data.deadline ? data.deadline.toISOString() : undefined,
         bpm: data.bpm || undefined,
         key: data.key || undefined,
         daw: data.daw || undefined,
@@ -79,8 +79,6 @@ const ProjectSettings = ({ project, onUpdate }: ProjectSettingsProps) => {
       console.error('Error updating project:', error);
     }
   };
-
-  type FormData = z.infer<typeof formSchema>;
 
   return (
     <div className="space-y-4">
@@ -166,6 +164,7 @@ const ProjectSettings = ({ project, onUpdate }: ProjectSettingsProps) => {
                   disabled={!isEditing}
                   onSelect={field.onChange}
                   defaultValue={field.value}
+                  placeholder="Select deadline"
                 />
                 <FormMessage />
               </FormItem>
@@ -184,6 +183,7 @@ const ProjectSettings = ({ project, onUpdate }: ProjectSettingsProps) => {
                     type="number"
                     placeholder="Enter BPM"
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                   />
                 </FormControl>
                 <FormMessage />

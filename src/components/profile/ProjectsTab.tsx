@@ -1,13 +1,9 @@
+
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Project } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
-
-interface ProjectsTabProps {
-  userId: string;
-}
 
 const ProjectsTab = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -40,7 +36,30 @@ const ProjectsTab = () => {
           throw new Error(error.message);
         }
 
-        setProjects(data || []);
+        // Map the data to match our Project interface
+        const mappedProjects: Project[] = (data || []).map((project: any) => ({
+          id: project.id,
+          title: project.title,
+          name: project.name || project.title,
+          description: project.description,
+          genre: project.genre,
+          status: project.status === 'paused' ? 'on_hold' : project.status, // Map paused to on_hold
+          visibility: project.visibility,
+          owner_id: project.owner_id,
+          created_at: project.created_at,
+          updated_at: project.updated_at,
+          deadline: project.deadline,
+          folder_id: project.folder_id,
+          bpm: project.bpm,
+          key: project.key,
+          daw: project.daw,
+          phases: project.phases,
+          current_phase_index: project.current_phase_index,
+          version_approval_enabled: project.version_approval_enabled,
+          collaborators: project.collaborators || []
+        }));
+
+        setProjects(mappedProjects);
       } catch (err: any) {
         setError(err);
         console.error("Error fetching projects:", err);
@@ -57,7 +76,7 @@ const ProjectsTab = () => {
       case 'active':
         return 'default';
       case 'completed':
-        return 'success';
+        return 'outline'; // Changed from 'success' to 'outline'
       case 'on_hold':
         return 'secondary';
       case 'cancelled':
@@ -71,7 +90,6 @@ const ProjectsTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Projects</h2>
-        {/* <Button>Add Project</Button> */}
       </div>
 
       <div className="grid gap-4">
