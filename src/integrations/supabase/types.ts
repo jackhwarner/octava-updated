@@ -988,6 +988,14 @@ export type Database = {
         Args: { user1_id: string; user2_id: string }
         Returns: boolean
       }
+      increment_play_count: {
+        Args: { track_id: string }
+        Returns: undefined
+      }
+      increment_user_plays: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
       user_can_access_project: {
         Args: { project_id: string; user_id: string }
         Returns: boolean

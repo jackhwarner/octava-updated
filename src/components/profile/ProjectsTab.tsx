@@ -4,23 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, Music, ExternalLink, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-interface Project {
-  id: string;
-  title: string;
-  name: string;
-  description: string;
-  status: 'active' | 'completed' | 'on_hold';
-  genre: string;
-  created_at: string;
-  deadline: string;
-  bpm: number;
-  key: string;
-  mood: string;
-  current_phase_index: number;
-  phases: string[];
-  collaborators?: Array<{ user_id: string; role_name: string }>;
-}
+import type { Project } from '@/hooks/useProjects';
 
 interface ProjectsTabProps {
   projects: Project[];
@@ -51,12 +35,12 @@ export const ProjectsTab = ({ projects }: ProjectsTabProps) => {
   };
 
   const getCurrentPhase = (project: Project) => {
-    return project.phases?.[project.current_phase_index] || 'Unknown';
+    return project.phases?.[project.current_phase_index || 0] || 'Unknown';
   };
 
   const getPhaseProgress = (project: Project) => {
     if (!project.phases) return 0;
-    return ((project.current_phase_index + 1) / project.phases.length) * 100;
+    return (((project.current_phase_index || 0) + 1) / project.phases.length) * 100;
   };
 
   if (projects.length === 0) {
@@ -125,7 +109,7 @@ export const ProjectsTab = ({ projects }: ProjectsTabProps) => {
                   Current Phase: {getCurrentPhase(project)}
                 </span>
                 <span className="text-xs text-gray-500">
-                  {project.current_phase_index + 1} of {project.phases?.length || 0}
+                  {(project.current_phase_index || 0) + 1} of {project.phases?.length || 0}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -136,7 +120,7 @@ export const ProjectsTab = ({ projects }: ProjectsTabProps) => {
               </div>
             </div>
 
-            {project.key || project.mood ? (
+            {(project.key || project.mood) && (
               <div className="flex gap-2 mt-3">
                 {project.key && (
                   <Badge variant="outline" className="text-xs">
@@ -149,7 +133,7 @@ export const ProjectsTab = ({ projects }: ProjectsTabProps) => {
                   </Badge>
                 )}
               </div>
-            ) : null}
+            )}
           </CardContent>
         </Card>
       ))}

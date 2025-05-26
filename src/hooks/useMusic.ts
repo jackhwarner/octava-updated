@@ -121,20 +121,13 @@ export const useMusic = () => {
 
   const incrementPlayCount = async (trackId: string, userId: string) => {
     try {
-      // Increment track play count using RPC or raw SQL
-      const { error: trackError } = await supabase.rpc('increment_play_count', {
-        track_id: trackId
-      });
+      // Increment track play count using raw SQL
+      const { error: trackError } = await supabase
+        .from('songs')
+        .update({ play_count: tracks.find(t => t.id === trackId)?.play_count + 1 || 1 })
+        .eq('id', trackId);
 
-      if (trackError) {
-        // Fallback to regular update
-        const { error: fallbackError } = await supabase
-          .from('songs')
-          .update({ play_count: tracks.find(t => t.id === trackId)?.play_count + 1 || 1 })
-          .eq('id', trackId);
-
-        if (fallbackError) throw fallbackError;
-      }
+      if (trackError) throw trackError;
 
       // Update local state
       setTracks(prev => prev.map(track => 
@@ -144,9 +137,10 @@ export const useMusic = () => {
       ));
 
       // Increment user's total play count
-      const { error: profileError } = await supabase.rpc('increment_user_plays', {
-        user_id: userId
-      });
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ total_plays: (await supabase.from('profiles').select('total_plays').eq('id', userId).single()).data?.total_plays + 1 || 1 })
+        .eq('id', userId);
 
       if (profileError) {
         console.error('Error updating user play count:', profileError);

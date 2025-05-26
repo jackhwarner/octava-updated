@@ -35,16 +35,22 @@ export const useRecentFiles = () => {
       }
 
       // Get projects the user has access to
-      const { data: accessibleProjects, error: projectsError } = await supabase
+      const { data: ownedProjects } = await supabase
         .from('projects')
         .select('id')
-        .or(`owner_id.eq.${user.id},id.in.(${await getUserCollaboratorProjects(user.id)})`);
+        .eq('owner_id', user.id);
 
-      if (projectsError) throw projectsError;
+      const { data: collaboratorProjects } = await supabase
+        .from('project_collaborators')
+        .select('project_id')
+        .eq('user_id', user.id)
+        .eq('status', 'accepted');
 
-      const projectIds = accessibleProjects?.map(p => p.id) || [];
+      const ownedIds = ownedProjects?.map(p => p.id) || [];
+      const collabIds = collaboratorProjects?.map(c => c.project_id) || [];
+      const allProjectIds = [...ownedIds, ...collabIds];
 
-      if (projectIds.length === 0) {
+      if (allProjectIds.length === 0) {
         setLoading(false);
         return;
       }
@@ -68,7 +74,7 @@ export const useRecentFiles = () => {
             name
           )
         `)
-        .in('project_id', projectIds)
+        .in('project_id', allProjectIds)
         .eq('is_pending_approval', false)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -85,16 +91,6 @@ export const useRecentFiles = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getUserCollaboratorProjects = async (userId: string): Promise<string> => {
-    const { data } = await supabase
-      .from('project_collaborators')
-      .select('project_id')
-      .eq('user_id', userId)
-      .eq('status', 'accepted');
-    
-    return data?.map(p => p.project_id).join(',') || '';
   };
 
   useEffect(() => {
