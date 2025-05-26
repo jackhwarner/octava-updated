@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -114,6 +113,7 @@ export const useProjects = () => {
           ...project,
           status: project.status === 'paused' ? 'on_hold' : project.status as 'active' | 'completed' | 'on_hold' | 'cancelled',
           visibility: project.visibility === 'unlisted' ? 'connections_only' : project.visibility as 'public' | 'private' | 'connections_only',
+          phases: Array.isArray(project.phases) ? project.phases : ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete'],
           collaborators: projectCollaborators || []
         };
       });
@@ -237,11 +237,12 @@ export const useProjects = () => {
 
       if (error) throw error;
 
-      // Map back for our interface
+      // Map back for our interface with proper type handling
       const mappedProject: Project = {
         ...data,
         status: data.status === 'paused' ? 'on_hold' : data.status as 'active' | 'completed' | 'on_hold' | 'cancelled',
-        visibility: data.visibility === 'unlisted' ? 'connections_only' : data.visibility as 'public' | 'private' | 'connections_only'
+        visibility: data.visibility === 'unlisted' ? 'connections_only' : data.visibility as 'public' | 'private' | 'connections_only',
+        phases: Array.isArray(data.phases) ? data.phases : ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete']
       };
 
       setProjects(prev => prev.map(project => project.id === id ? mappedProject : project));
