@@ -1,115 +1,101 @@
 
-import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
 import BrowseFilters from './browse/BrowseFilters';
 import SearchResults from './browse/SearchResults';
-import SpotlightProjects from './browse/SpotlightProjects';
 import BulletinBoard from './browse/BulletinBoard';
 import SuggestedCollaborators from './browse/SuggestedCollaborators';
-import { useProfile } from '@/hooks/useProfile';
 import { useCollaborators } from '@/hooks/useCollaborators';
+import { useProfile } from '@/hooks/useProfile';
 
 const Browse = () => {
-  const { profile } = useProfile();
-  const { suggestedCollaborators } = useCollaborators();
-  const [activeTab, setActiveTab] = useState('projects');
+  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedInstrument, setSelectedInstrument] = useState('');
+  const [selectedExperience, setSelectedExperience] = useState('');
+  const [selectedAvailability, setSelectedAvailability] = useState('');
+  const [location, setLocation] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
 
-  return (
-    <div className="p-12">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Browse & Discover</h1>
-          <p className="text-gray-600">Find collaborators, projects, and opportunities</p>
-        </div>
+  const { suggestedCollaborators, loading: collaboratorsLoading } = useCollaborators();
+  const { profile, loading: profileLoading } = useProfile();
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="collaborators">Collaborators</TabsTrigger>
-            <TabsTrigger value="bulletin">Bulletin Board</TabsTrigger>
-            <TabsTrigger value="spotlight">Spotlight</TabsTrigger>
-          </TabsList>
+  // Convert profiles to expected format for search results
+  const profiles = suggestedCollaborators.map(collaborator => ({
+    id: parseInt(collaborator.id) || 0,
+    name: collaborator.name,
+    username: collaborator.username || '@unknown',
+    role: collaborator.role || 'Musician',
+    genres: collaborator.genres || [],
+    location: collaborator.location || 'Unknown',
+    experience: collaborator.experience || 'Beginner',
+    avatar: null
+  }));
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-1">
-              <BrowseFilters 
-                selectedRole=""
-                setSelectedRole={() => {}}
-                selectedGenre=""
-                setSelectedGenre={() => {}}
-                selectedInstrument=""
-                setSelectedInstrument={() => {}}
-                selectedExperience=""
-                setSelectedExperience={() => {}}
-                selectedAvailability=""
-                setSelectedAvailability={() => {}}
-                location=""
-                setLocation={() => {}}
-                onSearch={() => {}}
-              />
-            </div>
-            
-            <div className="lg:col-span-3">
-              <TabsContent value="projects" className="mt-0">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Projects Looking for Collaborators</CardTitle>
-                    <CardDescription>
-                      Discover exciting music projects that need your skills
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <SearchResults profiles={[]} />
-                  </CardContent>
-                </Card>
-              </TabsContent>
+  // Convert collaborators to expected SuggestedCollaborator format
+  const suggestedCollaboratorsFormatted = suggestedCollaborators.map(collaborator => ({
+    id: parseInt(collaborator.id) || 0,
+    name: collaborator.name,
+    username: collaborator.username || '@unknown',
+    role: collaborator.role || 'Musician',
+    genres: collaborator.genres || [],
+    location: collaborator.location || 'Unknown',
+    experience: collaborator.experience || 'Beginner',
+    completedProjects: collaborator.completed_projects || 0,
+    avatar: null
+  }));
 
-              <TabsContent value="collaborators" className="mt-0">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Find Collaborators</CardTitle>
-                    <CardDescription>
-                      Connect with talented musicians and producers
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <SuggestedCollaborators collaborators={suggestedCollaborators} />
-                  </CardContent>
-                </Card>
-              </TabsContent>
+  const handleSearch = () => {
+    setHasSearched(true);
+  };
 
-              <TabsContent value="bulletin" className="mt-0">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Community Bulletin Board</CardTitle>
-                    <CardDescription>
-                      Latest announcements, opportunities, and discussions
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <BulletinBoard />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="spotlight" className="mt-0">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Featured Projects</CardTitle>
-                    <CardDescription>
-                      Highlighted projects and success stories from our community
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <SpotlightProjects projects={[]} />
-                  </CardContent>
-                </Card>
-              </TabsContent>
+  if (collaboratorsLoading || profileLoading) {
+    return (
+      <div className="p-10">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="space-y-6">
+            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-64 bg-gray-200 rounded"></div>
+              ))}
             </div>
           </div>
-        </Tabs>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-10">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Browse Musicians</h1>
+      </div>
+
+      <BrowseFilters
+        selectedRole={selectedRole}
+        setSelectedRole={setSelectedRole}
+        selectedGenre={selectedGenre}
+        setSelectedGenre={setSelectedGenre}
+        selectedInstrument={selectedInstrument}
+        setSelectedInstrument={setSelectedInstrument}
+        selectedExperience={selectedExperience}
+        setSelectedExperience={setSelectedExperience}
+        selectedAvailability={selectedAvailability}
+        setSelectedAvailability={setSelectedAvailability}
+        location={location}
+        setLocation={setLocation}
+        onSearch={handleSearch}
+      />
+
+      {hasSearched ? (
+        <SearchResults profiles={profiles} />
+      ) : (
+        <div className="space-y-10">
+          <BulletinBoard userProfile={profile} />
+          <SuggestedCollaborators collaborators={suggestedCollaboratorsFormatted} />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -8,7 +7,7 @@ import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { AboutTab } from '@/components/profile/AboutTab';
 import { MusicTab } from '@/components/profile/MusicTab';
-import ProjectsTab from '@/components/profile/ProjectsTab';
+import { ProjectsTab } from '@/components/profile/ProjectsTab';
 import { LinksTab } from '@/components/profile/LinksTab';
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog';
 
@@ -77,7 +76,6 @@ const Profile = () => {
             profile={profile}
             cityName={cityName}
             onEditClick={() => setShowEditDialog(true)}
-            isOwnProfile={true}
           />
 
           <ProfileStats 
@@ -103,7 +101,7 @@ const Profile = () => {
             </TabsContent>
 
             <TabsContent value="projects" className="space-y-6">
-              <ProjectsTab />
+              <ProjectsTab projects={projects} />
             </TabsContent>
 
             <TabsContent value="links" className="space-y-6">
