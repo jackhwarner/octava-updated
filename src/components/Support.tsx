@@ -26,7 +26,7 @@ const Support = () => {
           <p className="text-gray-600">Get help and find answers to common questions</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="">
           {/* Contact Options */}
           
 
