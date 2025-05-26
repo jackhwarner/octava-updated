@@ -578,6 +578,38 @@ export type Database = {
         }
         Relationships: []
       }
+      project_looking_for: {
+        Row: {
+          created_at: string
+          id: string
+          payout: number | null
+          project_id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payout?: number | null
+          project_id: string
+          role: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payout?: number | null
+          project_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_looking_for_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_todos: {
         Row: {
           completed: boolean | null

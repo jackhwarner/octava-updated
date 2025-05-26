@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +22,26 @@ interface LookingForRole {
   project_id: string;
   created_at: string;
 }
+
+const ROLE_OPTIONS = [
+  'Vocalist',
+  'Guitarist',
+  'Bassist',
+  'Drummer',
+  'Keyboardist',
+  'Producer',
+  'Mixer',
+  'Mastering Engineer',
+  'Songwriter',
+  'Composer',
+  'Sound Designer',
+  'Beat Maker',
+  'Rapper',
+  'Singer',
+  'Instrumentalist',
+  'Audio Engineer',
+  'Session Musician'
+];
 
 const ProjectLookingFor = ({ projectId }: ProjectLookingForProps) => {
   const [lookingForRoles, setLookingForRoles] = useState<LookingForRole[]>([]);
@@ -156,12 +177,18 @@ const ProjectLookingFor = ({ projectId }: ProjectLookingForProps) => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="role">Role</Label>
-                <Input
-                  id="role"
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
-                  placeholder="e.g., Vocalist, Guitarist, Producer"
-                />
+                <Select value={newRole} onValueChange={setNewRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLE_OPTIONS.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="payout">Payout ($)</Label>
