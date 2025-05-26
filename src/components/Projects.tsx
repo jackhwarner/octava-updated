@@ -16,7 +16,6 @@ import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/use-toast';
-
 const Projects = () => {
   const navigate = useNavigate();
   const {
@@ -42,7 +41,6 @@ const Projects = () => {
   const [selectedProjectForFolder, setSelectedProjectForFolder] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<any>(null);
-  
   const [newProject, setNewProject] = useState({
     title: '',
     description: '',
@@ -59,7 +57,6 @@ const Projects = () => {
     description: '',
     color: '#6366f1'
   });
-  
   const getProjectStatus = (project: any) => {
     if (!project.phases || project.phases.length === 0) {
       return {
@@ -86,20 +83,15 @@ const Projects = () => {
       };
     }
   };
-  
   const getCurrentFolder = () => {
     return folders.find(f => f.id === currentFolderId);
   };
-
   const getFilteredProjects = () => {
     let projectsToShow = projects;
 
     // If searching, show all projects regardless of folder
     if (searchTerm) {
-      projectsToShow = projects.filter(project => 
-        project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        project.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      projectsToShow = projects.filter(project => project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || project.description?.toLowerCase().includes(searchTerm.toLowerCase()));
     } else {
       // If viewing a specific folder, show only projects in that folder
       if (currentFolderId) {
@@ -117,12 +109,9 @@ const Projects = () => {
         return projectStatus.label.toLowerCase().replace(' ', '_') === statusFilter;
       });
     }
-
     return projectsToShow;
   };
-
   const filteredProjects = getFilteredProjects();
-  
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -141,7 +130,6 @@ const Projects = () => {
       console.error('Error creating folder:', error);
     }
   };
-  
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -177,7 +165,6 @@ const Projects = () => {
       console.error('Error creating project:', error);
     }
   };
-  
   const handleDeleteProject = async () => {
     if (projectToDelete) {
       try {
@@ -198,11 +185,12 @@ const Projects = () => {
       }
     }
   };
-  
   const handleAddToFolder = async (folderId: string) => {
     if (selectedProjectForFolder) {
       try {
-        await updateProject(selectedProjectForFolder.id, { folder_id: folderId || null });
+        await updateProject(selectedProjectForFolder.id, {
+          folder_id: folderId || null
+        });
         toast({
           title: "Success",
           description: folderId ? "Project added to folder" : "Project removed from folder"
@@ -219,7 +207,6 @@ const Projects = () => {
       }
     }
   };
-  
   const handleShareProject = (project: any) => {
     // Copy project URL to clipboard
     const url = `${window.location.origin}/projects/${project.id}`;
@@ -229,23 +216,18 @@ const Projects = () => {
       description: "Project sharing link copied to clipboard"
     });
   };
-
   const handleFolderClick = (folderId: string) => {
     setCurrentFolderId(folderId);
   };
-
   const handleBackToMain = () => {
     setCurrentFolderId(null);
   };
-  
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
-  
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-  
   if (loading) {
     return <div className="p-8">
         <div className="animate-pulse">
@@ -256,7 +238,6 @@ const Projects = () => {
         </div>
       </div>;
   }
-  
   return <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -267,10 +248,7 @@ const Projects = () => {
         <div className="flex items-center space-x-3">
           <Dialog open={isFolderDialogOpen} onOpenChange={setIsFolderDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
-                <FolderPlus className="w-4 h-4 mr-2" />
-                New Folder
-              </Button>
+              
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -441,14 +419,14 @@ const Projects = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="remove">No folder</SelectItem>
-                      {folders.map(folder => (
-                        <SelectItem key={folder.id} value={folder.id}>
+                      {folders.map(folder => <SelectItem key={folder.id} value={folder.id}>
                           <div className="flex items-center">
-                            <div className="w-3 h-3 rounded mr-2" style={{ backgroundColor: folder.color }} />
+                            <div className="w-3 h-3 rounded mr-2" style={{
+                          backgroundColor: folder.color
+                        }} />
                             {folder.name}
                           </div>
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -492,14 +470,12 @@ const Projects = () => {
                 Projects
               </BreadcrumbLink>
             </BreadcrumbItem>
-            {currentFolderId && (
-              <>
+            {currentFolderId && <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbPage>{getCurrentFolder()?.name}</BreadcrumbPage>
                 </BreadcrumbItem>
-              </>
-            )}
+              </>}
           </BreadcrumbList>
         </Breadcrumb>
       </div>
@@ -523,33 +499,21 @@ const Projects = () => {
           </SelectContent>
         </Select>
 
-        {currentFolderId && (
-          <Button variant="outline" onClick={handleBackToMain}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Projects
-          </Button>
-        )}
+        {currentFolderId}
       </div>
 
       {/* Folders Section - Only show when not in a folder and not searching */}
-      {!currentFolderId && !searchTerm && (
-        <div className="mb-8">
+      {!currentFolderId && !searchTerm && <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Folders</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {folders.map(folder => {
-              const projectCount = projects.filter(p => p.folder_id === folder.id).length;
-              return (
-                <Card 
-                  key={folder.id} 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => handleFolderClick(folder.id)}
-                >
+          const projectCount = projects.filter(p => p.folder_id === folder.id).length;
+          return <Card key={folder.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleFolderClick(folder.id)}>
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
-                      <div 
-                        className="w-8 h-8 rounded flex items-center justify-center"
-                        style={{ backgroundColor: folder.color }}
-                      >
+                      <div className="w-8 h-8 rounded flex items-center justify-center" style={{
+                  backgroundColor: folder.color
+                }}>
                         <Folder className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1">
@@ -558,18 +522,15 @@ const Projects = () => {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              );
-            })}
+                </Card>;
+        })}
           </div>
-        </div>
-      )}
+        </div>}
 
       {/* Projects Grid */}
       <div>
         <h2 className="text-xl font-semibold mb-4">
-          {searchTerm ? `Search Results (${filteredProjects.length})` : 
-           currentFolderId ? getCurrentFolder()?.name : 'Projects'}
+          {searchTerm ? `Search Results (${filteredProjects.length})` : currentFolderId ? getCurrentFolder()?.name : 'Projects'}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map(project => {
@@ -605,20 +566,17 @@ const Projects = () => {
                           Share
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
-                          setSelectedProjectForFolder(project);
-                          setIsAddToFolderDialogOpen(true);
-                        }}>
+                      setSelectedProjectForFolder(project);
+                      setIsAddToFolderDialogOpen(true);
+                    }}>
                           <FolderPlus className="w-4 h-4 mr-2" />
                           Add to Folder
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => {
-                            setProjectToDelete(project);
-                            setDeleteDialogOpen(true);
-                          }}
-                          className="text-red-600"
-                        >
+                        <DropdownMenuItem onClick={() => {
+                      setProjectToDelete(project);
+                      setDeleteDialogOpen(true);
+                    }} className="text-red-600">
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
                         </DropdownMenuItem>
@@ -682,9 +640,7 @@ const Projects = () => {
             <Music className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
             <p className="text-gray-500 mb-4">
-              {searchTerm ? 'Try adjusting your search terms' : 
-               currentFolderId ? 'This folder is empty' : 
-               'Create your first project to get started'}
+              {searchTerm ? 'Try adjusting your search terms' : currentFolderId ? 'This folder is empty' : 'Create your first project to get started'}
             </p>
             <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700">
               <Plus className="w-4 h-4 mr-2" />
