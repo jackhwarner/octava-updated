@@ -94,7 +94,7 @@ const Subscription = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex items-center justify-center py-12">
+  return <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex items-center justify-center py-12 mx-auto">
       <div className="max-w-4xl mx-auto px-6 w-full">
         {/* Header */}
         <div className="text-center mb-12">
