@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
+      console.log('Current user:', user);
     } catch (error) {
       console.error('Error getting current user:', error);
     }
@@ -53,6 +55,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
 
       if (error) throw error;
       setProjectSettings(data);
+      console.log('Project settings:', data);
     } catch (error) {
       console.error('Error fetching project settings:', error);
     }
@@ -154,36 +157,48 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     if (!selectedFiles || selectedFiles.length === 0) return;
 
     setUploading(true);
+    console.log('Starting file upload for project:', projectId);
+    console.log('Current user for upload:', currentUser);
 
     try {
-      if (!currentUser) throw new Error('User not authenticated');
+      if (!currentUser) {
+        throw new Error('User not authenticated');
+      }
 
       const isOwner = currentUser.id === projectSettings?.owner_id;
       const needsApproval = projectSettings?.version_approval_enabled && !isOwner;
 
+      console.log('Upload settings:', { isOwner, needsApproval, projectSettings });
+
       for (const file of Array.from(selectedFiles)) {
+        console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+        
         // Check if file already exists
         const existingFile = files.find(f => f.file_name === file.name);
         const version = existingFile ? (existingFile.version || 1) + 1 : 1;
 
+        const fileData = {
+          project_id: projectId,
+          file_name: file.name,
+          file_size: file.size,
+          file_type: file.type,
+          file_path: `projects/${projectId}/${file.name}`,
+          uploaded_by: currentUser.id,
+          description: `File uploaded: ${file.name}`,
+          version: version,
+          is_pending_approval: needsApproval,
+          approved_at: needsApproval ? null : new Date().toISOString(),
+          approved_by: needsApproval ? null : currentUser.id,
+          parent_file_id: existingFile?.id || null,
+          version_notes: null
+        };
+
+        console.log('Inserting file data:', fileData);
+
         // Insert file record into database
         const { data, error } = await supabase
           .from('project_files')
-          .insert([{
-            project_id: projectId,
-            file_name: file.name,
-            file_size: file.size,
-            file_type: file.type,
-            file_path: `projects/${projectId}/${file.name}`,
-            uploaded_by: currentUser.id,
-            description: `File uploaded: ${file.name}`,
-            version: version,
-            is_pending_approval: needsApproval,
-            approved_at: needsApproval ? null : new Date().toISOString(),
-            approved_by: needsApproval ? null : currentUser.id,
-            parent_file_id: existingFile?.id || null,
-            version_notes: null
-          }])
+          .insert([fileData])
           .select(`
             *,
             uploader:profiles!project_files_uploaded_by_fkey (
@@ -193,7 +208,12 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
           `)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database insert error:', error);
+          throw error;
+        }
+
+        console.log('File uploaded successfully:', data);
 
         // Add to local state
         setFiles(prev => [data, ...prev]);
@@ -222,7 +242,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
       console.error('Error uploading files:', error);
       toast({
         title: "Upload failed",
-        description: "There was an error uploading your files.",
+        description: `There was an error uploading your files: ${error.message}`,
         variant: "destructive",
       });
     } finally {
