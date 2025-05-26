@@ -503,6 +503,7 @@ export type Database = {
           file_size: number | null
           file_type: string | null
           id: string
+          is_current_version: boolean | null
           is_pending_approval: boolean | null
           parent_file_id: string | null
           project_id: string
@@ -520,6 +521,7 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           id?: string
+          is_current_version?: boolean | null
           is_pending_approval?: boolean | null
           parent_file_id?: string | null
           project_id: string
@@ -537,6 +539,7 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           id?: string
+          is_current_version?: boolean | null
           is_pending_approval?: boolean | null
           parent_file_id?: string | null
           project_id?: string

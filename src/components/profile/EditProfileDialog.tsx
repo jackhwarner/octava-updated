@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Edit, X, Info } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Edit, X, Info, Camera } from 'lucide-react';
 import { Profile } from '@/hooks/useProfile';
 
 interface EditProfileDialogProps {
@@ -28,6 +29,8 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
   const [editGenres, setEditGenres] = useState<string[]>([]);
   const [editSkills, setEditSkills] = useState<string[]>([]);
   const [detectedCity, setDetectedCity] = useState('');
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string>('');
 
   const roles = [
     { value: 'musician', label: 'Musician' },
@@ -72,8 +75,30 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
       setEditExperience(profile.experience || 'beginner');
       setEditGenres(profile.genres || []);
       setEditSkills(profile.skills || []);
+      setProfilePicturePreview(profile.avatar_url || profile.profile_picture_url || '');
+      
+      // Fetch city name if zip code exists
+      if (profile.zip_code && profile.zip_code.length === 5) {
+        fetchCityName(profile.zip_code);
+      }
     }
   }, [profile]);
+
+  const fetchCityName = async (zipCode: string) => {
+    try {
+      const response = await fetch(`https://api.zippopotam.us/us/${zipCode}`);
+      if (response.ok) {
+        const data = await response.json();
+        const city = data.places[0]['place name'];
+        const state = data.places[0]['state abbreviation'];
+        setDetectedCity(`(${city}, ${state})`);
+      } else {
+        setDetectedCity('');
+      }
+    } catch (error) {
+      setDetectedCity('');
+    }
+  };
 
   const handleZipCodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
@@ -81,22 +106,22 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
       setEditLocation(value);
       
       if (value.length === 5) {
-        try {
-          const response = await fetch(`https://api.zippopotam.us/us/${value}`);
-          if (response.ok) {
-            const data = await response.json();
-            const city = data.places[0]['place name'];
-            const state = data.places[0]['state abbreviation'];
-            setDetectedCity(`(${city}, ${state})`);
-          } else {
-            setDetectedCity('');
-          }
-        } catch (error) {
-          setDetectedCity('');
-        }
+        await fetchCityName(value);
       } else {
         setDetectedCity('');
       }
+    }
+  };
+
+  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePicture(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePicturePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -122,7 +147,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
 
   const handleSaveProfile = async () => {
     try {
-      await onSave({
+      const updates: Partial<Profile> = {
         name: editName,
         full_name: editName,
         username: editUsername,
@@ -132,11 +157,29 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
         experience: editExperience,
         genres: editGenres,
         skills: editSkills,
-      });
+      };
+
+      if (profilePicture) {
+        // Here you would typically upload the file to storage and get the URL
+        // For now, we'll use the preview URL
+        updates.profile_picture_url = profilePicturePreview;
+        updates.avatar_url = profilePicturePreview;
+      }
+
+      await onSave(updates);
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving profile:', error);
     }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
@@ -152,10 +195,27 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onSave }: EditP
           <div className="space-y-4">
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
-                <div className="w-20 h-20 bg-gray-300 rounded-full"></div>
-                <Button variant="secondary" size="sm" className="absolute -bottom-1 -right-1 rounded-full h-8 w-8 p-0">
-                  <Edit className="h-4 w-4" />
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={profilePicturePreview} alt="Profile" />
+                  <AvatarFallback className="text-lg">
+                    {editName ? getInitials(editName) : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="absolute -bottom-1 -right-1 rounded-full h-8 w-8 p-0"
+                  onClick={() => document.getElementById('profile-pic-input')?.click()}
+                >
+                  <Camera className="h-4 w-4" />
                 </Button>
+                <input
+                  id="profile-pic-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureChange}
+                  className="hidden"
+                />
               </div>
             </div>
 
