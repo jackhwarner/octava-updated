@@ -4,14 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Folder, Music, Users, MoreHorizontal, ChevronRight, Home, Trash2 } from 'lucide-react';
-import { 
-  Breadcrumb, 
-  BreadcrumbItem, 
-  BreadcrumbLink, 
-  BreadcrumbList, 
-  BreadcrumbSeparator,
-  BreadcrumbPage
-} from '@/components/ui/breadcrumb';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,11 +14,21 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useFolders } from '@/hooks/useFolders';
-
 const Projects = () => {
   const navigate = useNavigate();
-  const { projects, loading: projectsLoading, addProject, deleteProject, addProjectToFolder } = useProjects();
-  const { folders, loading: foldersLoading, createFolder, deleteFolder } = useFolders();
+  const {
+    projects,
+    loading: projectsLoading,
+    addProject,
+    deleteProject,
+    addProjectToFolder
+  } = useProjects();
+  const {
+    folders,
+    loading: foldersLoading,
+    createFolder,
+    deleteFolder
+  } = useFolders();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
@@ -37,13 +40,12 @@ const Projects = () => {
   const [projectVisibility, setProjectVisibility] = useState('private');
   const [projectDeadline, setProjectDeadline] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
-
   const loading = projectsLoading || foldersLoading;
 
   // Create dynamic folder data with counts, matching the original hardcoded structure
   const dynamicFolders = folders.map(folder => {
     let count = 0;
-    
+
     // Calculate counts based on folder logic (keeping original logic)
     if (folder.name === 'Pop Projects') {
       count = projects.filter(p => p.genre === 'Pop').length;
@@ -55,7 +57,6 @@ const Projects = () => {
       // For custom folders, count projects actually in that folder
       count = projects.filter(p => p.folder_id === folder.id).length;
     }
-
     return {
       id: folder.id,
       name: folder.name,
@@ -63,7 +64,6 @@ const Projects = () => {
       type: 'folder' as const
     };
   });
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -78,7 +78,6 @@ const Projects = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'active':
@@ -93,36 +92,30 @@ const Projects = () => {
         return status;
     }
   };
+  const displayProjects = currentFolderId === null ? projects : projects.filter(project => {
+    const folder = folders.find(f => f.id === currentFolderId);
+    if (!folder) return false;
 
-  const displayProjects = currentFolderId === null 
-    ? projects 
-    : projects.filter(project => {
-        const folder = folders.find(f => f.id === currentFolderId);
-        if (!folder) return false;
-        
-        // Keep original filtering logic for default folders
-        if (folder.name === 'Pop Projects') {
-          return project.genre === 'Pop';
-        } else if (folder.name === 'Hip-Hop Projects') {
-          return project.genre === 'Hip-Hop';
-        } else if (folder.name === 'Collaborations') {
-          return project.collaborators && project.collaborators.length > 0;
-        } else {
-          // For custom folders, filter by actual folder_id
-          return project.folder_id === currentFolderId;
-        }
-      });
-
+    // Keep original filtering logic for default folders
+    if (folder.name === 'Pop Projects') {
+      return project.genre === 'Pop';
+    } else if (folder.name === 'Hip-Hop Projects') {
+      return project.genre === 'Hip-Hop';
+    } else if (folder.name === 'Collaborations') {
+      return project.collaborators && project.collaborators.length > 0;
+    } else {
+      // For custom folders, filter by actual folder_id
+      return project.folder_id === currentFolderId;
+    }
+  });
   const handleFolderClick = (folderId: string, folderName: string) => {
     setCurrentFolderId(folderId);
     setCurrentFolderName(folderName);
   };
-
   const handleBackToRoot = () => {
     setCurrentFolderId(null);
     setCurrentFolderName(null);
   };
-
   const handleDeleteFolder = async (folderId: string) => {
     try {
       await deleteFolder(folderId);
@@ -134,7 +127,6 @@ const Projects = () => {
       console.error('Failed to delete folder:', error);
     }
   };
-
   const handleCreateProject = async () => {
     try {
       await addProject({
@@ -142,9 +134,8 @@ const Projects = () => {
         name: projectName,
         description: projectDescription,
         genre: projectGenre,
-        visibility: projectVisibility as 'public' | 'private' | 'connections_only',
+        visibility: projectVisibility as 'public' | 'private' | 'connections_only'
       });
-      
       setShowNewProjectDialog(false);
       setProjectName('');
       setProjectGenre('');
@@ -155,7 +146,6 @@ const Projects = () => {
       console.error('Failed to create project:', error);
     }
   };
-
   const handleDeleteProject = async (projectId: string) => {
     try {
       await deleteProject(projectId);
@@ -163,12 +153,10 @@ const Projects = () => {
       console.error('Failed to delete project:', error);
     }
   };
-
   const handleAddToFolder = (projectId: string) => {
     setSelectedProjectId(projectId);
     setShowAddToFolderDialog(true);
   };
-
   const handleSaveToFolder = async (folderId?: string) => {
     try {
       if (selectedProjectId) {
@@ -188,16 +176,12 @@ const Projects = () => {
       console.error('Failed to add project to folder:', error);
     }
   };
-
   const handleOpenProject = (projectId: string) => {
     navigate(`/projects/${projectId}`);
   };
-
   const renderBreadcrumb = () => {
     if (currentFolderId === null) return null;
-    
-    return (
-      <Breadcrumb className="mb-6">
+    return <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink onClick={handleBackToRoot} className="cursor-pointer">
@@ -209,27 +193,20 @@ const Projects = () => {
             <BreadcrumbPage>{currentFolderName}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>
-    );
+      </Breadcrumb>;
   };
-
   if (loading) {
-    return (
-      <div className="p-8">
+    return <div className="p-8">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded"></div>
-            ))}
+            {[...Array(6)].map((_, i) => <div key={i} className="h-64 bg-gray-200 rounded"></div>)}
           </div>
         </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="p-8">
+      </div>;
+  }
+  ;
+  return <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
@@ -248,16 +225,10 @@ const Projects = () => {
       {renderBreadcrumb()}
 
       {/* Folders Section */}
-      {currentFolderId === null && (
-        <div className="mb-8">
+      {currentFolderId === null && <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Folders</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {dynamicFolders.map((folder) => (
-              <Card 
-                key={folder.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => handleFolderClick(folder.id, folder.name)}
-              >
+            {dynamicFolders.map(folder => <Card key={folder.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleFolderClick(folder.id, folder.name)}>
                 <CardContent className="p-6 flex items-center">
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
                     <Folder className="w-6 h-6 text-purple-600" />
@@ -271,11 +242,9 @@ const Projects = () => {
                   </div>
                   <ChevronRight className="w-5 h-5 text-gray-400" />
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
-        </div>
-      )}
+        </div>}
 
       {/* Projects Section */}
       <div className="mb-8">
@@ -283,8 +252,7 @@ const Projects = () => {
           <h2 className="text-xl font-semibold">
             {currentFolderId ? currentFolderName : 'Projects'}
           </h2>
-          {currentFolderId && (
-            <AlertDialog>
+          {currentFolderId && <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm">
                   <MoreHorizontal className="w-4 h-4" />
@@ -299,35 +267,24 @@ const Projects = () => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => handleDeleteFolder(currentFolderId)}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
+                  <AlertDialogAction onClick={() => handleDeleteFolder(currentFolderId)} className="bg-red-600 hover:bg-red-700">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
-            </AlertDialog>
-          )}
+            </AlertDialog>}
         </div>
-        {displayProjects.length === 0 ? (
-          <Card>
+        {displayProjects.length === 0 ? <Card>
             <CardContent className="p-12 text-center">
               <p className="text-gray-500 mb-4">No projects found</p>
-              <Button 
-                className="bg-purple-600 hover:bg-purple-700"
-                onClick={() => setShowNewProjectDialog(true)}
-              >
+              <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Your First Project
               </Button>
             </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {displayProjects.map((project) => (
-              <Card key={project.id} className="hover:shadow-lg transition-shadow">
+          </Card> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {displayProjects.map(project => <Card key={project.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -341,15 +298,12 @@ const Projects = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem>Edit Project</DropdownMenuItem>
+                        
                         <DropdownMenuItem>Share</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleAddToFolder(project.id)}>
                           Add to Folder
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => handleDeleteProject(project.id)}
-                        >
+                        <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteProject(project.id)}>
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -375,10 +329,7 @@ const Projects = () => {
                   </div>
 
                   <div className="flex space-x-2">
-                    <Button 
-                      className="flex-1 bg-purple-600 hover:bg-purple-700"
-                      onClick={() => handleOpenProject(project.id)}
-                    >
+                    <Button className="flex-1 bg-purple-600 hover:bg-purple-700" onClick={() => handleOpenProject(project.id)}>
                       <Music className="w-4 h-4 mr-2" />
                       Open
                     </Button>
@@ -387,10 +338,8 @@ const Projects = () => {
                     </Button>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+              </Card>)}
+          </div>}
       </div>
 
       {/* New Project Dialog */}
@@ -405,13 +354,7 @@ const Projects = () => {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="project-name">Name</Label>
-              <Input 
-                id="project-name" 
-                value={projectName} 
-                onChange={(e) => setProjectName(e.target.value)} 
-                className="w-full" 
-                placeholder="Enter project name"
-              />
+              <Input id="project-name" value={projectName} onChange={e => setProjectName(e.target.value)} className="w-full" placeholder="Enter project name" />
             </div>
             
             <div className="space-y-2">
@@ -434,13 +377,7 @@ const Projects = () => {
             
             <div className="space-y-2">
               <Label htmlFor="project-description">Description</Label>
-              <Textarea 
-                id="project-description" 
-                value={projectDescription} 
-                onChange={(e) => setProjectDescription(e.target.value)} 
-                className="w-full" 
-                placeholder="Describe your project"
-              />
+              <Textarea id="project-description" value={projectDescription} onChange={e => setProjectDescription(e.target.value)} className="w-full" placeholder="Describe your project" />
             </div>
             
             <div className="space-y-2">
@@ -459,24 +396,14 @@ const Projects = () => {
             
             <div className="space-y-2">
               <Label htmlFor="project-deadline">Deadline</Label>
-              <Input 
-                id="project-deadline"
-                type="date"
-                value={projectDeadline}
-                onChange={(e) => setProjectDeadline(e.target.value)}
-                className="w-full"
-              />
+              <Input id="project-deadline" type="date" value={projectDeadline} onChange={e => setProjectDeadline(e.target.value)} className="w-full" />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewProjectDialog(false)}>
               Cancel
             </Button>
-            <Button 
-              className="bg-purple-600 hover:bg-purple-700"
-              onClick={handleCreateProject}
-              disabled={!projectName.trim()}
-            >
+            <Button className="bg-purple-600 hover:bg-purple-700" onClick={handleCreateProject} disabled={!projectName.trim()}>
               Create Project
             </Button>
           </DialogFooter>
@@ -496,47 +423,28 @@ const Projects = () => {
             <div className="space-y-2">
               <Label>Existing Folders</Label>
               <div className="space-y-2">
-                {dynamicFolders.map((folder) => (
-                  <Button 
-                    key={folder.id}
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleSaveToFolder(folder.id)}
-                  >
+                {dynamicFolders.map(folder => <Button key={folder.id} variant="outline" className="w-full justify-start" onClick={() => handleSaveToFolder(folder.id)}>
                     <Folder className="w-4 h-4 mr-2" />
                     {folder.name}
-                  </Button>
-                ))}
+                  </Button>)}
               </div>
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="new-folder">Create New Folder</Label>
-              <Input 
-                id="new-folder"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="Enter folder name"
-                className="w-full"
-              />
+              <Input id="new-folder" value={newFolderName} onChange={e => setNewFolderName(e.target.value)} placeholder="Enter folder name" className="w-full" />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddToFolderDialog(false)}>
               Cancel
             </Button>
-            <Button 
-              className="bg-purple-600 hover:bg-purple-700"
-              onClick={() => handleSaveToFolder()}
-              disabled={!newFolderName.trim()}
-            >
+            <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => handleSaveToFolder()} disabled={!newFolderName.trim()}>
               Save
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default Projects;
