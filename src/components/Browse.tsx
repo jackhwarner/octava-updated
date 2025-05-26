@@ -2,11 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BrowseFilters } from './browse/BrowseFilters';
-import { SearchResults } from './browse/SearchResults';
-import { SpotlightProjects } from './browse/SpotlightProjects';
-import { BulletinBoard } from './browse/BulletinBoard';
-import { SuggestedCollaborators } from './browse/SuggestedCollaborators';
+import BrowseFilters from './browse/BrowseFilters';
+import SearchResults from './browse/SearchResults';
+import SpotlightProjects from './browse/SpotlightProjects';
+import BulletinBoard from './browse/BulletinBoard';
+import SuggestedCollaborators from './browse/SuggestedCollaborators';
 import { useProfile } from '@/hooks/useProfile';
 
 const Browse = () => {
@@ -31,7 +31,21 @@ const Browse = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-1">
-              <BrowseFilters />
+              <BrowseFilters 
+                selectedRole=""
+                setSelectedRole={() => {}}
+                selectedGenre=""
+                setSelectedGenre={() => {}}
+                selectedInstrument=""
+                setSelectedInstrument={() => {}}
+                selectedExperience=""
+                setSelectedExperience={() => {}}
+                selectedAvailability=""
+                setSelectedAvailability={() => {}}
+                location=""
+                setLocation={() => {}}
+                onSearch={() => {}}
+              />
             </div>
             
             <div className="lg:col-span-3">
@@ -44,7 +58,7 @@ const Browse = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <SearchResults />
+                    <SearchResults profiles={[]} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -86,7 +100,7 @@ const Browse = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <SpotlightProjects />
+                    <SpotlightProjects projects={[]} />
                   </CardContent>
                 </Card>
               </TabsContent>
