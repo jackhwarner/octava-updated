@@ -1,169 +1,216 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Folder, Music, Users, MoreHorizontal, ChevronRight, Home, Trash2 } from 'lucide-react';
+import { 
+  Breadcrumb, 
+  BreadcrumbItem, 
+  BreadcrumbLink, 
+  BreadcrumbList, 
+  BreadcrumbSeparator,
+  BreadcrumbPage
+} from '@/components/ui/breadcrumb';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Plus, Search, Filter, Calendar, Users, Music, FolderPlus, Folder, MoreVertical, Edit, Trash2, Share2, Eye, ExternalLink } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useFolders } from '@/hooks/useFolders';
-import { useToast } from '@/hooks/use-toast';
 
 const Projects = () => {
   const navigate = useNavigate();
-  const { projects, loading, addProject, updateProject, deleteProject } = useProjects();
-  const { folders, addFolder } = useFolders();
-  const { toast } = useToast();
-  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFolder, setSelectedFolder] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
-  const [newProject, setNewProject] = useState({
-    title: '',
-    description: '',
-    genre: '',
-    visibility: 'private',
-    deadline: '',
-    budget: '',
-    folder_id: '',
-    bpm: '',
-    key: '',
-    daw: '',
-    mood: ''
-  });
-  const [newFolder, setNewFolder] = useState({
-    name: '',
-    description: '',
-    color: '#6366f1'
-  });
+  const { projects, loading: projectsLoading, addProject, deleteProject, addProjectToFolder } = useProjects();
+  const { folders, loading: foldersLoading, createFolder, deleteFolder } = useFolders();
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
+  const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
+  const [showAddToFolderDialog, setShowAddToFolderDialog] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState('');
+  const [projectGenre, setProjectGenre] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
+  const [projectVisibility, setProjectVisibility] = useState('private');
+  const [projectDeadline, setProjectDeadline] = useState('');
+  const [newFolderName, setNewFolderName] = useState('');
 
-  const getProjectStatus = (project: any) => {
-    if (!project.phases || project.phases.length === 0) {
-      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
-    }
+  const loading = projectsLoading || foldersLoading;
+
+  // Create dynamic folder data with counts, matching the original hardcoded structure
+  const dynamicFolders = folders.map(folder => {
+    let count = 0;
     
-    const currentPhase = project.current_phase_index || 0;
-    const totalPhases = project.phases.length;
-    
-    if (currentPhase === 0) {
-      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
-    } else if (currentPhase >= totalPhases - 1) {
-      return { label: 'Completed', color: 'bg-green-100 text-green-800' };
+    // Calculate counts based on folder logic (keeping original logic)
+    if (folder.name === 'Pop Projects') {
+      count = projects.filter(p => p.genre === 'Pop').length;
+    } else if (folder.name === 'Hip-Hop Projects') {
+      count = projects.filter(p => p.genre === 'Hip-Hop').length;
+    } else if (folder.name === 'Collaborations') {
+      count = projects.filter(p => p.collaborators && p.collaborators.length > 0).length;
     } else {
-      return { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' };
+      // For custom folders, count projects actually in that folder
+      count = projects.filter(p => p.folder_id === folder.id).length;
     }
-  };
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFolder = selectedFolder === 'all' || 
-                         (selectedFolder === 'none' && !project.folder_id) ||
-                         project.folder_id === selectedFolder;
-    
-    const projectStatus = getProjectStatus(project);
-    const matchesStatus = statusFilter === 'all' || projectStatus.label.toLowerCase().replace(' ', '_') === statusFilter;
-    
-    return matchesSearch && matchesFolder && matchesStatus;
+    return {
+      id: folder.id,
+      name: folder.name,
+      count,
+      type: 'folder' as const
+    };
   });
 
-  const handleCreateProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      const projectData = {
-        ...newProject,
-        budget: newProject.budget ? parseFloat(newProject.budget) : undefined,
-        bpm: newProject.bpm ? parseInt(newProject.bpm) : undefined,
-        deadline: newProject.deadline || undefined,
-        folder_id: newProject.folder_id || undefined
-      };
-
-      await addProject(projectData);
-      setIsCreateDialogOpen(false);
-      setNewProject({
-        title: '',
-        description: '',
-        genre: '',
-        visibility: 'private',
-        deadline: '',
-        budget: '',
-        folder_id: '',
-        bpm: '',
-        key: '',
-        daw: '',
-        mood: ''
-      });
-      
-      toast({
-        title: "Success",
-        description: "Project created successfully",
-      });
-    } catch (error) {
-      console.error('Error creating project:', error);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'on_hold':
+        return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const handleCreateFolder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'In Progress';
+      case 'on_hold':
+        return 'On Hold';
+      case 'completed':
+        return 'Complete';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  };
+
+  const displayProjects = currentFolderId === null 
+    ? projects 
+    : projects.filter(project => {
+        const folder = folders.find(f => f.id === currentFolderId);
+        if (!folder) return false;
+        
+        // Keep original filtering logic for default folders
+        if (folder.name === 'Pop Projects') {
+          return project.genre === 'Pop';
+        } else if (folder.name === 'Hip-Hop Projects') {
+          return project.genre === 'Hip-Hop';
+        } else if (folder.name === 'Collaborations') {
+          return project.collaborators && project.collaborators.length > 0;
+        } else {
+          // For custom folders, filter by actual folder_id
+          return project.folder_id === currentFolderId;
+        }
+      });
+
+  const handleFolderClick = (folderId: string, folderName: string) => {
+    setCurrentFolderId(folderId);
+    setCurrentFolderName(folderName);
+  };
+
+  const handleBackToRoot = () => {
+    setCurrentFolderId(null);
+    setCurrentFolderName(null);
+  };
+
+  const handleDeleteFolder = async (folderId: string) => {
     try {
-      await addFolder(newFolder);
-      setIsFolderDialogOpen(false);
-      setNewFolder({
-        name: '',
-        description: '',
-        color: '#6366f1'
+      await deleteFolder(folderId);
+      // If we're currently in the folder being deleted, go back to root
+      if (currentFolderId === folderId) {
+        handleBackToRoot();
+      }
+    } catch (error) {
+      console.error('Failed to delete folder:', error);
+    }
+  };
+
+  const handleCreateProject = async () => {
+    try {
+      await addProject({
+        title: projectName,
+        name: projectName,
+        description: projectDescription,
+        genre: projectGenre,
+        visibility: projectVisibility as 'public' | 'private' | 'connections_only',
       });
       
-      toast({
-        title: "Success",
-        description: "Folder created successfully",
-      });
+      setShowNewProjectDialog(false);
+      setProjectName('');
+      setProjectGenre('');
+      setProjectDescription('');
+      setProjectVisibility('private');
+      setProjectDeadline('');
     } catch (error) {
-      console.error('Error creating folder:', error);
+      console.error('Failed to create project:', error);
     }
   };
 
   const handleDeleteProject = async (projectId: string) => {
-    if (window.confirm('Are you sure you want to delete this project?')) {
-      try {
-        await deleteProject(projectId);
-        toast({
-          title: "Success",
-          description: "Project deleted successfully",
-        });
-      } catch (error) {
-        console.error('Error deleting project:', error);
-      }
+    try {
+      await deleteProject(projectId);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
     }
   };
 
-  const handleShareProject = (project: any) => {
-    // Copy project URL to clipboard
-    const url = `${window.location.origin}/projects/${project.id}`;
-    navigator.clipboard.writeText(url);
-    toast({
-      title: "Link copied",
-      description: "Project sharing link copied to clipboard",
-    });
+  const handleAddToFolder = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setShowAddToFolderDialog(true);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  const handleSaveToFolder = async (folderId?: string) => {
+    try {
+      if (selectedProjectId) {
+        if (folderId) {
+          await addProjectToFolder(selectedProjectId, folderId);
+        } else if (newFolderName.trim()) {
+          const newFolder = await createFolder(newFolderName.trim());
+          if (newFolder) {
+            await addProjectToFolder(selectedProjectId, newFolder.id);
+          }
+        }
+      }
+      setShowAddToFolderDialog(false);
+      setSelectedProjectId(null);
+      setNewFolderName('');
+    } catch (error) {
+      console.error('Failed to add project to folder:', error);
+    }
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const handleOpenProject = (projectId: string) => {
+    navigate(`/projects/${projectId}`);
+  };
+
+  const renderBreadcrumb = () => {
+    if (currentFolderId === null) return null;
+    
+    return (
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={handleBackToRoot} className="cursor-pointer">
+              <Home className="w-4 h-4" />
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{currentFolderName}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
   };
 
   if (loading) {
@@ -171,7 +218,7 @@ const Projects = () => {
       <div className="p-8">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-64 bg-gray-200 rounded"></div>
             ))}
@@ -179,406 +226,315 @@ const Projects = () => {
         </div>
       </div>
     );
-  }
+  };
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-          <p className="text-gray-600">Manage your music projects and collaborate with others</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
         </div>
-        
-        <div className="flex items-center space-x-3">
-          <Dialog open={isFolderDialogOpen} onOpenChange={setIsFolderDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <FolderPlus className="w-4 h-4 mr-2" />
-                New Folder
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Folder</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreateFolder} className="space-y-4">
-                <div>
-                  <Label htmlFor="folderName">Folder Name</Label>
-                  <Input
-                    id="folderName"
-                    value={newFolder.name}
-                    onChange={(e) => setNewFolder({ ...newFolder, name: e.target.value })}
-                    placeholder="Enter folder name"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="folderDescription">Description</Label>
-                  <Textarea
-                    id="folderDescription"
-                    value={newFolder.description}
-                    onChange={(e) => setNewFolder({ ...newFolder, description: e.target.value })}
-                    placeholder="Enter folder description"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="folderColor">Color</Label>
-                  <Input
-                    id="folderColor"
-                    type="color"
-                    value={newFolder.color}
-                    onChange={(e) => setNewFolder({ ...newFolder, color: e.target.value })}
-                  />
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsFolderDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
-                    Create Folder
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                <Plus className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create New Project</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreateProject} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="title">Project Title</Label>
-                    <Input
-                      id="title"
-                      value={newProject.title}
-                      onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
-                      placeholder="Enter project title"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="genre">Genre</Label>
-                    <Input
-                      id="genre"
-                      value={newProject.genre}
-                      onChange={(e) => setNewProject({ ...newProject, genre: e.target.value })}
-                      placeholder="e.g., Hip-Hop, Pop, Rock"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={newProject.description}
-                    onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                    placeholder="Describe your project..."
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="bpm">BPM</Label>
-                    <Input
-                      id="bpm"
-                      type="number"
-                      value={newProject.bpm}
-                      onChange={(e) => setNewProject({ ...newProject, bpm: e.target.value })}
-                      placeholder="120"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="key">Key</Label>
-                    <Input
-                      id="key"
-                      value={newProject.key}
-                      onChange={(e) => setNewProject({ ...newProject, key: e.target.value })}
-                      placeholder="C Major"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="daw">DAW</Label>
-                    <Input
-                      id="daw"
-                      value={newProject.daw}
-                      onChange={(e) => setNewProject({ ...newProject, daw: e.target.value })}
-                      placeholder="Pro Tools, Logic, etc."
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="deadline">Deadline</Label>
-                    <Input
-                      id="deadline"
-                      type="date"
-                      value={newProject.deadline}
-                      onChange={(e) => setNewProject({ ...newProject, deadline: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="budget">Budget ($)</Label>
-                    <Input
-                      id="budget"
-                      type="number"
-                      value={newProject.budget}
-                      onChange={(e) => setNewProject({ ...newProject, budget: e.target.value })}
-                      placeholder="5000"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="folder">Folder</Label>
-                    <Select value={newProject.folder_id} onValueChange={(value) => setNewProject({ ...newProject, folder_id: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a folder" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">No folder</SelectItem>
-                        {folders.map((folder) => (
-                          <SelectItem key={folder.id} value={folder.id}>
-                            {folder.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="visibility">Visibility</Label>
-                    <Select value={newProject.visibility} onValueChange={(value) => setNewProject({ ...newProject, visibility: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="private">Private</SelectItem>
-                        <SelectItem value="public">Public</SelectItem>
-                        <SelectItem value="connections_only">Connections Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="mood">Mood/Vibe</Label>
-                  <Input
-                    id="mood"
-                    value={newProject.mood}
-                    onChange={(e) => setNewProject({ ...newProject, mood: e.target.value })}
-                    placeholder="Energetic, Chill, Dark, etc."
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
-                    Create Project
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          New Project
+        </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center space-x-4 mb-6">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search projects..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All folders" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All folders</SelectItem>
-            <SelectItem value="none">No folder</SelectItem>
-            {folders.map((folder) => (
-              <SelectItem key={folder.id} value={folder.id}>
-                <div className="flex items-center">
-                  <div 
-                    className="w-3 h-3 rounded mr-2" 
-                    style={{ backgroundColor: folder.color }}
-                  />
-                  {folder.name}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="not_started">Not Started</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="mb-6 flex items-center space-x-4">
+        <Input placeholder="Search projects..." className="max-w-sm" />
+        <Button variant="outline">Filter</Button>
       </div>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map((project) => {
-          const projectStatus = getProjectStatus(project);
-          const folder = folders.find(f => f.id === project.folder_id);
-          
-          return (
-            <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
+      {renderBreadcrumb()}
+
+      {/* Folders Section */}
+      {currentFolderId === null && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Folders</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {dynamicFolders.map((folder) => (
+              <Card 
+                key={folder.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => handleFolderClick(folder.id, folder.name)}
+              >
+                <CardContent className="p-6 flex items-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                    <Folder className="w-6 h-6 text-purple-600" />
+                  </div>
                   <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">{project.title || project.name}</CardTitle>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Badge className={projectStatus.color}>
-                        {projectStatus.label}
-                      </Badge>
-                      {project.genre && (
-                        <Badge variant="outline">{project.genre}</Badge>
-                      )}
+                    <h3 className="font-medium text-gray-900">{folder.name}</h3>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Music className="w-4 h-4 mr-1" />
+                      {folder.count} projects
                     </div>
-                    {folder && (
-                      <div className="flex items-center text-sm text-gray-500 mb-2">
-                        <Folder className="w-4 h-4 mr-1" style={{ color: folder.color }} />
-                        {folder.name}
-                      </div>
-                    )}
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleShareProject(project)}
-                      title="Share project"
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/projects/${project.id}`)}
-                      title="View project"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {project.description || 'No description'}
-                </p>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      Created {formatDate(project.created_at)}
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Projects Section */}
+      <div className="mb-8">
+        <div className="flex items-center space-x-2 mb-4">
+          <h2 className="text-xl font-semibold">
+            {currentFolderId ? currentFolderName : 'Projects'}
+          </h2>
+          {currentFolderId && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete "{currentFolderName}"? This action cannot be undone. Projects in this folder will not be deleted.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => handleDeleteFolder(currentFolderId)}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
+        {displayProjects.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p className="text-gray-500 mb-4">No projects found</p>
+              <Button 
+                className="bg-purple-600 hover:bg-purple-700"
+                onClick={() => setShowNewProjectDialog(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Project
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {displayProjects.map((project) => (
+              <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{project.title || project.name}</CardTitle>
+                      <p className="text-sm text-gray-500 mt-1">{project.description}</p>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>Edit Project</DropdownMenuItem>
+                        <DropdownMenuItem>Share</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleAddToFolder(project.id)}>
+                          Add to Folder
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => handleDeleteProject(project.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline">{project.genre || 'No Genre'}</Badge>
+                    <Badge className={getStatusColor(project.status)}>
+                      {getStatusLabel(project.status)}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <div className="flex items-center">
                       <Users className="w-4 h-4 mr-1" />
                       {project.collaborators?.length || 0} collaborators
                     </div>
+                    <div>
+                      Updated {new Date(project.updated_at).toLocaleDateString()}
+                    </div>
                   </div>
-                  
-                  {project.bpm || project.key ? (
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      {project.bpm && (
-                        <div className="flex items-center">
-                          <Music className="w-4 h-4 mr-1" />
-                          {project.bpm} BPM
-                        </div>
-                      )}
-                      {project.key && (
-                        <span>Key: {project.key}</span>
-                      )}
-                    </div>
-                  ) : null}
-                  
-                  {project.collaborators && project.collaborators.length > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500">Team:</span>
-                      <div className="flex -space-x-2">
-                        {project.collaborators.slice(0, 3).map((collaborator, index) => (
-                          <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
-                            <span className="text-xs text-purple-700">
-                              {getInitials(collaborator.profiles?.name || 'U')}
-                            </span>
-                          </div>
-                        ))}
-                        {project.collaborators.length > 3 && (
-                          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
-                            <span className="text-xs text-gray-600">+{project.collaborators.length - 3}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/projects/${project.id}`)}
-                  >
-                    Open Project
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteProject(project.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+
+                  <div className="flex space-x-2">
+                    <Button 
+                      className="flex-1 bg-purple-600 hover:bg-purple-700"
+                      onClick={() => handleOpenProject(project.id)}
+                    >
+                      <Music className="w-4 h-4 mr-2" />
+                      Open
+                    </Button>
+                    <Button variant="outline" className="flex-1">
+                      Share
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
-      
-      {filteredProjects.length === 0 && (
-        <div className="text-center py-12">
-          <Music className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
-          <p className="text-gray-500 mb-4">
-            {searchTerm || selectedFolder !== 'all' || statusFilter !== 'all'
-              ? 'Try adjusting your filters or search terms'
-              : 'Create your first project to get started'}
-          </p>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Project
-          </Button>
-        </div>
-      )}
+
+      {/* New Project Dialog */}
+      <Dialog open={showNewProjectDialog} onOpenChange={setShowNewProjectDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Fill out the details below to start a new music project.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="project-name">Name</Label>
+              <Input 
+                id="project-name" 
+                value={projectName} 
+                onChange={(e) => setProjectName(e.target.value)} 
+                className="w-full" 
+                placeholder="Enter project name"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-genre">Genre</Label>
+              <Select value={projectGenre} onValueChange={setProjectGenre}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pop">Pop</SelectItem>
+                  <SelectItem value="Rock">Rock</SelectItem>
+                  <SelectItem value="Hip-Hop">Hip-Hop</SelectItem>
+                  <SelectItem value="R&B">R&B</SelectItem>
+                  <SelectItem value="Jazz">Jazz</SelectItem>
+                  <SelectItem value="Classical">Classical</SelectItem>
+                  <SelectItem value="Electronic">Electronic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-description">Description</Label>
+              <Textarea 
+                id="project-description" 
+                value={projectDescription} 
+                onChange={(e) => setProjectDescription(e.target.value)} 
+                className="w-full" 
+                placeholder="Describe your project"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-privacy">Privacy</Label>
+              <Select value={projectVisibility} onValueChange={setProjectVisibility}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select privacy" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="connections_only">Connections Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-deadline">Deadline</Label>
+              <Input 
+                id="project-deadline"
+                type="date"
+                value={projectDeadline}
+                onChange={(e) => setProjectDeadline(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewProjectDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={handleCreateProject}
+              disabled={!projectName.trim()}
+            >
+              Create Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to Folder Dialog */}
+      <Dialog open={showAddToFolderDialog} onOpenChange={setShowAddToFolderDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Add to Folder</DialogTitle>
+            <DialogDescription>
+              Choose a folder for this project or create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Existing Folders</Label>
+              <div className="space-y-2">
+                {dynamicFolders.map((folder) => (
+                  <Button 
+                    key={folder.id}
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => handleSaveToFolder(folder.id)}
+                  >
+                    <Folder className="w-4 h-4 mr-2" />
+                    {folder.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="new-folder">Create New Folder</Label>
+              <Input 
+                id="new-folder"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Enter folder name"
+                className="w-full"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddToFolderDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={() => handleSaveToFolder()}
+              disabled={!newFolderName.trim()}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
