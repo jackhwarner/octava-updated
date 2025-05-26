@@ -64,7 +64,7 @@ const Support = () => {
                 <Textarea id="message" placeholder="Describe your issue or question" rows={5} />
               </div>
 
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">
+              <Button className="w-full bg-purple-600 hover:bg-purple-700 w-1/2 mx-auto">
                 Send Message
               </Button>
             </CardContent>
