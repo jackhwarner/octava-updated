@@ -22,14 +22,80 @@ const ProjectDetail = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [mainActiveTab, setMainActiveTab] = useState('projects');
   const [recentFiles, setRecentFiles] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [hasAccess, setHasAccess] = useState(true);
+
+  // Get current user
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    };
+    getCurrentUser();
+  }, []);
 
   useEffect(() => {
     const foundProject = projects.find(p => p.id === projectId);
-    setProject(foundProject);
     if (foundProject) {
+      setProject(foundProject);
       fetchRecentFiles();
+      // Check if user has access to this project
+      checkProjectAccess();
+    } else if (!loading && projectId) {
+      // Try to fetch the project directly (might be a shared project)
+      fetchSharedProject();
     }
-  }, [projectId, projects]);
+  }, [projectId, projects, loading, currentUser]);
+
+  const checkProjectAccess = async () => {
+    if (!currentUser || !projectId) return;
+    
+    try {
+      const { data, error } = await supabase.rpc('user_can_access_project', {
+        project_id: projectId,
+        user_id: currentUser.id
+      });
+      
+      if (error) throw error;
+      setHasAccess(data);
+    } catch (error) {
+      console.error('Error checking project access:', error);
+      setHasAccess(false);
+    }
+  };
+
+  const fetchSharedProject = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          collaborators:project_collaborators (
+            id,
+            user_id,
+            role,
+            status,
+            profiles (
+              name,
+              username
+            )
+          )
+        `)
+        .eq('id', projectId)
+        .eq('visibility', 'public')
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setProject(data);
+        setHasAccess(false); // Viewing as a guest
+        fetchRecentFiles();
+      }
+    } catch (error) {
+      console.error('Error fetching shared project:', error);
+    }
+  };
 
   // Set up real-time listeners for stats updates
   useEffect(() => {
@@ -78,6 +144,19 @@ const ProjectDetail = () => {
         () => {
           refetchStats();
           fetchRecentFiles();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'projects',
+          filter: `id=eq.${projectId}`
+        },
+        (payload) => {
+          // Update the project state with new data
+          setProject(prev => ({ ...prev, ...payload.new }));
         }
       )
       .subscribe();
@@ -229,46 +308,54 @@ const ProjectDetail = () => {
       </div>;
   };
 
-  const sidebarItems = [{
-    id: 'overview',
-    label: 'Overview',
-    icon: Info
-  }, {
-    id: 'files',
-    label: 'Files',
-    icon: FileText
-  }, {
-    id: 'todos',
-    label: 'To-Do',
-    icon: ListTodo
-  }, {
-    id: 'chat',
-    label: 'Chat',
-    icon: MessageSquare
-  }, {
-    id: 'collaborators',
-    label: 'Team',
-    icon: Users
-  }, {
-    id: 'settings',
-    label: 'Settings',
-    icon: Settings
-  }];
+  // Filter sidebar items based on access level
+  const sidebarItems = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: Info
+    },
+    ...(hasAccess ? [{
+      id: 'files',
+      label: 'Files',
+      icon: FileText
+    }] : []),
+    ...(hasAccess ? [{
+      id: 'todos',
+      label: 'To-Do',
+      icon: ListTodo
+    }] : []),
+    ...(hasAccess ? [{
+      id: 'chat',
+      label: 'Chat',
+      icon: MessageSquare
+    }] : []),
+    ...(hasAccess ? [{
+      id: 'collaborators',
+      label: 'Team',
+      icon: Users
+    }] : []),
+    ...(hasAccess ? [{
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings
+    }] : [])
+  ];
 
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
         return <ProjectInfo project={project} stats={stats} />;
       case 'files':
-        return <ProjectFiles projectId={project.id} />;
+        return hasAccess ? <ProjectFiles projectId={project.id} /> : <div>Access denied</div>;
       case 'todos':
-        return <ProjectTodos projectId={project.id} />;
+        return hasAccess ? <ProjectTodos projectId={project.id} /> : <div>Access denied</div>;
       case 'chat':
-        return <ProjectChat projectId={project.id} />;
+        return hasAccess ? <ProjectChat projectId={project.id} /> : <div>Access denied</div>;
       case 'collaborators':
-        return <ProjectCollaborators project={project} />;
+        return hasAccess ? <ProjectCollaborators project={project} /> : <div>Access denied</div>;
       case 'settings':
-        return <ProjectSettings project={project} />;
+        return hasAccess ? <ProjectSettings project={project} /> : <div>Access denied</div>;
       default:
         return <ProjectInfo project={project} stats={stats} />;
     }
@@ -303,6 +390,7 @@ const ProjectDetail = () => {
           <div className="flex items-center text-sm text-gray-500 mb-4">
             {getVisibilityIcon(project.visibility)}
             <span className="ml-1 capitalize">{project.visibility}</span>
+            {!hasAccess && <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded">View Only</span>}
           </div>
 
           <p className="text-sm text-gray-600 line-clamp-3">{project.description}</p>
@@ -323,32 +411,34 @@ const ProjectDetail = () => {
           </ul>
         </nav>
 
-        {/* Recent Activity */}
-        <div className="flex-1 p-4">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Files</h3>
-          <div className="space-y-3">
-            {recentFiles.length === 0 ? (
-              <p className="text-sm text-gray-500">No recent files</p>
-            ) : (
-              recentFiles.map(file => (
-                <div key={file.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    {getFileIcon(file.file_type)}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{file.file_name}</p>
-                      <p className="text-xs text-gray-500">by {file.uploader?.name || 'Unknown'}</p>
+        {/* Recent Activity - only show if user has access */}
+        {hasAccess && (
+          <div className="flex-1 p-4">
+            <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Files</h3>
+            <div className="space-y-3">
+              {recentFiles.length === 0 ? (
+                <p className="text-sm text-gray-500">No recent files</p>
+              ) : (
+                recentFiles.map(file => (
+                  <div key={file.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      {getFileIcon(file.file_type)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{file.file_name}</p>
+                        <p className="text-xs text-gray-500">by {file.uploader?.name || 'Unknown'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <button className="p-1 text-gray-400 hover:text-gray-600">
+                        <Download className="w-3 h-3" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <button className="p-1 text-gray-400 hover:text-gray-600">
-                      <Download className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Project Stats */}
         <div className="p-4 border-t">
@@ -361,18 +451,22 @@ const ProjectDetail = () => {
               <span className="text-gray-500">Updated</span>
               <span className="text-gray-900">{new Date(project.updated_at).toLocaleDateString()}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500">Files</span>
-              <span className="text-gray-900">{statsLoading ? '...' : stats.totalFiles}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500">Todos</span>
-              <span className="text-gray-900">{statsLoading ? '...' : `${stats.completedTodos}/${stats.totalTodos}`}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500">Messages</span>
-              <span className="text-gray-900">{statsLoading ? '...' : stats.totalMessages}</span>
-            </div>
+            {hasAccess && (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Files</span>
+                  <span className="text-gray-900">{statsLoading ? '...' : stats.totalFiles}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Todos</span>
+                  <span className="text-gray-900">{statsLoading ? '...' : `${stats.completedTodos}/${stats.totalTodos}`}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Messages</span>
+                  <span className="text-gray-900">{statsLoading ? '...' : stats.totalMessages}</span>
+                </div>
+              </>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Team Size</span>
               <span className="text-gray-900">{statsLoading ? '...' : stats.teamSize}</span>
