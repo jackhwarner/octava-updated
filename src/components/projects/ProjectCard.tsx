@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Music, Folder } from 'lucide-react';
+import { Calendar, Users, Music, Folder as FolderIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ProjectActions } from './ProjectActions';
 import type { Project } from '@/types/project';
@@ -67,7 +67,7 @@ export const ProjectCard = ({
             </div>
             {folder && searchTerm && (
               <div className="flex items-center text-sm text-gray-500 mb-2">
-                <Folder className="w-4 h-4 mr-1" style={{ color: folder.color }} />
+                <FolderIcon className="w-4 h-4 mr-1" style={{ color: folder.color }} />
                 {folder.name}
               </div>
             )}
