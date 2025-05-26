@@ -10,52 +10,48 @@ import ProjectCollaborators from './project/ProjectCollaborators';
 import ProjectInfo from './project/ProjectInfo';
 import ProjectSettings from './project/ProjectSettings';
 import ProjectTodos from './project/ProjectTodos';
-
 const ProjectDetail = () => {
-  const { projectId } = useParams();
+  const {
+    projectId
+  } = useParams();
   const navigate = useNavigate();
-  const { projects, loading } = useProjects();
+  const {
+    projects,
+    loading
+  } = useProjects();
   const [project, setProject] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [mainActiveTab, setMainActiveTab] = useState('projects');
 
   // Sample recent files for demonstration
-  const recentFiles = [
-    {
-      id: '1',
-      name: 'demo-track.mp3',
-      type: 'audio/mp3',
-      uploadedAt: '2024-01-20T10:30:00Z',
-      uploadedBy: 'Sarah Johnson'
-    },
-    {
-      id: '2',
-      name: 'album-cover.jpg',
-      type: 'image/jpeg',
-      uploadedAt: '2024-01-19T14:15:00Z',
-      uploadedBy: 'Marcus Williams'
-    },
-    {
-      id: '3',
-      name: 'lyrics.txt',
-      type: 'text/plain',
-      uploadedAt: '2024-01-18T09:45:00Z',
-      uploadedBy: 'Sarah Johnson'
-    }
-  ];
-
+  const recentFiles = [{
+    id: '1',
+    name: 'demo-track.mp3',
+    type: 'audio/mp3',
+    uploadedAt: '2024-01-20T10:30:00Z',
+    uploadedBy: 'Sarah Johnson'
+  }, {
+    id: '2',
+    name: 'album-cover.jpg',
+    type: 'image/jpeg',
+    uploadedAt: '2024-01-19T14:15:00Z',
+    uploadedBy: 'Marcus Williams'
+  }, {
+    id: '3',
+    name: 'lyrics.txt',
+    type: 'text/plain',
+    uploadedAt: '2024-01-18T09:45:00Z',
+    uploadedBy: 'Sarah Johnson'
+  }];
   useEffect(() => {
     const foundProject = projects.find(p => p.id === projectId);
     setProject(foundProject);
   }, [projectId, projects]);
-
   const handleMainNavigation = (tab: string) => {
     navigate(`/${tab}`);
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex">
+    return <div className="min-h-screen bg-white flex">
         <div className="fixed top-0 left-0 h-screen z-10">
           <Sidebar activeTab={mainActiveTab} setActiveTab={handleMainNavigation} />
         </div>
@@ -65,13 +61,10 @@ const ProjectDetail = () => {
             <div className="h-64 bg-gray-200 rounded"></div>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!project) {
-    return (
-      <div className="min-h-screen bg-white flex">
+    return <div className="min-h-screen bg-white flex">
         <div className="fixed top-0 left-0 h-screen z-10">
           <Sidebar activeTab={mainActiveTab} setActiveTab={handleMainNavigation} />
         </div>
@@ -86,11 +79,9 @@ const ProjectDetail = () => {
             <p className="text-gray-500">Project not found</p>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status) {
       case 'active':
         return 'bg-yellow-100 text-yellow-800';
@@ -104,8 +95,7 @@ const ProjectDetail = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
-  const getStatusLabel = (status) => {
+  const getStatusLabel = status => {
     switch (status) {
       case 'active':
         return 'In Progress';
@@ -119,8 +109,7 @@ const ProjectDetail = () => {
         return status;
     }
   };
-
-  const getVisibilityIcon = (visibility) => {
+  const getVisibilityIcon = visibility => {
     switch (visibility) {
       case 'public':
         return <Globe className="w-4 h-4" />;
@@ -132,42 +121,49 @@ const ProjectDetail = () => {
         return <Lock className="w-4 h-4" />;
     }
   };
-
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-
   const getFileIcon = (type: string) => {
     if (type.startsWith('audio/')) {
-      return (
-        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+      return <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
           <Play className="w-4 h-4 text-purple-700" />
-        </div>
-      );
+        </div>;
     }
     if (type.startsWith('image/')) {
-      return (
-        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+      return <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
           <ImageIcon className="w-4 h-4 text-purple-700" />
-        </div>
-      );
+        </div>;
     }
-    return (
-      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+    return <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
         <File className="w-4 h-4 text-purple-700" />
-      </div>
-    );
+      </div>;
   };
-
-  const sidebarItems = [
-    { id: 'overview', label: 'Overview', icon: Info },
-    { id: 'files', label: 'Files', icon: FileText },
-    { id: 'todos', label: 'To-Do', icon: ListTodo },
-    { id: 'chat', label: 'Chat', icon: MessageSquare },
-    { id: 'collaborators', label: 'Team', icon: Users },
-    { id: 'settings', label: 'Settings', icon: Settings },
-  ];
-
+  const sidebarItems = [{
+    id: 'overview',
+    label: 'Overview',
+    icon: Info
+  }, {
+    id: 'files',
+    label: 'Files',
+    icon: FileText
+  }, {
+    id: 'todos',
+    label: 'To-Do',
+    icon: ListTodo
+  }, {
+    id: 'chat',
+    label: 'Chat',
+    icon: MessageSquare
+  }, {
+    id: 'collaborators',
+    label: 'Team',
+    icon: Users
+  }, {
+    id: 'settings',
+    label: 'Settings',
+    icon: Settings
+  }];
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -186,9 +182,7 @@ const ProjectDetail = () => {
         return <ProjectInfo project={project} />;
     }
   };
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex">
+  return <div className="min-h-screen bg-gray-50 flex">
       {/* Main Navigation Sidebar */}
       <div className="fixed top-0 left-0 h-screen z-20">
         <Sidebar activeTab={mainActiveTab} setActiveTab={handleMainNavigation} />
@@ -225,33 +219,23 @@ const ProjectDetail = () => {
         {/* Navigation */}
         <nav className="p-4 border-b">
           <ul className="space-y-2">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <li key={item.id}>
-                  <button
-                    onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                      activeTab === item.id
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
+            {sidebarItems.map(item => {
+            const Icon = item.icon;
+            return <li key={item.id}>
+                  <button onClick={() => setActiveTab(item.id)} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${activeTab === item.id ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </button>
-                </li>
-              );
-            })}
+                </li>;
+          })}
           </ul>
         </nav>
 
         {/* Recent Activity */}
         <div className="flex-1 p-4">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Activity</h3>
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Files</h3>
           <div className="space-y-3">
-            {recentFiles.map((file) => (
-              <div key={file.id} className="flex items-center justify-between">
+            {recentFiles.map(file => <div key={file.id} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
                   {getFileIcon(file.type)}
                   <div className="flex-1 min-w-0">
@@ -267,8 +251,7 @@ const ProjectDetail = () => {
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
 
@@ -309,8 +292,7 @@ const ProjectDetail = () => {
 
             <div className="flex items-center space-x-4">
               {/* Collaborator Avatars */}
-              {project.collaborators && project.collaborators.length > 0 && (
-                <div className="flex items-center space-x-2">
+              {project.collaborators && project.collaborators.length > 0 && <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-500">Team:</span>
                   <div className="flex -space-x-2">
                     {/* Project Owner */}
@@ -319,22 +301,17 @@ const ProjectDetail = () => {
                     </div>
                     
                     {/* Collaborators */}
-                    {project.collaborators.slice(0, 4).map((collaborator, index) => (
-                      <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
+                    {project.collaborators.slice(0, 4).map((collaborator, index) => <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
                         <span className="text-xs text-purple-700">
                           {getInitials(collaborator.profiles?.name || 'U')}
                         </span>
-                      </div>
-                    ))}
+                      </div>)}
                     
-                    {project.collaborators.length > 4 && (
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
+                    {project.collaborators.length > 4 && <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
                         <span className="text-xs text-gray-600">+{project.collaborators.length - 4}</span>
-                      </div>
-                    )}
+                      </div>}
                   </div>
-                </div>
-              )}
+                </div>}
             </div>
           </div>
         </div>
@@ -344,8 +321,6 @@ const ProjectDetail = () => {
           {renderContent()}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ProjectDetail;
