@@ -12,7 +12,6 @@ const Browse = () => {
   const [selectedGenre, setSelectedGenre] = useState('');
   const [selectedInstrument, setSelectedInstrument] = useState('');
   const [selectedExperience, setSelectedExperience] = useState('');
-  const [selectedAvailability, setSelectedAvailability] = useState('');
   const [location, setLocation] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -81,8 +80,6 @@ const Browse = () => {
         setSelectedInstrument={setSelectedInstrument}
         selectedExperience={selectedExperience}
         setSelectedExperience={setSelectedExperience}
-        selectedAvailability={selectedAvailability}
-        setSelectedAvailability={setSelectedAvailability}
         location={location}
         setLocation={setLocation}
         onSearch={handleSearch}

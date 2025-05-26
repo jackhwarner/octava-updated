@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Calendar, Users, Clock, Music, Zap, Settings as SettingsIcon, CheckCircle2, Circle, Edit, Plus, X, GripVertical, MessageSquare, FileText, ListTodo } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useToast } from '@/hooks/use-toast';
+import ProjectDeadline from './ProjectDeadline';
 
 interface ProjectInfoProps {
   project: any;
@@ -134,6 +135,9 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Project Deadline */}
+      <ProjectDeadline deadline={project.deadline} />
+
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
