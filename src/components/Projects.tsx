@@ -27,7 +27,7 @@ const Projects = () => {
   } = useProjects();
   const {
     folders,
-    addFolder
+    createFolder
   } = useFolders();
   const {
     toast
@@ -96,15 +96,38 @@ const Projects = () => {
     return matchesSearch && matchesFolder && matchesStatus;
   });
   
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createFolder(newFolder.name, newFolder.description);
+      setIsFolderDialogOpen(false);
+      setNewFolder({
+        name: '',
+        description: '',
+        color: '#6366f1'
+      });
+      toast({
+        title: "Success",
+        description: "Folder created successfully"
+      });
+    } catch (error) {
+      console.error('Error creating folder:', error);
+    }
+  };
+  
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const projectData = {
-        ...newProject,
-        budget: newProject.budget ? parseFloat(newProject.budget) : undefined,
-        bpm: newProject.bpm ? parseInt(newProject.bpm) : undefined,
+        title: newProject.title,
+        description: newProject.description,
+        genre: newProject.genre,
+        visibility: newProject.visibility as 'public' | 'private' | 'connections_only',
         deadline: newProject.deadline || undefined,
-        folder_id: newProject.folder_id || undefined
+        folder_id: newProject.folder_id || undefined,
+        bpm: newProject.bpm ? parseInt(newProject.bpm) : undefined,
+        key: newProject.key,
+        daw: newProject.daw
       };
       await addProject(projectData);
       setIsCreateDialogOpen(false);
@@ -127,25 +150,6 @@ const Projects = () => {
       });
     } catch (error) {
       console.error('Error creating project:', error);
-    }
-  };
-  
-  const handleCreateFolder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await addFolder(newFolder);
-      setIsFolderDialogOpen(false);
-      setNewFolder({
-        name: '',
-        description: '',
-        color: '#6366f1'
-      });
-      toast({
-        title: "Success",
-        description: "Folder created successfully"
-      });
-    } catch (error) {
-      console.error('Error creating folder:', error);
     }
   };
   
@@ -343,16 +347,6 @@ const Projects = () => {
                   })} />
                   </div>
                   <div>
-                    <Label htmlFor="budget">Budget ($)</Label>
-                    <Input id="budget" type="number" value={newProject.budget} onChange={e => setNewProject({
-                    ...newProject,
-                    budget: e.target.value
-                  })} placeholder="5000" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
                     <Label htmlFor="folder">Folder</Label>
                     <Select value={newProject.folder_id} onValueChange={value => setNewProject({
                     ...newProject,
@@ -362,37 +356,30 @@ const Projects = () => {
                         <SelectValue placeholder="Select a folder" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No folder</SelectItem>
+                        <SelectItem value="none">No folder</SelectItem>
                         {folders.map(folder => <SelectItem key={folder.id} value={folder.id}>
                             {folder.name}
                           </SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="visibility">Visibility</Label>
-                    <Select value={newProject.visibility} onValueChange={value => setNewProject({
-                    ...newProject,
-                    visibility: value
-                  })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="private">Private</SelectItem>
-                        <SelectItem value="public">Public</SelectItem>
-                        <SelectItem value="connections_only">Connections Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="mood">Mood/Vibe</Label>
-                  <Input id="mood" value={newProject.mood} onChange={e => setNewProject({
+                  <Label htmlFor="visibility">Visibility</Label>
+                  <Select value={newProject.visibility} onValueChange={value => setNewProject({
                   ...newProject,
-                  mood: e.target.value
-                })} placeholder="Energetic, Chill, Dark, etc." />
+                  visibility: value
+                })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="public">Public</SelectItem>
+                      <SelectItem value="connections_only">Connections Only</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex justify-end space-x-2">
@@ -420,7 +407,7 @@ const Projects = () => {
                       <SelectValue placeholder="Choose a folder" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No folder</SelectItem>
+                      <SelectItem value="none">No folder</SelectItem>
                       {folders.map(folder => (
                         <SelectItem key={folder.id} value={folder.id}>
                           <div className="flex items-center">
