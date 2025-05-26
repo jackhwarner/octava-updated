@@ -474,7 +474,7 @@ const Projects = () => {
                 </div>
                 
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${project.id}`)} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                  <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${project.id}`)} className="w-full bg-purple-600 hover:bg-purple-700 text-white hover:text-white">
                     Open Project
                   </Button>
                   
