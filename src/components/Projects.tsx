@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Folder, Music, Users, MoreHorizontal, ChevronRight, Home } from 'lucide-react';
+import { Plus, Folder, Music, Users, MoreHorizontal, ChevronRight, Home, Trash2 } from 'lucide-react';
 import { 
   Breadcrumb, 
   BreadcrumbItem, 
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useFolders } from '@/hooks/useFolders';
@@ -24,7 +25,7 @@ import { useFolders } from '@/hooks/useFolders';
 const Projects = () => {
   const navigate = useNavigate();
   const { projects, loading: projectsLoading, addProject, deleteProject, addProjectToFolder } = useProjects();
-  const { folders, loading: foldersLoading, createFolder } = useFolders();
+  const { folders, loading: foldersLoading, createFolder, deleteFolder } = useFolders();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
@@ -120,6 +121,18 @@ const Projects = () => {
   const handleBackToRoot = () => {
     setCurrentFolderId(null);
     setCurrentFolderName(null);
+  };
+
+  const handleDeleteFolder = async (folderId: string) => {
+    try {
+      await deleteFolder(folderId);
+      // If we're currently in the folder being deleted, go back to root
+      if (currentFolderId === folderId) {
+        handleBackToRoot();
+      }
+    } catch (error) {
+      console.error('Failed to delete folder:', error);
+    }
   };
 
   const handleCreateProject = async () => {
@@ -219,7 +232,38 @@ const Projects = () => {
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {currentFolderId ? currentFolderName : 'Projects'}
+          </h1>
+          {currentFolderId && (
+            <div className="flex items-center space-x-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{currentFolderName}"? This action cannot be undone. Projects in this folder will not be deleted.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleDeleteFolder(currentFolderId)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />

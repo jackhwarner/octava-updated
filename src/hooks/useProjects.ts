@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +16,7 @@ export interface Project {
   updated_at: string;
   deadline?: string;
   budget?: number;
+  folder_id?: string;
   collaborators?: Array<{
     id: string;
     user_id: string;

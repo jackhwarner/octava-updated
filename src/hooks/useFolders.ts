@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -108,6 +107,31 @@ export const useFolders = () => {
     }
   };
 
+  const deleteFolder = async (folderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('project_folders')
+        .delete()
+        .eq('id', folderId);
+
+      if (error) throw error;
+
+      setFolders(prev => prev.filter(folder => folder.id !== folderId));
+      toast({
+        title: "Success",
+        description: "Folder deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete folder",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchFolders();
   }, []);
@@ -116,6 +140,7 @@ export const useFolders = () => {
     folders,
     loading,
     createFolder,
+    deleteFolder,
     refetch: fetchFolders
   };
 };
