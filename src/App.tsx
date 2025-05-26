@@ -44,12 +44,19 @@ function App() {
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/user/:userId" element={<PublicProfile />} />
                 
-                {/* Protected routes */}
+                {/* Subscription route - full screen without sidebar */}
+                <Route path="/subscription" element={
+                  <AuthWrapper>
+                    <Subscription />
+                  </AuthWrapper>
+                } />
+                
+                {/* Protected routes with sidebar */}
                 <Route path="/dashboard" element={
                   <AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
-                        <Sidebar />
+                        <Sidebar activeTab="dashboard" setActiveTab={() => {}} />
                         <main className="flex-1 overflow-auto">
                           <Dashboard />
                         </main>
@@ -62,7 +69,7 @@ function App() {
                   <AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
-                        <Sidebar />
+                        <Sidebar activeTab="projects" setActiveTab={() => {}} />
                         <main className="flex-1 overflow-auto">
                           <Projects />
                         </main>
@@ -75,7 +82,7 @@ function App() {
                   <AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
-                        <Sidebar />
+                        <Sidebar activeTab="projects" setActiveTab={() => {}} />
                         <main className="flex-1 overflow-auto">
                           <ProjectDetail />
                         </main>
@@ -88,7 +95,7 @@ function App() {
                   <AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
-                        <Sidebar />
+                        <Sidebar activeTab="browse" setActiveTab={() => {}} />
                         <main className="flex-1 overflow-auto">
                           <Browse />
                         </main>
@@ -101,7 +108,7 @@ function App() {
                   <AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
-                        <Sidebar />
+                        <Sidebar activeTab="messages" setActiveTab={() => {}} />
                         <main className="flex-1 overflow-auto">
                           <Messages />
                         </main>
@@ -114,7 +121,7 @@ function App() {
                   <AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
-                        <Sidebar />
+                        <Sidebar activeTab="profile" setActiveTab={() => {}} />
                         <main className="flex-1 overflow-auto">
                           <Profile />
                         </main>
@@ -127,7 +134,7 @@ function App() {
                   <AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
-                        <Sidebar />
+                        <Sidebar activeTab="settings" setActiveTab={() => {}} />
                         <main className="flex-1 overflow-auto">
                           <Settings />
                         </main>
@@ -140,7 +147,7 @@ function App() {
                   <AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
-                        <Sidebar />
+                        <Sidebar activeTab="support" setActiveTab={() => {}} />
                         <main className="flex-1 overflow-auto">
                           <Support />
                         </main>
@@ -149,22 +156,11 @@ function App() {
                   </AuthWrapper>
                 } />
                 
-                <Route path="/subscription" element={
-                  <AuthWrapper>
-                    <div className="flex h-screen">
-                      <Sidebar />
-                      <main className="flex-1 overflow-auto">
-                        <Subscription />
-                      </main>
-                    </div>
-                  </AuthWrapper>
-                } />
-                
                 <Route path="/app" element={
                   <AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
-                        <Sidebar />
+                        <Sidebar activeTab="dashboard" setActiveTab={() => {}} />
                         <main className="flex-1 overflow-auto">
                           <Index />
                         </main>
