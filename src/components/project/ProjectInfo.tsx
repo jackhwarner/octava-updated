@@ -1,14 +1,61 @@
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Target, Clock, DollarSign, Calendar, Users, TrendingUp, Activity } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectInfoProps {
   project: any;
 }
 
 const ProjectInfo = ({ project }: ProjectInfoProps) => {
+  const [stats, setStats] = useState({
+    fileCount: 0,
+    messageCount: 0,
+    collaboratorCount: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProjectStats();
+  }, [project.id]);
+
+  const fetchProjectStats = async () => {
+    try {
+      // Fetch file count
+      const { count: fileCount } = await supabase
+        .from('project_files')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', project.id);
+
+      // Fetch message count
+      const { count: messageCount } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', project.id);
+
+      // Fetch collaborator count
+      const { count: collaboratorCount } = await supabase
+        .from('project_collaborators')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', project.id)
+        .eq('status', 'accepted');
+
+      setStats({
+        fileCount: fileCount || 0,
+        messageCount: messageCount || 0,
+        collaboratorCount: (collaboratorCount || 0) + 1 // +1 for owner
+      });
+    } catch (error) {
+      console.error('Error fetching project stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -42,21 +89,26 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
                 <span className="text-sm font-medium">Overall Progress</span>
                 <span className="text-sm text-gray-500">{progressPercentage}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
-              </div>
+              <Progress value={progressPercentage} className="w-full" />
               
-              <div className="grid grid-cols-2 gap-4 mt-6">
+              <div className="grid grid-cols-3 gap-4 mt-6">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">4</div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {loading ? '...' : stats.fileCount}
+                  </div>
                   <div className="text-sm text-gray-500">Files Uploaded</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">12</div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {loading ? '...' : stats.messageCount}
+                  </div>
                   <div className="text-sm text-gray-500">Messages Sent</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {loading ? '...' : stats.collaboratorCount}
+                  </div>
+                  <div className="text-sm text-gray-500">Team Members</div>
                 </div>
               </div>
             </div>
@@ -85,21 +137,25 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
                 </div>
               </div>
               
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm text-gray-900">Files uploaded</p>
-                  <p className="text-xs text-gray-500">3 files added to project</p>
+              {stats.fileCount > 0 && (
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm text-gray-900">Files uploaded</p>
+                    <p className="text-xs text-gray-500">{stats.fileCount} files added to project</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm text-gray-900">Sarah Johnson joined</p>
-                  <p className="text-xs text-gray-500">2 days ago</p>
+              {stats.messageCount > 0 && (
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm text-gray-900">Team collaboration</p>
+                    <p className="text-xs text-gray-500">{stats.messageCount} messages exchanged</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -175,15 +231,15 @@ const ProjectInfo = ({ project }: ProjectInfoProps) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Files</span>
-                <Badge variant="outline">4</Badge>
+                <Badge variant="outline">{loading ? '...' : stats.fileCount}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Messages</span>
-                <Badge variant="outline">12</Badge>
+                <Badge variant="outline">{loading ? '...' : stats.messageCount}</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Sessions</span>
-                <Badge variant="outline">3</Badge>
+                <span className="text-sm font-medium">Team Members</span>
+                <Badge variant="outline">{loading ? '...' : stats.collaboratorCount}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Status</span>

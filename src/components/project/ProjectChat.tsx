@@ -4,72 +4,99 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Paperclip } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectChatProps {
   projectId: string;
 }
 
 const ProjectChat = ({ projectId }: ProjectChatProps) => {
-  const [messages, setMessages] = useState([
-    {
-      id: '1',
-      sender: 'Sarah Johnson',
-      senderUsername: '@sarah_beats',
-      message: 'Hey everyone! I just uploaded the demo track. Let me know what you think!',
-      timestamp: '2024-01-20T10:30:00Z',
-      isCurrentUser: false
-    },
-    {
-      id: '2',
-      sender: 'You',
-      senderUsername: '@alex_producer',
-      message: 'Sounds great! Love the melody in the chorus. Should we work on the bridge next?',
-      timestamp: '2024-01-20T10:45:00Z',
-      isCurrentUser: true
-    },
-    {
-      id: '3',
-      sender: 'Marcus Williams',
-      senderUsername: '@marcus_guitar',
-      message: 'I can add some guitar layers to the bridge. Give me a day or two.',
-      timestamp: '2024-01-20T11:15:00Z',
-      isCurrentUser: false
-    },
-    {
-      id: '4',
-      sender: 'Sarah Johnson',
-      senderUsername: '@sarah_beats',
-      message: 'Perfect! I\'ll work on the vocal arrangement in the meantime.',
-      timestamp: '2024-01-20T11:20:00Z',
-      isCurrentUser: false
-    }
-  ]);
-
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  useEffect(() => {
+    fetchMessages();
+  }, [projectId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+  const fetchMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          profiles:sender_id (
+            name,
+            username
+          )
+        `)
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true });
 
-    const message = {
-      id: Date.now().toString(),
-      sender: 'You',
-      senderUsername: '@alex_producer',
-      message: newMessage,
-      timestamp: new Date().toISOString(),
-      isCurrentUser: true
-    };
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat messages",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setMessages(prev => [...prev, message]);
-    setNewMessage('');
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || sending) return;
+
+    setSending(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('messages')
+        .insert([{
+          content: newMessage,
+          sender_id: user.id,
+          project_id: projectId
+        }])
+        .select(`
+          *,
+          profiles:sender_id (
+            name,
+            username
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+
+      setMessages(prev => [...prev, data]);
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -92,8 +119,28 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
   };
 
   const getInitials = (name: string) => {
+    if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
+
+  const isCurrentUser = (senderId: string) => {
+    // This would need to be compared with actual current user ID
+    // For now, we'll use a simple check
+    return false; // Placeholder
+  };
+
+  if (loading) {
+    return (
+      <Card className="h-[600px] flex flex-col">
+        <CardHeader>
+          <CardTitle>Project Chat</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center">
+          <div className="animate-pulse text-gray-500">Loading messages...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="h-[600px] flex flex-col">
@@ -104,43 +151,52 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
       <CardContent className="flex-1 flex flex-col p-0">
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.isCurrentUser ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`flex space-x-3 max-w-[70%] ${message.isCurrentUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                {!message.isCurrentUser && (
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs text-purple-700">
-                      {getInitials(message.sender)}
-                    </span>
-                  </div>
-                )}
-                
-                <div className="flex flex-col">
-                  <div
-                    className={`px-4 py-2 rounded-lg ${
-                      message.isCurrentUser
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
-                    }`}
-                  >
-                    {!message.isCurrentUser && (
-                      <p className="text-xs font-medium mb-1 opacity-75">
-                        {message.sender}
-                      </p>
-                    )}
-                    <p className="text-sm">{message.message}</p>
-                  </div>
-                  
-                  <span className={`text-xs text-gray-500 mt-1 ${message.isCurrentUser ? 'text-right' : 'text-left'}`}>
-                    {formatTime(message.timestamp)}
-                  </span>
-                </div>
-              </div>
+          {messages.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No messages yet. Start the conversation!</p>
             </div>
-          ))}
+          ) : (
+            messages.map((message) => {
+              const currentUser = isCurrentUser(message.sender_id);
+              return (
+                <div
+                  key={message.id}
+                  className={`flex ${currentUser ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`flex space-x-3 max-w-[70%] ${currentUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                    {!currentUser && (
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs text-purple-700">
+                          {getInitials(message.profiles?.name || 'User')}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-col">
+                      <div
+                        className={`px-4 py-2 rounded-lg ${
+                          currentUser
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-100 text-gray-900'
+                        }`}
+                      >
+                        {!currentUser && (
+                          <p className="text-xs font-medium mb-1 opacity-75">
+                            {message.profiles?.name || 'User'}
+                          </p>
+                        )}
+                        <p className="text-sm">{message.content}</p>
+                      </div>
+                      
+                      <span className={`text-xs text-gray-500 mt-1 ${currentUser ? 'text-right' : 'text-left'}`}>
+                        {formatTime(message.created_at)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
           <div ref={messagesEndRef} />
         </div>
 
@@ -156,10 +212,11 @@ const ProjectChat = ({ projectId }: ProjectChatProps) => {
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               className="flex-1"
+              disabled={sending}
             />
             <Button
               onClick={handleSendMessage}
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() || sending}
               className="bg-purple-600 hover:bg-purple-700"
             >
               <Send className="w-4 h-4" />

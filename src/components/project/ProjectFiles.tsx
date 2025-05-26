@@ -1,59 +1,49 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, Download, Trash2, Plus, Play, FileText, Image, Video, File } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectFilesProps {
   projectId: string;
 }
 
 const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
-  const [files, setFiles] = useState([
-    {
-      id: '1',
-      name: 'demo-track.mp3',
-      size: 5242880, // 5MB
-      type: 'audio/mp3',
-      uploadedBy: 'Sarah Johnson',
-      uploadedAt: '2024-01-20T10:30:00Z',
-      url: '/lovable-uploads/sample-audio.mp3'
-    },
-    {
-      id: '2',
-      name: 'lyrics.txt',
-      size: 2048, // 2KB
-      type: 'text/plain',
-      uploadedBy: 'Marcus Williams',
-      uploadedAt: '2024-01-19T14:15:00Z',
-      url: '/lovable-uploads/sample-text.txt'
-    },
-    {
-      id: '3',
-      name: 'album-cover.jpg',
-      size: 1048576, // 1MB
-      type: 'image/jpeg',
-      uploadedBy: 'Sarah Johnson',
-      uploadedAt: '2024-01-18T09:45:00Z',
-      url: '/lovable-uploads/473e0e70-6ce1-470c-989b-502bc6fc4f4e.png'
-    },
-    {
-      id: '4',
-      name: 'music-video.mp4',
-      size: 15728640, // 15MB
-      type: 'video/mp4',
-      uploadedBy: 'Alex Rodriguez',
-      uploadedAt: '2024-01-17T16:30:00Z',
-      url: '/lovable-uploads/sample-video.mp4'
-    }
-  ]);
-  
+  const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchFiles();
+  }, [projectId]);
+
+  const fetchFiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('project_files')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFiles(data || []);
+    } catch (error) {
+      console.error('Error fetching files:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load project files",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -63,13 +53,13 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getFileIcon = (type: string, isAudio = false) => {
-    if (isAudio || type.startsWith('audio/')) {
+  const getFileIcon = (type: string) => {
+    if (type?.startsWith('audio/')) {
       return <Play className="w-4 h-4" />;
     }
-    if (type.startsWith('image/')) return <Image className="w-4 h-4" />;
-    if (type.startsWith('video/')) return <Video className="w-4 h-4" />;
-    if (type.includes('pdf') || type.includes('text')) return <FileText className="w-4 h-4" />;
+    if (type?.startsWith('image/')) return <Image className="w-4 h-4" />;
+    if (type?.startsWith('video/')) return <Video className="w-4 h-4" />;
+    if (type?.includes('pdf') || type?.includes('text')) return <FileText className="w-4 h-4" />;
     return <File className="w-4 h-4" />;
   };
 
@@ -80,20 +70,29 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     setUploading(true);
 
     try {
-      // Simulate file upload process
-      for (const file of Array.from(selectedFiles)) {
-        const newFile = {
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          uploadedBy: 'You',
-          uploadedAt: new Date().toISOString(),
-          url: URL.createObjectURL(file)
-        };
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
 
-        // Add to files list
-        setFiles(prev => [newFile, ...prev]);
+      for (const file of Array.from(selectedFiles)) {
+        // Insert file record into database
+        const { data, error } = await supabase
+          .from('project_files')
+          .insert([{
+            project_id: projectId,
+            file_name: file.name,
+            file_size: file.size,
+            file_type: file.type,
+            file_path: `projects/${projectId}/${file.name}`,
+            uploaded_by: user.id,
+            description: `File uploaded: ${file.name}`
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Add to local state
+        setFiles(prev => [data, ...prev]);
       }
 
       toast({
@@ -101,6 +100,7 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
         description: `${selectedFiles.length} file(s) uploaded to the project.`,
       });
     } catch (error) {
+      console.error('Error uploading files:', error);
       toast({
         title: "Upload failed",
         description: "There was an error uploading your files.",
@@ -114,19 +114,50 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
     }
   };
 
-  const handleDeleteFile = (fileId: string) => {
-    setFiles(prev => prev.filter(file => file.id !== fileId));
-    toast({
-      title: "File deleted",
-      description: "The file has been removed from the project.",
-    });
+  const handleDeleteFile = async (fileId: string) => {
+    try {
+      const { error } = await supabase
+        .from('project_files')
+        .delete()
+        .eq('id', fileId);
+
+      if (error) throw error;
+
+      setFiles(prev => prev.filter(file => file.id !== fileId));
+      toast({
+        title: "File deleted",
+        description: "The file has been removed from the project.",
+      });
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete file",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleImagePreview = (file: any) => {
-    if (file.type.startsWith('image/')) {
-      setPreviewImage(file.url);
+    if (file.file_type?.startsWith('image/')) {
+      setPreviewImage(file.file_path);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-8">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -186,23 +217,21 @@ const ProjectFiles = ({ projectId }: ProjectFilesProps) => {
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                       <div className="text-purple-700">
-                        {getFileIcon(file.type, file.type.startsWith('audio/'))}
+                        {getFileIcon(file.file_type)}
                       </div>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{file.name}</p>
+                      <p className="font-medium text-gray-900">{file.file_name}</p>
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>{formatFileSize(file.size)}</span>
+                        <span>{formatFileSize(file.file_size || 0)}</span>
                         <span>•</span>
-                        <span>Uploaded by {file.uploadedBy}</span>
-                        <span>•</span>
-                        <span>{new Date(file.uploadedAt).toLocaleDateString()}</span>
+                        <span>{new Date(file.created_at).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center space-x-2">
-                    {file.type.startsWith('image/') && (
+                    {file.file_type?.startsWith('image/') && (
                       <Button 
                         variant="ghost" 
                         size="sm"

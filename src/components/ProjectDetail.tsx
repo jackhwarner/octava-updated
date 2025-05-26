@@ -1,16 +1,16 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File, Paperclip } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Globe, Lock, Eye, FileText, MessageSquare, Settings, Info, Download, Trash2, Play, Image as ImageIcon, File } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import Sidebar from './Sidebar';
 import ProjectFiles from './project/ProjectFiles';
 import ProjectChat from './project/ProjectChat';
 import ProjectCollaborators from './project/ProjectCollaborators';
 import ProjectInfo from './project/ProjectInfo';
+import ProjectSettings from './project/ProjectSettings';
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
@@ -179,16 +179,7 @@ const ProjectDetail = () => {
       case 'collaborators':
         return <ProjectCollaborators project={project} />;
       case 'settings':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-500">Project settings will be implemented here.</p>
-            </CardContent>
-          </Card>
-        );
+        return <ProjectSettings project={project} />;
       default:
         return <ProjectInfo project={project} />;
     }
@@ -292,7 +283,7 @@ const ProjectDetail = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Files</span>
-              <span className="text-gray-900">4</span>
+              <span className="text-gray-900">3</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Team Size</span>
@@ -304,7 +295,7 @@ const ProjectDetail = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
+        {/* Top Bar - Removed quick actions */}
         <div className="bg-white border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -342,10 +333,6 @@ const ProjectDetail = () => {
                   </div>
                 </div>
               )}
-
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                Invite Collaborators
-              </Button>
             </div>
           </div>
         </div>
