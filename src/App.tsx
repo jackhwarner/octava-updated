@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -25,16 +24,13 @@ import Terms from '@/pages/Terms';
 import Privacy from '@/pages/Privacy';
 import NotFound from '@/pages/NotFound';
 import './App.css';
-
 const queryClient = new QueryClient();
-
 function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
+  return <QueryClientProvider client={queryClient}>
       <SubscriptionProvider>
         <TooltipProvider>
           <Router>
-            <div className="flex h-screen bg-gray-50">
+            <div className="flex h-screen bg-gray-50 mx-auto">
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Home />} />
@@ -45,15 +41,12 @@ function App() {
                 <Route path="/user/:userId" element={<PublicProfile />} />
                 
                 {/* Subscription route - full screen without sidebar */}
-                <Route path="/subscription" element={
-                  <AuthWrapper>
+                <Route path="/subscription" element={<AuthWrapper>
                     <Subscription />
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
                 {/* Protected routes with sidebar */}
-                <Route path="/dashboard" element={
-                  <AuthWrapper>
+                <Route path="/dashboard" element={<AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
                         <Sidebar activeTab="dashboard" setActiveTab={() => {}} />
@@ -62,11 +55,9 @@ function App() {
                         </main>
                       </div>
                     </SubscriptionGuard>
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
-                <Route path="/projects" element={
-                  <AuthWrapper>
+                <Route path="/projects" element={<AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
                         <Sidebar activeTab="projects" setActiveTab={() => {}} />
@@ -75,11 +66,9 @@ function App() {
                         </main>
                       </div>
                     </SubscriptionGuard>
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
-                <Route path="/projects/:id" element={
-                  <AuthWrapper>
+                <Route path="/projects/:id" element={<AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
                         <Sidebar activeTab="projects" setActiveTab={() => {}} />
@@ -88,11 +77,9 @@ function App() {
                         </main>
                       </div>
                     </SubscriptionGuard>
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
-                <Route path="/browse" element={
-                  <AuthWrapper>
+                <Route path="/browse" element={<AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
                         <Sidebar activeTab="browse" setActiveTab={() => {}} />
@@ -101,11 +88,9 @@ function App() {
                         </main>
                       </div>
                     </SubscriptionGuard>
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
-                <Route path="/messages" element={
-                  <AuthWrapper>
+                <Route path="/messages" element={<AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
                         <Sidebar activeTab="messages" setActiveTab={() => {}} />
@@ -114,11 +99,9 @@ function App() {
                         </main>
                       </div>
                     </SubscriptionGuard>
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
-                <Route path="/profile" element={
-                  <AuthWrapper>
+                <Route path="/profile" element={<AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
                         <Sidebar activeTab="profile" setActiveTab={() => {}} />
@@ -127,11 +110,9 @@ function App() {
                         </main>
                       </div>
                     </SubscriptionGuard>
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
-                <Route path="/settings" element={
-                  <AuthWrapper>
+                <Route path="/settings" element={<AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
                         <Sidebar activeTab="settings" setActiveTab={() => {}} />
@@ -140,11 +121,9 @@ function App() {
                         </main>
                       </div>
                     </SubscriptionGuard>
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
-                <Route path="/support" element={
-                  <AuthWrapper>
+                <Route path="/support" element={<AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
                         <Sidebar activeTab="support" setActiveTab={() => {}} />
@@ -153,11 +132,9 @@ function App() {
                         </main>
                       </div>
                     </SubscriptionGuard>
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
-                <Route path="/app" element={
-                  <AuthWrapper>
+                <Route path="/app" element={<AuthWrapper>
                     <SubscriptionGuard>
                       <div className="flex h-screen">
                         <Sidebar activeTab="dashboard" setActiveTab={() => {}} />
@@ -166,8 +143,7 @@ function App() {
                         </main>
                       </div>
                     </SubscriptionGuard>
-                  </AuthWrapper>
-                } />
+                  </AuthWrapper>} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
@@ -176,8 +152,6 @@ function App() {
           </Router>
         </TooltipProvider>
       </SubscriptionProvider>
-    </QueryClientProvider>
-  );
+    </QueryClientProvider>;
 }
-
 export default App;
