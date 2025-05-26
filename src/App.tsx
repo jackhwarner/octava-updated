@@ -30,7 +30,7 @@ function App() {
       <SubscriptionProvider>
         <TooltipProvider>
           <Router>
-            <div className="flex h-screen bg-gray-50 mx-auto">
+            <div className="flex h-screen mx-auto bg-inherit">
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Home />} />
