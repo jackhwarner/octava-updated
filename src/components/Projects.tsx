@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -226,44 +227,13 @@ const Projects = () => {
         </div>
       </div>
     );
-  }
+  };
 
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {currentFolderId ? currentFolderName : 'Projects'}
-          </h1>
-          {currentFolderId && (
-            <div className="flex items-center space-x-2">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Folder</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete "{currentFolderName}"? This action cannot be undone. Projects in this folder will not be deleted.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => handleDeleteFolder(currentFolderId)}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          )}
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -310,7 +280,38 @@ const Projects = () => {
 
       {/* Projects Section */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Projects</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">
+            {currentFolderId ? currentFolderName : 'Projects'}
+          </h2>
+          {currentFolderId && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete "{currentFolderName}"? This action cannot be undone. Projects in this folder will not be deleted.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => handleDeleteFolder(currentFolderId)}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
         {displayProjects.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
