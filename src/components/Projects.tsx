@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Music, Users, MoreHorizontal } from 'lucide-react';
+import { Plus, Music, Users, MoreHorizontal, Folder, FolderPlus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,16 +11,28 @@ import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
+import { useFolders } from '@/hooks/useFolders';
 
 const Projects = () => {
   const navigate = useNavigate();
   const { projects, loading, addProject, deleteProject } = useProjects();
+  const { folders, addFolder } = useFolders();
+  
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
+  const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
+  
+  // Project form state
   const [projectName, setProjectName] = useState('');
   const [projectGenre, setProjectGenre] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [projectVisibility, setProjectVisibility] = useState('private');
   const [projectDeadline, setProjectDeadline] = useState('');
+  const [selectedFolder, setSelectedFolder] = useState('');
+
+  // Folder form state
+  const [folderName, setFolderName] = useState('');
+  const [folderDescription, setFolderDescription] = useState('');
+  const [folderColor, setFolderColor] = useState('#6366f1');
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -61,6 +72,7 @@ const Projects = () => {
         description: projectDescription,
         genre: projectGenre,
         visibility: projectVisibility as 'public' | 'private' | 'connections_only',
+        folder_id: selectedFolder || undefined,
       });
       
       setShowNewProjectDialog(false);
@@ -69,8 +81,26 @@ const Projects = () => {
       setProjectDescription('');
       setProjectVisibility('private');
       setProjectDeadline('');
+      setSelectedFolder('');
     } catch (error) {
       console.error('Failed to create project:', error);
+    }
+  };
+
+  const handleCreateFolder = async () => {
+    try {
+      await addFolder({
+        name: folderName,
+        description: folderDescription,
+        color: folderColor,
+      });
+      
+      setShowNewFolderDialog(false);
+      setFolderName('');
+      setFolderDescription('');
+      setFolderColor('#6366f1');
+    } catch (error) {
+      console.error('Failed to create folder:', error);
     }
   };
 
@@ -101,16 +131,30 @@ const Projects = () => {
     );
   }
 
+  // Group projects by folder
+  const projectsByFolder = projects.reduce((acc, project) => {
+    const folderId = project.folder_id || 'uncategorized';
+    if (!acc[folderId]) acc[folderId] = [];
+    acc[folderId].push(project);
+    return acc;
+  }, {} as Record<string, typeof projects>);
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
         </div>
-        <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          New Project
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={() => setShowNewFolderDialog(true)}>
+            <FolderPlus className="w-4 h-4 mr-2" />
+            New Folder
+          </Button>
+          <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewProjectDialog(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Project
+          </Button>
+        </div>
       </div>
 
       <div className="mb-6 flex items-center space-x-4">
@@ -119,9 +163,157 @@ const Projects = () => {
       </div>
 
       {/* Projects Section */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Your Projects</h2>
-        {projects.length === 0 ? (
+      <div className="space-y-8">
+        {/* Folders */}
+        {folders.map(folder => (
+          <div key={folder.id} className="mb-8">
+            <div className="flex items-center space-x-2 mb-4">
+              <Folder className="w-5 h-5" style={{ color: folder.color }} />
+              <h2 className="text-xl font-semibold">{folder.name}</h2>
+              {folder.description && (
+                <span className="text-sm text-gray-500">- {folder.description}</span>
+              )}
+            </div>
+            {projectsByFolder[folder.id] && projectsByFolder[folder.id].length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {projectsByFolder[folder.id].map((project) => (
+                  <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{project.title || project.name}</CardTitle>
+                          <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>Edit Project</DropdownMenuItem>
+                            <DropdownMenuItem>Share</DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => handleDeleteProject(project.id)}
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">{project.genre || 'No Genre'}</Badge>
+                        <Badge className={getStatusColor(project.status)}>
+                          {getStatusLabel(project.status)}
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 mr-1" />
+                          {project.collaborators?.length || 0} collaborators
+                        </div>
+                        <div>
+                          Updated {new Date(project.updated_at).toLocaleDateString()}
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-2">
+                        <Button 
+                          className="flex-1 bg-purple-600 hover:bg-purple-700"
+                          onClick={() => handleOpenProject(project.id)}
+                        >
+                          <Music className="w-4 h-4 mr-2" />
+                          Open
+                        </Button>
+                        <Button variant="outline" className="flex-1">
+                          Share
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-500 text-sm">No projects in this folder</div>
+            )}
+          </div>
+        ))}
+
+        {/* Uncategorized Projects */}
+        {projectsByFolder['uncategorized'] && projectsByFolder['uncategorized'].length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Uncategorized Projects</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {projectsByFolder['uncategorized'].map((project) => (
+                <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">{project.title || project.name}</CardTitle>
+                        <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem>Edit Project</DropdownMenuItem>
+                          <DropdownMenuItem>Share</DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => handleDeleteProject(project.id)}
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline">{project.genre || 'No Genre'}</Badge>
+                      <Badge className={getStatusColor(project.status)}>
+                        {getStatusLabel(project.status)}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        {project.collaborators?.length || 0} collaborators
+                      </div>
+                      <div>
+                        Updated {new Date(project.updated_at).toLocaleDateString()}
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Button 
+                        className="flex-1 bg-purple-600 hover:bg-purple-700"
+                        onClick={() => handleOpenProject(project.id)}
+                      >
+                        <Music className="w-4 h-4 mr-2" />
+                        Open
+                      </Button>
+                      <Button variant="outline" className="flex-1">
+                        Share
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* No projects message */}
+        {projects.length === 0 && (
           <Card>
             <CardContent className="p-12 text-center">
               <p className="text-gray-500 mb-4">No projects found</p>
@@ -134,69 +326,6 @@ const Projects = () => {
               </Button>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {projects.map((project) => (
-              <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{project.title || project.name}</CardTitle>
-                      <p className="text-sm text-gray-500 mt-1">{project.description}</p>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>Edit Project</DropdownMenuItem>
-                        <DropdownMenuItem>Share</DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => handleDeleteProject(project.id)}
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline">{project.genre || 'No Genre'}</Badge>
-                    <Badge className={getStatusColor(project.status)}>
-                      {getStatusLabel(project.status)}
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {project.collaborators?.length || 0} collaborators
-                    </div>
-                    <div>
-                      Updated {new Date(project.updated_at).toLocaleDateString()}
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Button 
-                      className="flex-1 bg-purple-600 hover:bg-purple-700"
-                      onClick={() => handleOpenProject(project.id)}
-                    >
-                      <Music className="w-4 h-4 mr-2" />
-                      Open
-                    </Button>
-                    <Button variant="outline" className="flex-1">
-                      Share
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         )}
       </div>
 
@@ -274,6 +403,25 @@ const Projects = () => {
                 className="w-full"
               />
             </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project-folder">Folder (Optional)</Label>
+              <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select folder" />
+                </SelectTrigger>
+                <SelectContent>
+                  {folders.map(folder => (
+                    <SelectItem key={folder.id} value={folder.id}>
+                      <div className="flex items-center space-x-2">
+                        <Folder className="w-4 h-4" style={{ color: folder.color }} />
+                        <span>{folder.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewProjectDialog(false)}>
@@ -285,6 +433,61 @@ const Projects = () => {
               disabled={!projectName.trim()}
             >
               Create Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Folder Dialog */}
+      <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Folder</DialogTitle>
+            <DialogDescription>
+              Create a folder to organize your projects.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="folder-name">Name</Label>
+              <Input 
+                id="folder-name" 
+                value={folderName} 
+                onChange={(e) => setFolderName(e.target.value)} 
+                placeholder="Enter folder name"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="folder-description">Description</Label>
+              <Textarea 
+                id="folder-description" 
+                value={folderDescription} 
+                onChange={(e) => setFolderDescription(e.target.value)} 
+                placeholder="Describe this folder"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="folder-color">Color</Label>
+              <Input 
+                id="folder-color"
+                type="color"
+                value={folderColor}
+                onChange={(e) => setFolderColor(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewFolderDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={handleCreateFolder}
+              disabled={!folderName.trim()}
+            >
+              Create Folder
             </Button>
           </DialogFooter>
         </DialogContent>
