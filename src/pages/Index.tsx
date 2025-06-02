@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -5,6 +6,7 @@ import Dashboard from '../components/Dashboard';
 import Browse from '../components/Browse';
 import Messages from '../components/Messages';
 import Projects from '../components/Projects';
+import Following from '../components/Following';
 import Profile from '../components/Profile';
 import Settings from '../components/Settings';
 import Support from '../components/Support';
@@ -22,6 +24,7 @@ const Index = () => {
     if (pathname === '/browse') return 'browse';
     if (pathname === '/messages' || pathname.startsWith('/messages/')) return 'messages';
     if (pathname === '/projects') return 'projects';
+    if (pathname === '/following') return 'following';
     if (pathname === '/profile' || pathname.startsWith('/profile/')) return 'profile'; // Treat user profile view as profile tab
     if (pathname === '/settings') return 'settings';
     if (pathname === '/support') return 'support';
@@ -66,6 +69,8 @@ const Index = () => {
       case 'projects':
         // The Projects component will need to read route params (like folderId) itself
         return <Projects />;
+      case 'following':
+        return <Following />;
       case 'profile':
         return <Profile />;
       case 'settings':

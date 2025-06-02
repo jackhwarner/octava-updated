@@ -1,4 +1,4 @@
-import { Home, Search, MessageCircle, FolderOpen, Settings, HelpCircle, User, Bell, LogOut } from 'lucide-react';
+import { Home, Search, MessageCircle, FolderOpen, Users, Settings, HelpCircle, User, Bell, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -46,6 +46,11 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
       id: 'projects',
       label: 'Projects',
       icon: FolderOpen
+    },
+    {
+      id: 'following',
+      label: 'Following',
+      icon: Users
     }
   ];
 
