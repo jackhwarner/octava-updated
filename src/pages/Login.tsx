@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -86,11 +85,10 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex flex-col justify-center items-center p-4">
       <Link to="/" className="flex items-center mb-8">
         <img 
-          src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
+          src="/lovable-uploads/octava-large-purple.png" 
           alt="Octava Logo" 
-          className="w-10 h-10 mr-2" 
+          className="h-10 mr-2" 
         />
-        <span className="font-bold text-xl text-purple-600">Octava</span>
       </Link>
       
       <Card className="w-full max-w-md">

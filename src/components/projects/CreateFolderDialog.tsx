@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,31 +5,68 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { FolderPlus } from 'lucide-react';
 import { useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
+import { useFolders } from '@/hooks/useFolders';
+import FolderColorPicker from '@/components/folder/FolderColorPicker';
 
 interface CreateFolderDialogProps {
-  onCreateFolder: (name: string, description?: string) => Promise<void>;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onCreateFolder: () => void;
 }
 
-export const CreateFolderDialog = ({ onCreateFolder }: CreateFolderDialogProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const CreateFolderDialog = ({ isOpen, setIsOpen, onCreateFolder }: CreateFolderDialogProps) => {
   const [newFolder, setNewFolder] = useState({
     name: '',
     description: '',
-    color: '#6366f1'
   });
+  const [selectedColor, setSelectedColor] = useState('#3b82f6');
+  const { createFolder, loading: creating, refetch } = useFolders();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newFolder.name.trim()) return;
+
+    console.log('📝 Starting folder creation process');
     try {
-      await onCreateFolder(newFolder.name, newFolder.description);
-      setIsOpen(false);
-      setNewFolder({
-        name: '',
-        description: '',
-        color: '#6366f1'
+      console.log('📁 Creating folder with data:', { 
+        name: newFolder.name.trim(), 
+        description: newFolder.description || undefined, 
+        color: selectedColor 
       });
+      
+      await createFolder(newFolder.name.trim(), newFolder.description || undefined, selectedColor);
+      
+      console.log('✅ Folder created, resetting form');
+      // Reset form
+      setNewFolder({ name: '', description: '' });
+      setSelectedColor('#3b82f6');
+      
+      console.log('📁 Closing dialog');
+      // Close dialog
+      setIsOpen(false);
+      
+      console.log('🔄 Refetching folders');
+      // Refetch folders to update the list
+      await refetch();
+      
+      console.log('📁 Calling onCreateFolder callback');
+      // Call the onCreateFolder callback
+      onCreateFolder();
+      
+      toast({
+        title: "Success",
+        description: "Folder created successfully.",
+      });
+      console.log('✅ Folder creation process complete');
     } catch (error) {
-      console.error('Error creating folder:', error);
+      console.error('❌ Error in folder creation process:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create folder.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -66,21 +102,16 @@ export const CreateFolderDialog = ({ onCreateFolder }: CreateFolderDialogProps) 
               placeholder="Enter folder description" 
             />
           </div>
-          <div>
-            <Label htmlFor="folderColor">Color</Label>
-            <Input 
-              id="folderColor" 
-              type="color" 
-              value={newFolder.color} 
-              onChange={(e) => setNewFolder({ ...newFolder, color: e.target.value })} 
-            />
-          </div>
+          <FolderColorPicker
+            selectedColor={selectedColor}
+            onColorSelect={setSelectedColor}
+          />
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={creating}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
-              Create Folder
+            <Button type="submit" className="bg-purple-600 hover:bg-purple-700" disabled={creating || !newFolder.name.trim()}>
+              {creating ? 'Creating...' : 'Create Folder'}
             </Button>
           </div>
         </form>

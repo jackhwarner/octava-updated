@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +10,7 @@ import { MusicTab } from '@/components/profile/MusicTab';
 import { ProjectsTab } from '@/components/profile/ProjectsTab';
 import { LinksTab } from '@/components/profile/LinksTab';
 import { Profile } from '@/hooks/useProfile';
+import { ConnectionButton } from '@/components/connections/ConnectionButton';
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -59,21 +59,8 @@ const UserProfile = () => {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select(`
-          *,
-          collaborators:project_collaborators (
-            id,
-            user_id,
-            role,
-            status,
-            profiles (
-              name,
-              username
-            )
-          )
-        `)
-        .eq('owner_id', userId)
-        .eq('visibility', 'public');
+        .select('*')
+        .eq('user_id', userId);
 
       if (error) throw error;
       setProjects(data || []);
@@ -85,28 +72,21 @@ const UserProfile = () => {
   const fetchCityName = async (zipCode: string) => {
     try {
       const response = await fetch(`https://api.zippopotam.us/us/${zipCode}`);
-      if (response.ok) {
-        const data = await response.json();
-        const city = data.places[0]['place name'];
-        const state = data.places[0]['state abbreviation'];
-        setCityName(`${city}, ${state}`);
-      } else {
-        setCityName('Location not found');
-      }
+      const data = await response.json();
+      setCityName(data.places[0]['place name']);
     } catch (error) {
       console.error('Error fetching city name:', error);
-      setCityName(profile?.location || 'Location not available');
     }
   };
 
   if (loading) {
     return (
-      <div className="p-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-            <div className="h-64 bg-gray-200 rounded mb-8"></div>
+      <div className="p-10">
+        <div className="animate-pulse">
+          <div className="h-32 bg-gray-200 rounded mb-8"></div>
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
           </div>
         </div>
       </div>
@@ -115,63 +95,59 @@ const UserProfile = () => {
 
   if (!profile) {
     return (
-      <div className="p-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">User Not Found</h1>
-          <p className="text-gray-600">The user profile you're looking for doesn't exist or is private.</p>
-        </div>
+      <div className="p-10 text-center">
+        <h2 className="text-2xl font-bold text-gray-900">Profile not found</h2>
+        <p className="text-gray-500 mt-2">The user profile you're looking for doesn't exist or has been removed.</p>
       </div>
     );
   }
 
-  // Calculate stats from actual data
-  const activeProjects = projects.filter(p => p.status === 'active').length;
-  const totalCollaborations = projects.reduce((acc, p) => acc + (p.collaborators?.length || 0), 0);
-
   return (
-    <TooltipProvider>
-      <div className="p-12">
-        <div className="max-w-4xl mx-auto">
-          <ProfileHeader 
-            profile={profile}
-            cityName={cityName}
-            onEditClick={() => {}}
-            isOwnProfile={false}
+    <div className="p-10">
+      <ProfileHeader 
+        profile={profile} 
+        cityName={cityName}
+        actionButton={
+          <ConnectionButton 
+            userId={profile.id}
+            variant="default"
+            size="lg"
           />
-
-          <ProfileStats 
-            totalCollaborations={totalCollaborations}
-            activeProjects={activeProjects}
-            profile={profile}
-          />
-
-          <Tabs defaultValue="about" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="about">About</TabsTrigger>
-              <TabsTrigger value="music">Music</TabsTrigger>
-              <TabsTrigger value="projects">Projects</TabsTrigger>
-              <TabsTrigger value="links">Links</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="about" className="space-y-6">
-              <AboutTab profile={profile} />
-            </TabsContent>
-
-            <TabsContent value="music" className="space-y-6">
-              <MusicTab />
-            </TabsContent>
-
-            <TabsContent value="projects" className="space-y-6">
-              <ProjectsTab projects={projects} />
-            </TabsContent>
-
-            <TabsContent value="links" className="space-y-6">
-              <LinksTab />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </TooltipProvider>
+        }
+      />
+      <ProfileStats 
+        totalCollaborations={projects.length} 
+        activeProjects={projects.filter((p: any) => p.status === 'active').length}
+        profile={profile}
+      />
+      
+      <TooltipProvider>
+        <Tabs defaultValue="about" className="mt-8">
+          <TabsList>
+            <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="music">Music</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="links">Links</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="about">
+            <AboutTab profile={profile} />
+          </TabsContent>
+          
+          <TabsContent value="music">
+            <MusicTab userId={profile.id} />
+          </TabsContent>
+          
+          <TabsContent value="projects">
+            <ProjectsTab projects={projects} />
+          </TabsContent>
+          
+          <TabsContent value="links">
+            <LinksTab profile={profile} />
+          </TabsContent>
+        </Tabs>
+      </TooltipProvider>
+    </div>
   );
 };
 

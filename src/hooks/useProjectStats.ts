@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +22,11 @@ export const useProjectStats = (projectId: string) => {
   const { toast } = useToast();
 
   const fetchStats = async () => {
+    if (!projectId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const [filesResult, todosResult, collaboratorsResult, messagesResult] = await Promise.all([
         // Get file count
@@ -80,6 +84,8 @@ export const useProjectStats = (projectId: string) => {
   useEffect(() => {
     if (projectId) {
       fetchStats();
+    } else {
+      setLoading(false);
     }
   }, [projectId]);
 

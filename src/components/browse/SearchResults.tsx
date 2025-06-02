@@ -1,7 +1,6 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import { MapPin } from 'lucide-react';
 
 interface Profile {
@@ -12,7 +11,7 @@ interface Profile {
   genres: string[];
   location: string;
   experience: string;
-  avatar: null;
+  avatar_url?: string | null;
 }
 
 interface SearchResultsProps {
@@ -25,7 +24,19 @@ const SearchResults = ({ profiles }: SearchResultsProps) => {
       {profiles.map(profile => (
         <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer">
           <CardHeader className="text-center p-3">
-            <div className="w-14 h-14 bg-gray-300 rounded-full mx-auto mb-3"></div>
+            <div className="w-14 h-14 bg-gray-300 rounded-full mx-auto mb-3 flex items-center justify-center">
+              {profile.avatar_url ? (
+                <img 
+                  src={profile.avatar_url} 
+                  alt={profile.name}
+                  className="w-14 h-14 rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-xl font-medium text-gray-700">
+                  {profile.name ? profile.name.charAt(0) : 'U'}
+                </span>
+              )}
+            </div>
             <CardTitle className="text-base">{profile.name}</CardTitle>
             <p className="text-xs text-gray-500">{profile.username}</p>
           </CardHeader>

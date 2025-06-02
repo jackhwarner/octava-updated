@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,10 +35,10 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
 
   const progressPercentage = phases.length > 1 ? (currentPhase / (phases.length - 1)) * 100 : 0;
 
-  const handlePhaseChange = async (newPhaseIndex: string) => {
-    const phaseIndex = parseInt(newPhaseIndex);
-    setUpdatingPhase(true);
+  const handlePhaseClick = async (phaseIndex: number) => {
+    if (phaseIndex === currentPhase || updatingPhase) return;
     
+    setUpdatingPhase(true);
     try {
       await updateProject(project.id, {
         current_phase_index: phaseIndex
@@ -207,7 +206,7 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
               <span className="text-sm font-medium">Current Phase:</span>
               <Select 
                 value={currentPhase.toString()} 
-                onValueChange={handlePhaseChange}
+                onValueChange={handlePhaseClick}
                 disabled={updatingPhase}
               >
                 <SelectTrigger className="w-48">
@@ -391,11 +390,15 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
           <div className="space-y-4">
             {phases.map((phase, index) => (
               <div key={index} className="flex items-center space-x-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  index <= currentPhase 
-                    ? 'bg-purple-600 text-white' 
-                    : 'bg-gray-200 text-gray-600'
-                }`}>
+                <button
+                  onClick={() => handlePhaseClick(index)}
+                  disabled={updatingPhase}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                    index <= currentPhase 
+                      ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  } ${updatingPhase ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                >
                   {index < currentPhase ? (
                     <CheckCircle2 className="w-4 h-4" />
                   ) : index === currentPhase ? (
@@ -403,7 +406,7 @@ const ProjectInfo = ({ project, stats }: ProjectInfoProps) => {
                   ) : (
                     <Circle className="w-4 h-4" />
                   )}
-                </div>
+                </button>
                 
                 <div className="flex-1">
                   <div className="flex items-center justify-between">

@@ -1,8 +1,7 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Music, Folder as FolderIcon } from 'lucide-react';
+import { Calendar, Users, Music, Folder as FolderIcon, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ProjectActions } from './ProjectActions';
 import type { Project } from '@/types/project';
@@ -67,7 +66,10 @@ export const ProjectCard = ({
             </div>
             {folder && searchTerm && (
               <div className="flex items-center text-sm text-gray-500 mb-2">
-                <FolderIcon className="w-4 h-4 mr-1" style={{ color: folder.color }} />
+                <div 
+                  className="w-3 h-3 rounded-full mr-2" 
+                  style={{ backgroundColor: folder.color || '#3b82f6' }} 
+                />
                 {folder.name}
               </div>
             )}
@@ -97,6 +99,11 @@ export const ProjectCard = ({
               <Users className="w-4 h-4 mr-1" />
               {project.collaborators?.length || 0} collaborators
             </div>
+          </div>
+          
+          <div className="flex items-center text-sm text-gray-500">
+            <Clock className="w-4 h-4 mr-1" />
+            Updated {formatDate(project.updated_at)}
           </div>
           
           {(project.bpm || project.key) && (

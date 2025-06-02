@@ -1,28 +1,84 @@
-
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Search, Plus, Paperclip, MoreHorizontal, Trash2, Flag, Edit } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { ScrollArea } from './ui/scroll-area';
+import { Send, Search, Plus, MoreHorizontal, Trash2, Flag, Edit } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
+import { Label } from './ui/label';
 import NewMessageDialog from './NewMessageDialog';
 import GroupAvatar from './GroupAvatar';
-import { useMessages } from '@/hooks/useMessages';
+import { useMessages } from '../hooks/useMessages';
 import { formatDistanceToNow } from 'date-fns';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 const Messages = () => {
-  const { threads, messages, loading, sendMessage, updateThreadName } = useMessages();
-  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  const { threadId } = useParams<{ threadId: string }>();
+  const navigate = useNavigate();
+  const { threads, messages, loading, sendMessage, updateThreadName, currentUser, fetchThreads } = useMessages();
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(threadId || null);
   const [newMessage, setNewMessage] = useState('');
   const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
   const [showEditChatDialog, setShowEditChatDialog] = useState(false);
   const [editChatName, setEditChatName] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const selectedThread = threads.find(thread => thread.id === selectedThreadId);
   const threadMessages = messages.filter(msg => msg.thread_id === selectedThreadId);
+
+  // Update selected thread when URL changes
+  useEffect(() => {
+    if (threadId) {
+      const thread = threads.find(t => t.id === threadId);
+      if (thread) {
+        setSelectedThreadId(threadId);
+      } else {
+        // If thread not found, fetch threads and try again
+        fetchThreads();
+      }
+    }
+  }, [threadId, threads, fetchThreads]);
+
+  // Update URL when selected thread changes
+  useEffect(() => {
+    if (selectedThreadId) {
+      const thread = threads.find(t => t.id === selectedThreadId);
+      if (thread) {
+        navigate(`/messages/${selectedThreadId}`, { replace: true });
+      }
+    }
+  }, [selectedThreadId, threads, navigate]);
+
+  // Handle new messages and thread updates
+  useEffect(() => {
+    if (threads.length > 0 && !selectedThreadId) {
+      const mostRecentThread = threads[0];
+      setSelectedThreadId(mostRecentThread.id);
+    }
+  }, [threads, selectedThreadId]);
+
+  // Scroll to bottom only when thread changes or on initial load
+  useEffect(() => {
+    if (threadMessages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+    }
+  }, [selectedThreadId, threadMessages.length]); // Also scroll when messages change
+
+  const handleThreadClick = (threadId: string) => {
+    setSelectedThreadId(threadId);
+  };
+
+  const isCurrentUser = (senderId: string) => {
+    return currentUser?.id === senderId;
+  };
+
+  // Helper to find the other participant in a 1-on-1 thread
+  const getOtherParticipant = (thread: any) => {
+    if (!currentUser || thread?.is_group) return null;
+    return thread?.participants?.find((p: any) => p.user_id !== currentUser.id)?.profiles;
+  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedThreadId) return;
@@ -35,12 +91,20 @@ const Messages = () => {
     }
   };
 
-  const handleSendFile = () => {
-    console.log('Send file clicked');
-  };
-
-  const handleDeleteChat = () => {
-    console.log('Delete chat clicked');
+  const handleDeleteChat = async () => {
+    if (!selectedThreadId) return;
+    try {
+      const { error } = await supabase
+        .from('message_threads')
+        .delete()
+        .eq('id', selectedThreadId);
+      if (error) throw error;
+      setSelectedThreadId(null);
+      navigate('/messages');
+      await fetchThreads();
+    } catch (error) {
+      console.error('Failed to delete chat:', error);
+    }
   };
 
   const handleReportChat = () => {
@@ -109,44 +173,52 @@ const Messages = () => {
                   No conversations yet
                 </div>
               ) : (
-                threads.map((thread) => (
-                  <div
-                    key={thread.id}
-                    onClick={() => setSelectedThreadId(thread.id)}
-                    className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
-                      selectedThreadId === thread.id ? 'bg-purple-50 border-r-2 border-r-purple-600' : ''
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      {thread.is_group ? (
-                        <GroupAvatar 
-                          participants={thread.participants?.map(p => ({
-                            name: p.profiles.name,
-                            username: p.profiles.username
-                          })) || []} 
-                          size="md" 
-                        />
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                          {thread.participants?.[0]?.profiles?.name?.[0] || '?'}
+                <ul role="list" className="divide-y divide-gray-200">
+                  {threads.map((thread) => {
+                     const otherParticipant = getOtherParticipant(thread);
+                    return (
+                    <li
+                      key={thread.id}
+                      role="listitem"
+                      onClick={() => handleThreadClick(thread.id)}
+                      className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
+                        selectedThreadId === thread.id ? 'bg-purple-50 border-r-2 border-r-purple-600' : ''
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        {thread.is_group ? (
+                          <GroupAvatar 
+                            participants={thread.participants?.map(p => ({
+                              name: p.profiles.name,
+                              username: p.profiles.username
+                            })) || []} 
+                            size="md" 
+                          />
+                        ) : (
+                          // Display other participant's initial or avatar
+                          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                            {otherParticipant?.name?.[0] || otherParticipant?.username?.[0] || '?'}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium truncate">
+                              {/* Display group name or other participant's name */}
+                              {thread.name || otherParticipant?.name || otherParticipant?.username || 'Unknown'}
+                            </h4>
+                            <span className="text-xs text-gray-500">
+                              {thread.latest_message && formatDistanceToNow(new Date(thread.latest_message.created_at), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 truncate">
+                            {thread.latest_message?.content || 'No messages yet'}
+                          </p>
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium truncate">
-                            {thread.name || thread.participants?.[0]?.profiles?.name || 'Unknown'}
-                          </h4>
-                          <span className="text-xs text-gray-500">
-                            {thread.latest_message && formatDistanceToNow(new Date(thread.latest_message.created_at), { addSuffix: true })}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-500 truncate">
-                          {thread.latest_message?.content || 'No messages yet'}
-                        </p>
                       </div>
-                    </div>
-                  </div>
-                ))
+                    </li>
+                  );
+                })}
+                </ul>
               )}
             </ScrollArea>
           </CardContent>
@@ -168,18 +240,20 @@ const Messages = () => {
                         size="md" 
                       />
                     ) : (
+                       // Display other participant's initial or avatar in header
                       <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                        {selectedThread.participants?.[0]?.profiles?.name?.[0] || '?'}
+                        {getOtherParticipant(selectedThread)?.name?.[0] || getOtherParticipant(selectedThread)?.username?.[0] || '?'}
                       </div>
                     )}
                     <div>
                       <CardTitle className="text-lg">
-                        {selectedThread.name || selectedThread.participants?.[0]?.profiles?.name || 'Unknown'}
+                        {/* Display group name or other participant's name in header*/}
+                        {selectedThread.name || getOtherParticipant(selectedThread)?.name || getOtherParticipant(selectedThread)?.username || 'Unknown'}
                       </CardTitle>
                       <p className="text-sm text-gray-500">
                         {selectedThread.is_group 
                           ? `${selectedThread.participants?.length || 0} members` 
-                          : 'Producer • Online now'
+                          : 'Producer • Online now' // You might want to fetch and display actual online status
                         }
                       </p>
                     </div>
@@ -218,30 +292,34 @@ const Messages = () => {
                         No messages in this conversation yet
                       </div>
                     ) : (
-                      threadMessages.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`flex ${message.sender_profile?.name ? 'justify-start' : 'justify-end'}`}
-                        >
+                      [...threadMessages].reverse().map((message) => {
+                        const isMyMessage = isCurrentUser(message.sender_id);
+                        return (
                           <div
-                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                              message.sender_profile?.name
-                                ? 'bg-gray-100 text-gray-900'
-                                : 'bg-purple-600 text-white'
-                            }`}
+                            key={message.id}
+                            className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
                           >
-                            <p className="text-sm">{message.content}</p>
-                            <p
-                              className={`text-xs mt-1 ${
-                                message.sender_profile?.name ? 'text-gray-500' : 'text-purple-200'
+                            <div
+                              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                isMyMessage
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-gray-100 text-gray-900'
                               }`}
                             >
-                              {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                            </p>
+                              <p className="text-sm">{message.content}</p>
+                              <p
+                                className={`text-xs mt-1 ${
+                                  isMyMessage ? 'text-purple-200' : 'text-gray-500'
+                                }`}
+                              >
+                                {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
+                    <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
                 
@@ -254,14 +332,6 @@ const Messages = () => {
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       className="flex-1"
                     />
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={handleSendFile}
-                      className="h-10 w-10 p-0"
-                    >
-                      <Paperclip className="w-4 h-4" />
-                    </Button>
                     <Button 
                       className="bg-purple-600 hover:bg-purple-700"
                       onClick={handleSendMessage}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -45,11 +44,20 @@ export const useMessages = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [threads, setThreads] = useState<MessageThread[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    };
+    fetchUser();
+  }, []);
 
   const fetchMessages = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = currentUser || (await supabase.auth.getUser()).data.user;
       if (!user) {
         setLoading(false);
         return;
@@ -87,10 +95,9 @@ export const useMessages = () => {
 
   const fetchThreads = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = currentUser || (await supabase.auth.getUser()).data.user;
       if (!user) return;
 
-      // Get threads where user is a participant
       const { data: threadParticipants, error: participantError } = await supabase
         .from('thread_participants')
         .select(`
@@ -115,7 +122,6 @@ export const useMessages = () => {
         return;
       }
 
-      // Get all participants for these threads
       const { data: allParticipants, error: allParticipantsError } = await supabase
         .from('thread_participants')
         .select(`
@@ -132,7 +138,6 @@ export const useMessages = () => {
 
       if (allParticipantsError) throw allParticipantsError;
 
-      // Get latest messages for threads
       const { data: latestMessages, error: messagesError } = await supabase
         .from('messages')
         .select(`
@@ -147,7 +152,6 @@ export const useMessages = () => {
 
       if (messagesError) throw messagesError;
 
-      // Combine the data
       const threadsData: MessageThread[] = threadParticipants
         ?.map(tp => {
           const thread = tp.message_threads;
@@ -187,7 +191,7 @@ export const useMessages = () => {
 
   const sendMessage = async (content: string, recipientId?: string, threadId?: string, projectId?: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = currentUser || (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -199,12 +203,44 @@ export const useMessages = () => {
           thread_id: threadId,
           project_id: projectId
         }])
-        .select()
+        .select(`
+          *,
+          sender_profile:profiles!messages_sender_id_fkey (
+            name,
+            username
+          ),
+          recipient_profile:profiles!messages_recipient_id_fkey (
+            name,
+            username
+          )
+        `)
         .single();
 
       if (error) throw error;
 
-      await fetchMessages();
+      // Create notification for the recipient
+      if (recipientId) {
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: recipientId,
+            title: 'New Message',
+            message: `${data.sender_profile?.name || 'Someone'} sent you a message: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+            type: 'message',
+            payload: { 
+              thread_id: threadId,
+              message_id: data.id
+            },
+            created_at: new Date().toISOString(),
+            is_read: false
+          });
+
+        if (notificationError) {
+          console.error('Error creating message notification:', notificationError);
+        }
+      }
+
+      setMessages(prev => [data, ...prev]);
       await fetchThreads();
       return data;
     } catch (error) {
@@ -220,7 +256,7 @@ export const useMessages = () => {
 
   const createThread = async (name: string, participantIds: string[], isGroup: boolean = false) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = currentUser || (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error('User not authenticated');
 
       const { data: thread, error: threadError } = await supabase
@@ -235,12 +271,13 @@ export const useMessages = () => {
 
       if (threadError) throw threadError;
 
-      // Add participants including the creator
       const allParticipants = [user.id, ...participantIds];
+      const uniqueParticipants = Array.from(new Set(allParticipants));
+
       const { error: participantsError } = await supabase
         .from('thread_participants')
         .insert(
-          allParticipants.map(userId => ({
+          uniqueParticipants.map(userId => ({
             thread_id: thread.id,
             user_id: userId
           }))
@@ -248,8 +285,36 @@ export const useMessages = () => {
 
       if (participantsError) throw participantsError;
 
-      await fetchThreads();
-      return thread;
+      // Fetch the complete thread data with participants and latest message
+      const { data: completeThread, error: fetchError } = await supabase
+        .from('message_threads')
+        .select(`
+          *,
+          participants:thread_participants(
+            user_id,
+            joined_at,
+            profiles:profiles!thread_participants_user_id_fkey(
+              name,
+              username
+            )
+          )
+        `)
+        .eq('id', thread.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update local state with the new thread
+      setThreads(prev => [{
+        ...completeThread,
+        participants: completeThread.participants.map((p: any) => ({
+          user_id: p.user_id,
+          joined_at: p.joined_at,
+          profiles: p.profiles
+        }))
+      }, ...prev]);
+
+      return completeThread;
     } catch (error) {
       console.error('Error creating thread:', error);
       toast({
@@ -289,7 +354,95 @@ export const useMessages = () => {
   useEffect(() => {
     fetchMessages();
     fetchThreads();
-  }, []);
+
+    if (!currentUser?.id) return;
+
+    // Set up real-time subscriptions
+    const messagesChannel = supabase
+      .channel('messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        async (payload) => {
+          console.log('New message detected:', payload);
+          // Fetch the complete message data with profiles
+          const { data: newMessage, error } = await supabase
+            .from('messages')
+            .select(`
+              *,
+              sender_profile:profiles!messages_sender_id_fkey (
+                name,
+                username
+              ),
+              recipient_profile:profiles!messages_recipient_id_fkey (
+                name,
+                username
+              )
+            `)
+            .eq('id', payload.new.id)
+            .single();
+
+          if (!error && newMessage) {
+            // Update messages state immediately
+            setMessages(prev => {
+              // Check if message already exists
+              if (prev.some(m => m.id === newMessage.id)) {
+                return prev;
+              }
+              return [newMessage, ...prev];
+            });
+            
+            // Immediately fetch threads to update the latest message
+            await fetchThreads();
+          }
+        }
+      )
+      .subscribe();
+
+    const threadsChannel = supabase
+      .channel('threads')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'message_threads'
+        },
+        async (payload) => {
+          console.log('Thread change detected:', payload);
+          // Immediately fetch threads and messages
+          await Promise.all([fetchThreads(), fetchMessages()]);
+        }
+      )
+      .subscribe();
+
+    const participantsChannel = supabase
+      .channel('thread_participants')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'thread_participants'
+        },
+        async (payload) => {
+          console.log('Participant change detected:', payload);
+          // Always fetch threads and messages on participant changes
+          await Promise.all([fetchThreads(), fetchMessages()]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(threadsChannel);
+      supabase.removeChannel(participantsChannel);
+    };
+  }, [currentUser?.id]);
 
   return {
     messages,
@@ -298,9 +451,8 @@ export const useMessages = () => {
     sendMessage,
     createThread,
     updateThreadName,
-    refetch: () => {
-      fetchMessages();
-      fetchThreads();
-    }
+    currentUser,
+    fetchMessages,
+    fetchThreads,
   };
 };

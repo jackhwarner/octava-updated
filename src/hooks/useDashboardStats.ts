@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Project } from '@/types/project'; // Import Project type if needed for clarity
 
 export interface DashboardStats {
   totalProjects: number;
@@ -23,47 +23,66 @@ export const useDashboardStats = () => {
   const { toast } = useToast();
 
   const fetchStats = async () => {
+    setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      if (!user) throw new Error('Not authenticated');
 
-      // Fetch projects stats - fix the OR syntax
-      const { data: projects, error: projectsError } = await supabase
+      // Fetch projects owned by the user
+      const { data: ownedProjects, error: ownedProjectsError } = await supabase
         .from('projects')
         .select('id, status')
-        .or(`owner_id.eq.${user.id},project_collaborators.user_id.eq.${user.id}`);
+        .eq('owner_id', user.id);
 
-      if (projectsError) {
-        console.error('Projects error:', projectsError);
-        // For now, just get projects owned by user
-        const { data: ownedProjects } = await supabase
-          .from('projects')
-          .select('id, status')
-          .eq('owner_id', user.id);
-        
-        const totalProjects = ownedProjects?.length || 0;
-        const activeProjects = ownedProjects?.filter(p => p.status === 'active').length || 0;
-        
-        setStats(prev => ({
-          ...prev,
-          totalProjects,
-          activeProjects,
-        }));
-      } else {
-        const totalProjects = projects?.length || 0;
-        const activeProjects = projects?.filter(p => p.status === 'active').length || 0;
-        
-        setStats(prev => ({
-          ...prev,
-          totalProjects,
-          activeProjects,
-        }));
+      if (ownedProjectsError) throw ownedProjectsError;
+
+      // Fetch projects where the user is a collaborator
+      const { data: collaboratedProjectsData, error: collaboratedProjectsError } = await supabase
+        .from('project_collaborators')
+        .select('project_id')
+        .eq('user_id', user.id)
+        .eq('status', 'accepted');
+
+      if (collaboratedProjectsError) {
+         console.error('Error fetching collaborated project IDs:', collaboratedProjectsError);
+         // Handle error or throw
       }
 
-      // Fetch collaborations stats
+      // Get the full project data for collaborated projects
+      let collaboratedProjects: Pick<Project, 'id' | 'status'>[] = [];
+      if (collaboratedProjectsData && collaboratedProjectsData.length > 0) {
+          const projectIds = collaboratedProjectsData.map(c => c.project_id);
+          const { data: fullCollaboratedProjects, error: fullCollaboratedProjectsError } = await supabase
+            .from('projects')
+            .select('id, status')
+            .in('id', projectIds);
+            
+            if(fullCollaboratedProjectsError){
+                console.error('Error fetching full collaborated projects:', fullCollaboratedProjectsError);
+                // Handle error or throw
+            } else {
+                collaboratedProjects = fullCollaboratedProjects || [];
+            }
+      }
+
+      // Combine unique projects
+      const allProjectsMap = new Map<string, Pick<Project, 'id' | 'status'>>();
+
+      ownedProjects?.forEach(p => allProjectsMap.set(p.id, p));
+      collaboratedProjects?.forEach(p => allProjectsMap.set(p.id, p));
+
+      const allProjects = Array.from(allProjectsMap.values());
+
+      const totalProjects = allProjects.length;
+      const activeProjects = allProjects.filter(p => p.status === 'active').length;
+
+      setStats(prev => ({
+        ...prev,
+        totalProjects,
+        activeProjects,
+      }));
+
+      // Fetch collaborations stats (already looks correct)
       const { data: collaborations, error: collaborationsError } = await supabase
         .from('project_collaborators')
         .select('id')
@@ -78,7 +97,7 @@ export const useDashboardStats = () => {
         }));
       }
 
-      // Fetch messages stats
+      // Fetch messages stats (already looks correct)
       const { data: sentMessages, error: sentError } = await supabase
         .from('messages')
         .select('id, read_at')
@@ -101,7 +120,7 @@ export const useDashboardStats = () => {
       }
 
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      console.error('Projects error:', error);
       toast({
         title: "Error",
         description: "Failed to load dashboard statistics",

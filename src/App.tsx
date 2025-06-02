@@ -1,10 +1,9 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "./components/ui/toaster";
+import { Toaster as Sonner } from "./components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -17,6 +16,7 @@ import ProfileSetup from "./components/ProfileSetup";
 import ProjectDetail from "./components/ProjectDetail";
 import UserProfile from "./components/UserProfile";
 import AuthWrapper from "./components/AuthWrapper";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +31,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/profile-setup" element={<AuthWrapper><ProfileSetup /></AuthWrapper>} />
@@ -38,7 +39,9 @@ const App = () => (
             <Route path="/dashboard" element={<AuthWrapper><Index /></AuthWrapper>} />
             <Route path="/browse" element={<AuthWrapper><Index /></AuthWrapper>} />
             <Route path="/messages" element={<AuthWrapper><Index /></AuthWrapper>} />
+            <Route path="/messages/:threadId" element={<AuthWrapper><Index /></AuthWrapper>} />
             <Route path="/projects" element={<AuthWrapper><Index /></AuthWrapper>} />
+            <Route path="/projects/folder/:folderId" element={<AuthWrapper><Index /></AuthWrapper>} />
             <Route path="/projects/:projectId" element={<AuthWrapper><ProjectDetail /></AuthWrapper>} />
             <Route path="/profile" element={<AuthWrapper><Index /></AuthWrapper>} />
             <Route path="/profile/:userId" element={<AuthWrapper><UserProfile /></AuthWrapper>} />

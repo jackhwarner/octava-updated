@@ -1,26 +1,27 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Profile {
   id: string;
+  name: string;
+  username: string | null;
+  role: string;
+  genres: string[];
+  location: string | null;
+  experience: string;
+  avatar_url: string | null;
+  skills: string[];
+  visibility: string;
+  completed_projects?: number;
+  instruments?: string[];
   email?: string;
   full_name?: string;
-  name?: string;
-  username?: string;
   bio?: string;
-  location?: string;
   zip_code?: string;
-  role?: string;
-  experience?: string;
-  skills?: string[];
-  genres?: string[];
-  avatar_url?: string;
+  hourly_rate?: number;
   profile_picture_url?: string;
   portfolio_urls?: string[];
-  hourly_rate?: number;
-  visibility: 'public' | 'private' | 'connections_only';
   created_at: string;
   updated_at: string;
 }
@@ -49,6 +50,7 @@ export const useProfile = () => {
           // No profile found, this is okay for new users
           setProfile(null);
         } else {
+          console.error('Error fetching profile:', error);
           throw error;
         }
       } else {
@@ -116,7 +118,10 @@ export const useProfile = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating profile:', error);
+        throw error;
+      }
 
       // Map back for our interface
       const mappedProfile: Profile = {

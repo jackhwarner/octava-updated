@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -163,6 +162,12 @@ export const useMusic = () => {
       const currentTrack = tracks.find(t => t.id === trackId);
       if (!currentTrack) return;
 
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Only increment if the user is not the owner of the track
+      if (user.id !== currentTrack.user_id) {
       // Increment track play count
       const { error: trackError } = await supabase
         .from('songs')
@@ -179,6 +184,11 @@ export const useMusic = () => {
       ));
 
       // Increment user's total play count
+        // This part increments the profile's total_plays, which is for the track owner.
+        // We should only increment this if the track owner's profile needs to reflect plays by others.
+        // If the goal is for the owner's profile total_plays to reflect ALL plays, including their own, 
+        // then this logic is fine. If not, this also needs a check.
+        // Assuming for now that total_plays on profile means plays *by others*.
       const { data: profileData } = await supabase
         .from('profiles')
         .select('total_plays')
@@ -194,6 +204,7 @@ export const useMusic = () => {
 
       if (profileError) {
         console.error('Error updating user play count:', profileError);
+        }
       }
     } catch (error) {
       console.error('Error incrementing play count:', error);

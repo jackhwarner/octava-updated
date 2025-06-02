@@ -1,18 +1,20 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { MoreVertical, Settings, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFolders } from '@/hooks/useFolders';
 import type { Folder } from '@/hooks/useFolders';
+import FolderColorPicker from '@/components/folder/FolderColorPicker';
 
 interface FolderSettingsProps {
   folder: Folder;
+  setCurrentFolderId: (folderId: string | null) => void;
+  onFolderUpdated?: () => void;
 }
 
 const colorOptions = [
@@ -26,7 +28,7 @@ const colorOptions = [
   { name: 'Teal', value: '#14b8a6' }
 ];
 
-export const FolderSettings = ({ folder }: FolderSettingsProps) => {
+export const FolderSettings = ({ folder, setCurrentFolderId, onFolderUpdated }: FolderSettingsProps) => {
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -36,11 +38,21 @@ export const FolderSettings = ({ folder }: FolderSettingsProps) => {
   });
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
-  const { updateFolder, deleteFolder } = useFolders();
+  const { updateFolder, deleteFolder, refetch: refetchFolders } = useFolders();
+
+  useEffect(() => {
+    setEditForm({
+      name: folder.name,
+      description: folder.description || '',
+      color: folder.color
+    });
+  }, [folder]);
 
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
+      console.log('Saving folder with:', editForm);
+      console.log('Folder object:', folder);
       await updateFolder(folder.id, {
         name: editForm.name,
         description: editForm.description || null,
@@ -50,6 +62,10 @@ export const FolderSettings = ({ folder }: FolderSettingsProps) => {
         title: "Success",
         description: "Folder updated successfully"
       });
+      onFolderUpdated?.();
+      setTimeout(() => {
+        refetchFolders();
+      }, 250);
       setIsSettingsDialogOpen(false);
     } catch (error) {
       console.error('Error updating folder:', error);
@@ -71,6 +87,8 @@ export const FolderSettings = ({ folder }: FolderSettingsProps) => {
         description: "Folder deleted successfully"
       });
       setIsDeleteDialogOpen(false);
+      refetchFolders();
+      setCurrentFolderId(null);
     } catch (error) {
       console.error('Error deleting folder:', error);
       toast({
@@ -131,37 +149,19 @@ export const FolderSettings = ({ folder }: FolderSettingsProps) => {
               />
             </div>
 
-            <div>
-              <Label>Color</Label>
-              <div className="grid grid-cols-4 gap-2 mt-2">
-                {colorOptions.map((color) => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    className={`w-8 h-8 rounded-full border-2 ${
-                      editForm.color === color.value ? 'border-gray-800' : 'border-gray-300'
-                    }`}
-                    style={{ backgroundColor: color.value }}
-                    onClick={() => setEditForm(prev => ({ ...prev, color: color.value }))}
-                    title={color.name}
+            <FolderColorPicker
+              selectedColor={editForm.color}
+              onColorSelect={(color) => setEditForm(prev => ({ ...prev, color }))}
                   />
-                ))}
               </div>
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4">
+          <DialogFooter>
               <Button variant="outline" onClick={() => setIsSettingsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleSaveSettings} 
-                disabled={saving || !editForm.name.trim()}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
+            <Button onClick={handleSaveSettings} disabled={saving || !editForm.name.trim()}>
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
-            </div>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

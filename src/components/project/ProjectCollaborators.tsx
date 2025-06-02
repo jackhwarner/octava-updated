@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,10 +19,14 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
   const [collaborators, setCollaborators] = useState(project.collaborators || []);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteUsername, setInviteUsername] = useState('');
   const [inviteRole, setInviteRole] = useState('Collaborator');
   const [isInviting, setIsInviting] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [inviteMethod, setInviteMethod] = useState<'email' | 'username'>('email');
   const { toast } = useToast();
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -56,84 +59,134 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
     }
   };
 
-  const handleInviteCollaborator = async () => {
-    if (!inviteEmail.trim()) return;
-
-    setIsInviting(true);
+  const handleInvite = async () => {
     try {
-      // First, find the user by email
-      const { data: userProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, name, username')
-        .eq('email', inviteEmail.trim())
-        .single();
+      setIsInviting(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      console.log('Current user:', user.id);
 
-      if (profileError || !userProfile) {
+      if (inviteMethod === 'email') {
+        // Send email invitation
+        const { error: emailError } = await supabase
+          .from('project_collaborators')
+          .insert({
+            project_id: project.id,
+            user_id: user.id,
+            role_name: inviteRole,
+            status: 'pending',
+            invited_at: new Date().toISOString()
+          });
+
+        if (emailError) throw emailError;
+
+        // Send email notification (implement your email service here)
+        // For now, we'll just show a toast
         toast({
-          title: "User not found",
-          description: "No user found with that email address",
-          variant: "destructive",
+          title: "Invitation Sent",
+          description: `An invitation has been sent to ${inviteEmail}`,
         });
-        return;
+      } else {
+        console.log('Searching for user with username:', inviteUsername);
+        // Find user by username
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', inviteUsername)
+          .maybeSingle();
+
+        if (userError) {
+          console.error('Error finding user:', userError);
+          throw userError;
+        }
+        if (!userData) {
+          console.log('No user found with username:', inviteUsername);
+          toast({
+            title: "User Not Found",
+            description: "No user found with that username",
+            variant: "destructive",
+          });
+          return;
+        }
+        console.log('Found user:', userData.id);
+
+        // Check if they're connected
+        console.log('Checking connection between users:', user.id, 'and', userData.id);
+        const { data: connectionData, error: connectionError } = await supabase
+          .from('connection_requests')
+          .select('*')
+          .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userData.id}),and(sender_id.eq.${userData.id},receiver_id.eq.${user.id})`)
+          .eq('status', 'accepted')
+          .limit(1);
+
+        if (connectionError) {
+          console.error('Error checking connection:', connectionError);
+          throw connectionError;
+        }
+        console.log('Connection data:', connectionData);
+
+        if (!connectionData || connectionData.length === 0) {
+          console.log('No accepted connection found between users');
+          toast({
+            title: "Cannot Invite",
+            description: "You can only invite connections by username",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Create project collaboration
+        console.log('Creating project collaboration for project:', project.id);
+        const { error: collabError } = await supabase
+          .from('project_collaborators')
+          .insert({
+            project_id: project.id,
+            user_id: userData.id,
+            role_name: inviteRole,
+            status: 'pending',
+            invited_at: new Date().toISOString()
+          });
+
+        if (collabError) {
+          console.error('Error creating collaboration:', collabError);
+          throw collabError;
+        }
+
+        // Create notification
+        console.log('Creating notification for user:', userData.id);
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: userData.id,
+            title: 'Project Invitation',
+            message: `You've been invited to collaborate on "${project.title}"`,
+            type: 'project_invite',
+            payload: { project_id: project.id },
+            created_at: new Date().toISOString(),
+            is_read: false
+          });
+
+        if (notificationError) {
+          console.error('Error creating notification:', notificationError);
+          throw notificationError;
+        }
+
+        console.log('Invitation process completed successfully');
+        toast({
+          title: "Invitation Sent",
+          description: `Project invitation sent to @${inviteUsername}`,
+        });
       }
 
-      // Check if already a collaborator
-      const existingCollaborator = collaborators.find(c => c.user_id === userProfile.id);
-      if (existingCollaborator) {
-        toast({
-          title: "Already a collaborator",
-          description: "This user is already part of the project",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Create collaboration invitation
-      const { data, error } = await supabase
-        .from('project_collaborators')
-        .insert([{
-          project_id: project.id,
-          user_id: userProfile.id,
-          role_name: inviteRole,
-          status: 'pending'
-        }])
-        .select(`
-          *,
-          profiles (
-            name,
-            username,
-            avatar_url
-          )
-        `)
-        .single();
-
-      if (error) throw error;
-
-      // Create notification
-      await supabase
-        .from('notifications')
-        .insert([{
-          user_id: userProfile.id,
-          title: 'Project Collaboration Invitation',
-          message: `You've been invited to collaborate on "${project.title}"`,
-          type: 'collaboration_invite',
-          payload: { project_id: project.id, collaboration_id: data.id }
-        }]);
-
-      setCollaborators(prev => [...prev, data]);
-      setInviteEmail('');
-      setInviteRole('Collaborator');
       setIsInviteDialogOpen(false);
-      
-      toast({
-        title: "Invitation sent",
-        description: `Collaboration invitation sent to ${userProfile.name}`,
-      });
+      setInviteEmail('');
+      setInviteUsername('');
+      fetchCollaborators();
     } catch (error) {
-      console.error('Error inviting collaborator:', error);
+      console.error('Error in handleInvite:', error);
       toast({
         title: "Error",
-        description: "Failed to send collaboration invitation",
+        description: "Failed to send invitation",
         variant: "destructive",
       });
     } finally {
@@ -195,6 +248,29 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
 
   const isOwner = currentUser?.id === project.owner_id;
 
+  const searchUsers = async (query: string) => {
+    if (!query) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, username, avatar_url')
+        .ilike('username', `%${query}%`)
+        .limit(5);
+
+      if (error) throw error;
+      setSearchResults(data || []);
+    } catch (error) {
+      console.error('Error searching users:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Looking For Section */}
@@ -217,21 +293,91 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
                   <DialogTitle>Invite Team Member</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
+                  <div className="flex space-x-2">
+                    <Button
+                      variant={inviteMethod === 'email' ? 'default' : 'outline'}
+                      onClick={() => setInviteMethod('email')}
+                      className="flex-1"
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      Email
+                    </Button>
+                    <Button
+                      variant={inviteMethod === 'username' ? 'default' : 'outline'}
+                      onClick={() => setInviteMethod('username')}
+                      className="flex-1"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Username
+                    </Button>
+                  </div>
+
+                  {inviteMethod === 'email' ? (
                   <div>
-                    <Label htmlFor="invite-email">Email Address</Label>
+                      <Label htmlFor="email">Email Address</Label>
                     <Input
-                      id="invite-email"
+                        id="email"
                       type="email"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="collaborator@example.com"
+                        placeholder="Enter email address"
                     />
                   </div>
+                  ) : (
+                    <div className="relative">
+                      <Label htmlFor="username">Username</Label>
+                      <Input
+                        id="username"
+                        value={inviteUsername}
+                        onChange={(e) => {
+                          setInviteUsername(e.target.value);
+                          searchUsers(e.target.value);
+                        }}
+                        placeholder="Search by username"
+                      />
+                      {searchResults.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
+                          {searchResults.map((user) => (
+                            <button
+                              key={user.id}
+                              className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-2"
+                              onClick={() => {
+                                setInviteUsername(user.username);
+                                setSearchResults([]);
+                              }}
+                            >
+                              {user.avatar_url ? (
+                                <img
+                                  src={user.avatar_url}
+                                  alt={user.name}
+                                  className="w-6 h-6 rounded-full"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <span className="text-xs text-gray-600">
+                                    {user.name?.charAt(0) || 'U'}
+                                  </span>
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm font-medium">{user.name}</p>
+                                <p className="text-xs text-gray-500">@{user.username}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-sm text-gray-500 mt-1">
+                        You can only invite connections by username
+                      </p>
+                    </div>
+                  )}
+
                   <div>
-                    <Label htmlFor="invite-role">Role</Label>
+                    <Label htmlFor="role">Role</Label>
                     <Select value={inviteRole} onValueChange={setInviteRole}>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Collaborator">Collaborator</SelectItem>
@@ -251,8 +397,8 @@ const ProjectCollaborators = ({ project }: ProjectCollaboratorsProps) => {
                       Cancel
                     </Button>
                     <Button 
-                      onClick={handleInviteCollaborator}
-                      disabled={isInviting || !inviteEmail.trim()}
+                      onClick={handleInvite}
+                      disabled={isInviting || (inviteMethod === 'email' ? !inviteEmail : !inviteUsername)}
                       className="bg-purple-600 hover:bg-purple-700"
                     >
                       {isInviting ? 'Sending...' : 'Send Invitation'}

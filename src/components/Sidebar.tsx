@@ -1,4 +1,3 @@
-
 import { Home, Search, MessageCircle, FolderOpen, Settings, HelpCircle, User, Bell, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -84,7 +83,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
           e.preventDefault();
           navigate('/');
         }}>
-            <img alt="Octava Logo" className="w-14 h-14" src="/lovable-uploads/70dae72f-9be2-4a92-b512-0e30d0502a1d.png" />
+            <img alt="Octava Logo" className="w-14 h-14" src="/lovable-uploads/octava-small-purple.png" />
           </Link>
         </div>
         

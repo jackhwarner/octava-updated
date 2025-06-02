@@ -1,22 +1,22 @@
-
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '../ui/card';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../../integrations/supabase/client';
 
 interface ProfileStatsProps {
   totalCollaborations: number;
   activeProjects: number;
-  profile: any;
+  profile: any; // Assuming profile includes total_plays and potentially followers if fetched elsewhere
 }
 
 export const ProfileStats = ({ totalCollaborations, activeProjects, profile }: ProfileStatsProps) => {
+  // Restore state for followers
   const [stats, setStats] = useState({
-    plays: 0,
     followers: 0
   });
 
+  // Restore effect to fetch followers count
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchFollowers = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -27,26 +27,16 @@ export const ProfileStats = ({ totalCollaborations, activeProjects, profile }: P
           .select('id')
           .eq('following_id', user.id);
 
-        // Get plays count from songs
-        const { data: songsData } = await supabase
-          .from('songs')
-          .select('id')
-          .eq('user_id', user.id);
-
-        // Simulate plays count (in a real app, you'd track this)
-        const totalPlays = (songsData?.length || 0) * 1250; // Average plays per song
-
         setStats({
-          plays: totalPlays,
           followers: followersData?.length || 0
         });
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error('Error fetching followers:', error);
       }
     };
 
-    fetchStats();
-  }, []);
+    fetchFollowers();
+  }, []); // Dependency array is empty as this only needs to run once on mount
 
   const formatNumber = (num: number) => {
     if (num >= 1000) {
@@ -54,6 +44,9 @@ export const ProfileStats = ({ totalCollaborations, activeProjects, profile }: P
     }
     return num.toString();
   };
+
+  // Access actual total_plays from profile prop
+  const actualTotalPlays = profile?.total_plays || 0;
 
   return (
     <Card className="mb-8">
@@ -64,9 +57,11 @@ export const ProfileStats = ({ totalCollaborations, activeProjects, profile }: P
             <div className="text-sm text-gray-500">Collaborations</div>
           </div>
           <div>
-            <div className="text-xl font-bold text-gray-900">{formatNumber(stats.plays)}</div>
+            {/* Display actual total_plays */}
+            <div className="text-xl font-bold text-gray-900">{formatNumber(actualTotalPlays)}</div>
             <div className="text-sm text-gray-500">Plays</div>
           </div>
+          {/* Display followers count */}
           <div>
             <div className="text-xl font-bold text-gray-900">{stats.followers}</div>
             <div className="text-sm text-gray-500">Followers</div>

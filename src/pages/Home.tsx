@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Check, Star } from "lucide-react";
+import { useMemo } from "react";
+
 const Home = () => {
-  const reviews = [{
+  const reviews = useMemo(() => [{
     name: "Sarah Johnson",
     role: "Producer",
     rating: 5,
@@ -27,17 +29,21 @@ const Home = () => {
     role: "Vocalist",
     rating: 5,
     text: "The quality of projects and professionals on Octava is outstanding. Highly recommend!"
-  }];
+  }], []);
+
+  // Memoize the duplicated reviews array for the scroll animation
+  const duplicatedReviews = useMemo(() => [...reviews, ...reviews], [reviews]);
+
   return <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="w-full p-5 md:p-6 flex justify-between items-center bg-white shadow-sm">
         <div className="flex items-center">
-          <img alt="Octava Logo" src="/lovable-uploads/8f437838-999e-4f09-9473-4da4c56bc06f.png" className="h-10 object-scale-down" />
+          <img alt="Octava Logo" src="/lovable-uploads/octava-large-purple.png" className="h-10 object-scale-down" />
         </div>
         <nav className="hidden md:flex space-x-8 absolute left-1/2 transform -translate-x-1/2">
           <a href="#features" className="text-gray-700 hover:text-gray-900">Features</a>
-          <a href="#pricing" className="text-gray-700 hover:text-gray-900">Pricing</a>
           <a href="#testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</a>
+          <a href="#pricing" className="text-gray-700 hover:text-gray-900">Pricing</a>
           <a href="#about" className="text-gray-700 hover:text-gray-900">About Us</a>
         </nav>
         <div className="flex gap-4">
@@ -50,7 +56,7 @@ const Home = () => {
         </div>
       </header>
       
-      {/* Hero section */}
+      {/* Hero section - Dashboard Page Image */}
       <section className="py-24 md:py-32 px-12 md:px-16 max-w-7xl mx-auto text-center">
         <h1 className="text-4xl md:text-6xl font-bold mb-8 max-w-4xl mx-auto">
           Spend less time <span className="text-purple-600">networking</span> and more time <span className="text-purple-600">creating music</span>
@@ -65,11 +71,11 @@ const Home = () => {
           <Link to="/signup">Get Started</Link>
         </Button>
         <div className="mt-16">
-          <img alt="Platform preview" className="max-w-4xl mx-auto rounded-md object-scale-down" style={{
+          <img alt="Platform preview - Dashboard Page" className="max-w-4xl mx-auto rounded-md object-scale-down" style={{
           filter: 'drop-shadow(0 20px 25px rgba(0, 0, 0, 0.15))',
           maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
           WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
-        }} src="/lovable-uploads/7ca63cf1-6175-42ac-8e57-3e712ce70eee.png" />
+        }} src="/lovable-uploads/dashboard-page.png" />
         </div>
       </section>
       
@@ -78,7 +84,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold mb-24 text-center">Why Choose Octava?</h2>
           
-          {/* Feature 1 */}
+          {/* Feature 1 - Browse Page Image */}
           <div className="flex flex-col md:flex-row items-center mb-28 max-w-6xl mx-auto">
             <div className="md:w-1/2 md:pr-16 mb-8 md:mb-0">
               <h3 className="text-3xl font-bold mb-8">Connect with Professionals</h3>
@@ -102,11 +108,11 @@ const Home = () => {
               </ul>
             </div>
             <div className="md:w-1/2">
-              <img alt="Connect with Professionals" src="/lovable-uploads/e4cd1827-613e-4812-8286-2aac2e23c5e6.png" className="h-full rounded-md object-scale-down" />
+              <img alt="Connect with Professionals - Browse Page" src="/lovable-uploads/browse-page.png" className="h-full rounded-md object-scale-down" />
             </div>
           </div>
           
-          {/* Feature 2 */}
+          {/* Feature 2 - Messages Page Image */}
           <div className="flex flex-col md:flex-row-reverse items-center mb-28 max-w-6xl mx-auto">
             <div className="md:w-1/2 md:pl-16 mb-8 md:mb-0">
               <h3 className="text-3xl font-bold mb-8">Collaborate on the Cloud</h3>
@@ -130,11 +136,11 @@ const Home = () => {
               </ul>
             </div>
             <div className="md:w-1/2">
-              <img alt="Cloud Collaboration" src="/lovable-uploads/1939f58c-b215-4542-9063-311d3a4c95cd.png" className="h-full rounded-md object-scale-down rounded-md" />
+              <img alt="Cloud Collaboration - Messages Page" src="/lovable-uploads/messages-page.png" className="h-full rounded-md object-scale-down rounded-md" />
             </div>
           </div>
           
-          {/* Feature 3 */}
+          {/* Feature 3 - Projects Page Image */}
           <div className="flex flex-col md:flex-row items-center max-w-6xl mx-auto">
             <div className="md:w-1/2 md:pr-16 mb-8 md:mb-0">
               <h3 className="text-3xl font-bold mb-8">Bring Your Project to Life</h3>
@@ -158,7 +164,7 @@ const Home = () => {
               </ul>
             </div>
             <div className="md:w-1/2">
-              <img alt="Project Management" className="h-full rounded-md object-scale-down" src="/lovable-uploads/d1f0c748-09c2-436e-a4de-20dce3d4e0a9.png" />
+              <img alt="Project Management - Projects Page" className="h-full rounded-md object-scale-down" src="/lovable-uploads/projects-page.png" />
             </div>
           </div>
         </div>
@@ -170,16 +176,23 @@ const Home = () => {
           <h2 className="text-3xl md:text-5xl font-bold mb-16 text-center">What Our Users Say</h2>
           <div className="relative">
             <div className="flex animate-scroll space-x-8">
-              {[...reviews, ...reviews].map((review, index) => <div key={index} className="bg-gray-50 p-6 rounded-xl min-w-[350px] max-w-[350px] flex-shrink-0">
+              {duplicatedReviews.map((review, index) => (
+                <div key={index} className="bg-gray-50 p-6 rounded-xl min-w-[350px] max-w-[350px] flex-shrink-0">
                   <div className="flex items-center mb-4">
-                    {[...Array(5)].map((_, i) => <Star key={i} className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />)}
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                      />
+                    ))}
                   </div>
                   <p className="text-gray-700 mb-4 text-sm leading-relaxed">"{review.text}"</p>
                   <div>
                     <p className="font-medium text-gray-900">{review.name}</p>
                     <p className="text-sm text-gray-500">{review.role}</p>
                   </div>
-                </div>)}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -301,8 +314,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img alt="Octava Logo" src="/lovable-uploads/6c933b1f-4a8c-4a0f-94f0-6f39e012c213.png" className="h-8" />
-              
+              <img alt="Octava Logo" src="/lovable-uploads/octava-large-white.png" className="h-8" />
             </div>
             <p className="text-sm">
               Connecting musicians and creators worldwide.

@@ -1,11 +1,10 @@
-
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '../ui/card';
+import { Badge } from '../ui/badge';
 import { MapPin, Users } from 'lucide-react';
+import { ConnectionButton } from '../connections/ConnectionButton';
 
 interface SuggestedCollaborator {
-  id: number;
+  id: string;
   name: string;
   username: string;
   role: string;
@@ -13,7 +12,8 @@ interface SuggestedCollaborator {
   location: string;
   experience: string;
   completedProjects: number;
-  avatar: null;
+  avatar_url?: string | null;
+  instruments?: string[];
 }
 
 interface SuggestedCollaboratorsProps {
@@ -36,20 +36,22 @@ const SuggestedCollaborators = ({ collaborators }: SuggestedCollaboratorsProps) 
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {collaborators.map(profile => (
+          {collaborators.map((profile) => (
             <Card key={profile.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="space-y-3">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="font-semibold text-gray-900 truncate">{profile.name}</h3>
-                    <p className="text-sm text-gray-500">{profile.username}</p>
+                    <h3 className="font-semibold text-lg">{profile.name}</h3>
+                    <p className="text-sm text-gray-500">@{profile.username}</p>
                   </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="text-purple-600 border-purple-600">
-                      {profile.role}
-                    </Badge>
-                    {profile.genres.slice(0, 2).map(genre => (
+                  <Badge variant="secondary" className="capitalize">
+                    {profile.role}
+                  </Badge>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {profile.genres.map((genre) => (
                       <Badge key={genre} variant="outline" className="text-xs">
                         {genre}
                       </Badge>
@@ -64,13 +66,10 @@ const SuggestedCollaborators = ({ collaborators }: SuggestedCollaboratorsProps) 
                     <span>{profile.completedProjects} projects</span>
                   </div>
 
-                  <p className="text-sm text-gray-600">
-                    {profile.experience} level
-                  </p>
-
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                    Connect
-                  </Button>
+                  <ConnectionButton 
+                    userId={profile.id}
+                    className="w-full"
+                  />
                 </div>
               </CardContent>
             </Card>

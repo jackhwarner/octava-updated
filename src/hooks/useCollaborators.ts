@@ -1,89 +1,111 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export interface Collaborator {
+interface Collaborator {
   id: string;
   name: string;
-  username: string;
-  role?: string;
-  avatar_url?: string;
-  experience?: string;
-  genres?: string[];
-  location?: string;
-  completed_projects?: number;
-  is_online?: boolean;
+  username: string | null;
+  role: string;
+  genres: string[];
+  location: string | null;
+  experience: string;
+  avatar_url: string | null;
+  skills: string[];
+  is_online: boolean;
+  visibility: string;
 }
 
 export const useCollaborators = () => {
-  const [onlineCollaborators, setOnlineCollaborators] = useState<Collaborator[]>([]);
   const [suggestedCollaborators, setSuggestedCollaborators] = useState<Collaborator[]>([]);
+  const [onlineCollaborators, setOnlineCollaborators] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchCollaborators = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      // Get profiles of users who are collaborators on projects with current user
-      const { data: collaboratorProfiles, error: collabError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          name,
-          username,
-          role,
-          avatar_url,
-          experience,
-          genres,
-          location
-        `)
-        .neq('id', user.id)
-        .eq('visibility', 'public')
-        .limit(20);
-
-      if (collabError) throw collabError;
-
-      // For now, randomly assign some as "online" and add completed projects count
-      const processedCollaborators = (collaboratorProfiles || []).map(profile => ({
-        ...profile,
-        name: profile.name || 'Unknown User',
-        username: profile.username || '@unknown',
-        is_online: Math.random() > 0.7,
-        completed_projects: Math.floor(Math.random() * 50) + 5
-      }));
-
-      // Split into online and suggested
-      const online = processedCollaborators.filter(c => c.is_online).slice(0, 3);
-      const suggested = processedCollaborators.slice(0, 6);
-
-      setOnlineCollaborators(online);
-      setSuggestedCollaborators(suggested);
-    } catch (error) {
-      console.error('Error fetching collaborators:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load collaborators",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchCollaborators();
-  }, []);
+    const fetchCollaborators = async () => {
+      try {
+        // Get the current authenticated user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error('Error getting user:', userError);
+          throw userError;
+        }
 
-  return {
-    onlineCollaborators,
-    suggestedCollaborators,
-    loading,
-    refetch: fetchCollaborators
-  };
+        console.log('Current user:', user);
+
+        if (!user) {
+          console.log('No user found, returning empty collaborators list');
+          setSuggestedCollaborators([]);
+          setOnlineCollaborators([]);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch public profiles of other users who could be potential collaborators
+        // This excludes the current user and only gets profiles marked as public
+        console.log('Fetching collaborators with user ID:', user.id);
+        const { data: collaborators, error: collabError } = await supabase
+          .from('profiles')
+          .select('id, name, username, role, genres, location, experience, avatar_url, skills, visibility')
+          .neq('id', user.id)
+          .eq('visibility', 'public');
+
+        if (collabError) {
+          console.error('Error fetching collaborators:', {
+            error: collabError,
+            message: collabError.message,
+            details: collabError.details,
+            hint: collabError.hint
+          });
+          throw collabError;
+        }
+
+        console.log('Fetched collaborators:', collaborators);
+
+        // Process the fetched profiles:
+        // 1. Add default values for missing fields
+        // 2. Randomly assign online status (for demo purposes)
+        // 3. Map skills to instruments
+        const processedCollaborators = collaborators.map(profile => ({
+          ...profile,
+          name: profile.name || 'Anonymous',
+          username: profile.username || '@unknown',
+          role: profile.role || 'Musician',
+          genres: profile.genres || [],
+          location: profile.location || 'Unknown',
+          experience: profile.experience || 'Beginner',
+          avatar_url: profile.avatar_url,
+          skills: profile.skills || [],
+          is_online: Math.random() > 0.5, // Random online status for demo
+          visibility: profile.visibility || 'public'
+        }));
+
+        console.log('Processed collaborators:', processedCollaborators);
+
+        // Set all processed collaborators as suggested collaborators
+        setSuggestedCollaborators(processedCollaborators);
+        
+        // Set online collaborators
+        setOnlineCollaborators(processedCollaborators.filter(c => c.is_online));
+      } catch (error) {
+        console.error('Error in fetchCollaborators:', {
+          error,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch collaborators. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCollaborators();
+  }, [toast]);
+
+  return { suggestedCollaborators, onlineCollaborators, loading };
 };

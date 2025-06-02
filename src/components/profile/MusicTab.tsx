@@ -1,13 +1,13 @@
-
 import { useState, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Play, Pause, Upload, Plus, Trash2, Clock, Volume2 } from 'lucide-react';
-import { useMusic } from '@/hooks/useMusic';
-import { useProfile } from '@/hooks/useProfile';
+import { useMusic, MusicTrack } from '../../hooks/useMusic';
+import { useProfile } from '../../hooks/useProfile';
+import React from 'react';
 
 export const MusicTab = () => {
   const { tracks, loading, uploading, uploadTrack, deleteTrack, incrementPlayCount } = useMusic();
@@ -20,14 +20,15 @@ export const MusicTab = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePlayPause = async (track: any) => {
+  const handlePlayPause = async (track: MusicTrack) => {
     if (isPlaying === track.id) {
       audioRef.current?.pause();
       setIsPlaying(null);
@@ -56,12 +57,27 @@ export const MusicTab = () => {
         await audio.play();
         setIsPlaying(track.id);
         
-        // Increment play count
-        await incrementPlayCount(track.id, track.user_id);
+        if (profile?.id !== track.user_id) {
+           incrementPlayCount(track.id, track.user_id);
+        }
       } catch (error) {
         console.error('Error playing audio:', error);
       }
     }
+  };
+
+  const handleSeek = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!audioRef.current || duration === 0) return;
+
+    const progressBar = progressBarRef.current;
+    if (!progressBar) return;
+
+    const clickPosition = event.clientX - progressBar.getBoundingClientRect().left;
+    const percent = clickPosition / progressBar.offsetWidth;
+    const seekTime = duration * percent;
+
+    audioRef.current.currentTime = seekTime;
+    setCurrentTime(seekTime);
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,7 +158,11 @@ export const MusicTab = () => {
                       </div>
                       {isPlaying === track.id && (
                         <div className="mt-2">
-                          <div className="w-full bg-gray-200 rounded-full h-1">
+                          <div
+                            ref={progressBarRef}
+                            className="w-full bg-gray-200 rounded-full h-1 cursor-pointer"
+                            onClick={handleSeek}
+                          >
                             <div 
                               className="bg-purple-600 h-1 rounded-full transition-all duration-100"
                               style={{ width: `${(currentTime / duration) * 100}%` }}

@@ -13,6 +13,9 @@ import ProjectInfo from './project/ProjectInfo';
 import ProjectSettings from './project/ProjectSettings';
 import ProjectTodos from './project/ProjectTodos';
 
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const ProjectDetail = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -25,6 +28,9 @@ const ProjectDetail = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [hasAccess, setHasAccess] = useState(true);
 
+  // Validate projectId
+  const isValidProjectId = projectId && UUID_REGEX.test(projectId);
+
   // Get current user
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -35,6 +41,11 @@ const ProjectDetail = () => {
   }, []);
 
   useEffect(() => {
+    if (!isValidProjectId) {
+      setProject(null);
+      return;
+    }
+
     const foundProject = projects.find(p => p.id === projectId);
     if (foundProject) {
       setProject(foundProject);
@@ -45,10 +56,10 @@ const ProjectDetail = () => {
       // Try to fetch the project directly (might be a shared project)
       fetchSharedProject();
     }
-  }, [projectId, projects, loading, currentUser]);
+  }, [projectId, projects, loading, currentUser, isValidProjectId]);
 
   const checkProjectAccess = async () => {
-    if (!currentUser || !projectId) return;
+    if (!currentUser || !isValidProjectId) return;
     
     try {
       const { data, error } = await supabase.rpc('user_can_access_project', {
@@ -65,6 +76,8 @@ const ProjectDetail = () => {
   };
 
   const fetchSharedProject = async () => {
+    if (!isValidProjectId) return;
+
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -99,7 +112,7 @@ const ProjectDetail = () => {
 
   // Set up real-time listeners for stats updates
   useEffect(() => {
-    if (!projectId) return;
+    if (!isValidProjectId) return;
 
     const channel = supabase
       .channel('project-stats-updates')
@@ -164,9 +177,11 @@ const ProjectDetail = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [projectId, refetchStats]);
+  }, [projectId, refetchStats, isValidProjectId]);
 
   const fetchRecentFiles = async () => {
+    if (!isValidProjectId) return;
+
     try {
       const { data, error } = await supabase
         .from('project_files')
@@ -207,7 +222,7 @@ const ProjectDetail = () => {
       </div>;
   }
 
-  if (!project) {
+  if (!isValidProjectId || !project) {
     return <div className="min-h-screen bg-white flex">
         <div className="fixed top-0 left-0 h-screen z-10">
           <Sidebar activeTab={mainActiveTab} setActiveTab={handleMainNavigation} />

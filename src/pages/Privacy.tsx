@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -9,7 +8,7 @@ const Privacy = () => {
       <header className="w-full p-5 md:p-6 flex justify-between items-center bg-white shadow-sm">
         <div className="flex items-center">
           <img 
-            src="/lovable-uploads/f3ab68f7-fe1d-4e83-9843-b889f75392dd.png" 
+            src="/lovable-uploads/octava-large-purple.png" 
             alt="Octava Logo" 
             className="h-10" 
           />

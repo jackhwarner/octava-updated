@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Project } from '@/types/project';
@@ -72,7 +71,10 @@ export const useProjectOperations = () => {
     version_approval_enabled?: boolean;
   }) => {
     try {
-      const cleanUpdates = mapProjectUpdatesToDatabase(updates);
+      const cleanUpdates = {
+        ...mapProjectUpdatesToDatabase(updates),
+        updated_at: new Date().toISOString()
+      };
 
       const { data, error } = await supabase
         .from('projects')

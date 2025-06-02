@@ -1,9 +1,8 @@
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 interface BrowseFiltersProps {
   selectedRole: string;
@@ -96,9 +95,9 @@ const BrowseFilters = ({
     <Card className="mb-8">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-          <div>
+          <div className="flex items-center space-x-2">
             <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger>
+              <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Role" />
               </SelectTrigger>
               <SelectContent>
@@ -110,11 +109,21 @@ const BrowseFilters = ({
                 <SelectItem value="engineer">Engineer</SelectItem>
               </SelectContent>
             </Select>
+            {selectedRole && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setSelectedRole('')}
+                aria-label="Clear Role filter"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
-          <div>
+          <div className="flex items-center space-x-2">
             <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-              <SelectTrigger>
+              <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Genre" />
               </SelectTrigger>
               <SelectContent>
@@ -128,11 +137,21 @@ const BrowseFilters = ({
                 <SelectItem value="classical">Classical</SelectItem>
               </SelectContent>
             </Select>
+            {selectedGenre && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setSelectedGenre('')}
+                aria-label="Clear Genre filter"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
-          <div>
+          <div className="flex items-center space-x-2">
             <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-              <SelectTrigger>
+              <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Instrument" />
               </SelectTrigger>
               <SelectContent>
@@ -146,11 +165,21 @@ const BrowseFilters = ({
                 <SelectItem value="trumpet">Trumpet</SelectItem>
               </SelectContent>
             </Select>
+            {selectedInstrument && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setSelectedInstrument('')}
+                aria-label="Clear Instrument filter"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
-          <div>
+          <div className="flex items-center space-x-2">
             <Select value={selectedExperience} onValueChange={setSelectedExperience}>
-              <SelectTrigger>
+              <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Experience" />
               </SelectTrigger>
               <SelectContent>
@@ -160,15 +189,35 @@ const BrowseFilters = ({
                 <SelectItem value="expert">Expert</SelectItem>
               </SelectContent>
             </Select>
+            {selectedExperience && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setSelectedExperience('')}
+                aria-label="Clear Experience filter"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
-          <div className="relative">
+          <div className="relative col-span-2 flex items-center space-x-2">
             <Input 
               placeholder="City, State or ZIP Code" 
               value={location} 
               onChange={(e) => setLocation(e.target.value)} 
-              className="w-full"
+              className="w-full flex-1"
             />
+            {location && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation('')}
+                aria-label="Clear location filter"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
             {location && filteredCities.length > 0 && !location.match(/^\d{5}$/) && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                 {filteredCities.slice(0, 10).map((city) => (
