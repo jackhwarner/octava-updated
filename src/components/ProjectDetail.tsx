@@ -341,58 +341,54 @@ const ProjectDetail = () => {
         return <ProjectInfo project={project} stats={stats} />;
     }
   };
-  return <div className="min-h-screen bg-gray-50 flex">
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Main Navigation Sidebar */}
       <div className="fixed top-0 left-0 h-screen z-20">
         <Sidebar activeTab={mainActiveTab} setActiveTab={handleMainNavigation} />
       </div>
 
-      {/* Project Sidebar */}
-      <div className="w-[320px] ml-[90px] bg-white border-r border-gray-200 flex flex-col">
+      {/* Project Sidebar - now fixed to screen height and doesn't scroll with right side */}
+      <div className="fixed left-[90px] top-0 h-screen w-[320px] bg-white border-r border-gray-200 flex flex-col z-10">
         {/* Header */}
         <div className="p-6 border-b">
           <button onClick={() => navigate('/projects')} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-4 -ml-2">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Projects</span>
           </button>
-          
           <h1 className="text-xl font-bold text-gray-900 mb-2">
             {project.title || project.name}
           </h1>
-          
           <div className="flex items-center space-x-2 mb-3">
             <Badge className={projectStatus.color}>
               {projectStatus.label}
             </Badge>
             <Badge variant="outline">{project.genre || 'No Genre'}</Badge>
           </div>
-
           <div className="flex items-center text-sm text-gray-500 mb-4">
             {getVisibilityIcon(project.visibility)}
             <span className="ml-1 capitalize">{project.visibility}</span>
             {!hasAccess && <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded">View Only</span>}
           </div>
-
           <p className="text-sm text-gray-600 line-clamp-3">{project.description}</p>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 border-b flex-grow ">
+        <nav className="p-4 border-b flex-grow overflow-y-auto">
           <ul className="space-y-2">
             {sidebarItems.map(item => {
-            const Icon = item.icon;
-            return <li key={item.id}>
+              const Icon = item.icon;
+              return (
+                <li key={item.id}>
                   <button onClick={() => setActiveTab(item.id)} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${activeTab === item.id ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </button>
-                </li>;
-          })}
+                </li>
+              );
+            })}
           </ul>
         </nav>
-
-        {/* Recent Activity - only show if user has access */}
-        {hasAccess}
 
         {/* Project Stats */}
         <div className="p-4 border-t">
@@ -405,7 +401,8 @@ const ProjectDetail = () => {
               <span className="text-gray-500">Updated</span>
               <span className="text-gray-900">{new Date(project.updated_at).toLocaleDateString()}</span>
             </div>
-            {hasAccess && <>
+            {hasAccess && (
+              <>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Files</span>
                   <span className="text-gray-900">{statsLoading ? '...' : stats.totalFiles}</span>
@@ -418,7 +415,8 @@ const ProjectDetail = () => {
                   <span className="text-gray-500">Messages</span>
                   <span className="text-gray-900">{statsLoading ? '...' : stats.totalMessages}</span>
                 </div>
-              </>}
+              </>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Team Size</span>
               <span className="text-gray-900">{statsLoading ? '...' : stats.teamSize}</span>
@@ -427,8 +425,8 @@ const ProjectDetail = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      {/* Main Content now gets a left margin for both sidebars and scrolls independently */}
+      <div className="flex-1 flex flex-col ml-[410px] min-h-screen">
         {/* Top Bar */}
         <div className="bg-white border-b px-6 py-4">
           <div className="flex items-center justify-between">
@@ -438,38 +436,43 @@ const ProjectDetail = () => {
                 Last updated {new Date(project.updated_at).toLocaleDateString()}
               </span>
             </div>
-
             <div className="flex items-center space-x-4">
               {/* Collaborator Avatars */}
-              {project.collaborators && project.collaborators.length > 0 && <div className="flex items-center space-x-2">
+              {project.collaborators && project.collaborators.length > 0 && (
+                <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-500">Team:</span>
                   <div className="flex -space-x-2">
                     {/* Project Owner */}
                     <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
                       <span className="text-xs text-purple-700">AR</span>
                     </div>
-                    
                     {/* Collaborators */}
-                    {project.collaborators.slice(0, 4).map((collaborator, index) => <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
+                    {project.collaborators.slice(0, 4).map((collaborator, index) => (
+                      <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
                         <span className="text-xs text-purple-700">
                           {getInitials(collaborator.profiles?.name || 'U')}
                         </span>
-                      </div>)}
-                    
-                    {project.collaborators.length > 4 && <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
+                      </div>
+                    ))}
+                    {project.collaborators.length > 4 && (
+                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
                         <span className="text-xs text-gray-600">+{project.collaborators.length - 4}</span>
-                      </div>}
+                      </div>
+                    )}
                   </div>
-                </div>}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Content Area */}
+        {/* Content Area - THIS scrolls */}
         <div className="flex-1 p-6 overflow-auto">
           {renderContent()}
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ProjectDetail;
