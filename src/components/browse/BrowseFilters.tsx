@@ -102,7 +102,8 @@ const BrowseFilters = ({
   return (
     <Card className="mb-8">
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+        {/* Updated grid from 7 to 6 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
 
           {/* Role Filter */}
           <div className="flex items-center space-x-2">
@@ -240,7 +241,7 @@ const BrowseFilters = ({
             </Select>
           </div>
 
-          {/* Location Filter and Search Button */}
+          {/* Location Filter */}
           <div className="relative flex items-center space-x-2">
             <Input
               placeholder="City, State or ZIP Code"
@@ -249,7 +250,6 @@ const BrowseFilters = ({
               className="w-full flex-1"
               onFocus={() => setLocationFocused(true)}
               onBlur={() => setTimeout(() => setLocationFocused(false), 100)}
-              // timeout ensures click on dropdown option registers first
             />
             {location && (
               <Button
@@ -280,6 +280,7 @@ const BrowseFilters = ({
             )}
           </div>
 
+          {/* Search Button */}
           <div className="flex items-center">
             <Button 
               onClick={handleSearch} 
