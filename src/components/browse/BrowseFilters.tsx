@@ -102,9 +102,7 @@ const BrowseFilters = ({
   return (
     <Card className="mb-8">
       <CardContent className="p-6">
-        {/* Updated grid from 7 to 6 columns */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-
           {/* Role Filter */}
           <div className="flex items-center relative">
             <Select value={selectedRole} onValueChange={setSelectedRole}>
@@ -112,8 +110,6 @@ const BrowseFilters = ({
                 <SelectValue placeholder="Role" />
               </SelectTrigger>
               <SelectContent>
-                {/* Blank (None) option */}
-                <SelectItem value="">—</SelectItem>
                 {roles.map((role) => (
                   <SelectItem
                     key={role.toLowerCase()}
@@ -133,8 +129,6 @@ const BrowseFilters = ({
                 <SelectValue placeholder="Genre" />
               </SelectTrigger>
               <SelectContent>
-                {/* Blank (None) option */}
-                <SelectItem value="">—</SelectItem>
                 {genres.map((genre) => (
                   <SelectItem
                     key={genre.toLowerCase()}
@@ -154,8 +148,6 @@ const BrowseFilters = ({
                 <SelectValue placeholder="Instrument" />
               </SelectTrigger>
               <SelectContent>
-                {/* Blank (None) option */}
-                <SelectItem value="">—</SelectItem>
                 {instruments.map((instrument) => (
                   <SelectItem
                     key={instrument.toLowerCase()}
@@ -175,8 +167,6 @@ const BrowseFilters = ({
                 <SelectValue placeholder="Experience" />
               </SelectTrigger>
               <SelectContent>
-                {/* Blank (None) option */}
-                <SelectItem value="">—</SelectItem>
                 <SelectItem value="beginner">Beginner</SelectItem>
                 <SelectItem value="intermediate">Intermediate</SelectItem>
                 <SelectItem value="professional">Professional</SelectItem>
