@@ -348,7 +348,7 @@ const ProjectDetail = () => {
         <Sidebar activeTab={mainActiveTab} setActiveTab={handleMainNavigation} />
       </div>
 
-      {/* Project Sidebar - now fixed to screen height and doesn't scroll with right side */}
+      {/* Project Sidebar */}
       <div className="fixed left-[90px] top-0 h-screen w-[320px] bg-white border-r border-gray-200 flex flex-col z-10">
         {/* Header */}
         <div className="p-6 border-b">
@@ -372,7 +372,6 @@ const ProjectDetail = () => {
           </div>
           <p className="text-sm text-gray-600 line-clamp-3">{project.description}</p>
         </div>
-
         {/* Navigation */}
         <nav className="p-4 border-b flex-grow overflow-y-auto">
           <ul className="space-y-2">
@@ -389,7 +388,6 @@ const ProjectDetail = () => {
             })}
           </ul>
         </nav>
-
         {/* Project Stats */}
         <div className="p-4 border-t">
           <div className="space-y-3 text-sm">
@@ -425,47 +423,8 @@ const ProjectDetail = () => {
         </div>
       </div>
 
-      {/* Main Content now gets a left margin for both sidebars and scrolls independently */}
+      {/* Main Content, left margin for both sidebars, scrolls independently */}
       <div className="flex-1 flex flex-col ml-[410px] min-h-screen">
-        {/* Top Bar */}
-        <div className="bg-white border-b px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Calendar className="w-5 h-5 text-gray-400" />
-              <span className="text-sm text-gray-600">
-                Last updated {new Date(project.updated_at).toLocaleDateString()}
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              {/* Collaborator Avatars */}
-              {project.collaborators && project.collaborators.length > 0 && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">Team:</span>
-                  <div className="flex -space-x-2">
-                    {/* Project Owner */}
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
-                      <span className="text-xs text-purple-700">AR</span>
-                    </div>
-                    {/* Collaborators */}
-                    {project.collaborators.slice(0, 4).map((collaborator, index) => (
-                      <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
-                        <span className="text-xs text-purple-700">
-                          {getInitials(collaborator.profiles?.name || 'U')}
-                        </span>
-                      </div>
-                    ))}
-                    {project.collaborators.length > 4 && (
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
-                        <span className="text-xs text-gray-600">+{project.collaborators.length - 4}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* Content Area - THIS scrolls */}
         <div className="flex-1 p-6 overflow-auto">
           {renderContent()}
