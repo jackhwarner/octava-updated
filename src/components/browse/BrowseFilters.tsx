@@ -127,12 +127,7 @@ const BrowseFilters = ({
                   </Button>
                 )}
                 <SelectValue placeholder="Role" />
-                {/* Chevron always flush right */}
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <SelectPrimitive.Icon asChild>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </SelectPrimitive.Icon>
-                </span>
+                {/* Remove custom chevron: it's now handled by SelectTrigger itself */}
               </SelectTrigger>
               <SelectContent>
                 {roles.map((role) => (
@@ -168,11 +163,7 @@ const BrowseFilters = ({
                   </Button>
                 )}
                 <SelectValue placeholder="Genre" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <SelectPrimitive.Icon asChild>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </SelectPrimitive.Icon>
-                </span>
+                {/* Remove custom chevron */}
               </SelectTrigger>
               <SelectContent>
                 {genres.map((genre) => (
@@ -208,11 +199,7 @@ const BrowseFilters = ({
                   </Button>
                 )}
                 <SelectValue placeholder="Instrument" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <SelectPrimitive.Icon asChild>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </SelectPrimitive.Icon>
-                </span>
+                {/* Remove custom chevron */}
               </SelectTrigger>
               <SelectContent>
                 {instruments.map((instrument) => (
@@ -248,11 +235,7 @@ const BrowseFilters = ({
                   </Button>
                 )}
                 <SelectValue placeholder="Experience" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <SelectPrimitive.Icon asChild>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </SelectPrimitive.Icon>
-                </span>
+                {/* Remove custom chevron */}
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="beginner">Beginner</SelectItem>
