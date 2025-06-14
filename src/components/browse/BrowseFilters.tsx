@@ -107,25 +107,25 @@ const BrowseFilters = ({
 
           {/* Role Filter */}
           <div className="flex items-center space-x-2">
-            {selectedRole && (
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                tabIndex={0}
-                className="h-5 w-5 p-0"
-                aria-label="Clear Role filter"
-                onClick={e => {
-                  e.stopPropagation();
-                  setSelectedRole('');
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
             <Select value={selectedRole} onValueChange={setSelectedRole}>
               <SelectTrigger className="flex-1 relative">
                 <SelectValue placeholder="Role" />
+                {selectedRole && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
+                    aria-label="Clear Role filter"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSelectedRole('');
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </SelectTrigger>
               <SelectContent>
                 {roles.map((role) => (
@@ -142,25 +142,25 @@ const BrowseFilters = ({
 
           {/* Genre Filter */}
           <div className="flex items-center space-x-2">
-            {selectedGenre && (
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                tabIndex={0}
-                className="h-5 w-5 p-0"
-                aria-label="Clear Genre filter"
-                onClick={e => {
-                  e.stopPropagation();
-                  setSelectedGenre('');
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
             <Select value={selectedGenre} onValueChange={setSelectedGenre}>
               <SelectTrigger className="flex-1 relative">
                 <SelectValue placeholder="Genre" />
+                {selectedGenre && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
+                    aria-label="Clear Genre filter"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSelectedGenre('');
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </SelectTrigger>
               <SelectContent>
                 {genres.map((genre) => (
@@ -177,25 +177,25 @@ const BrowseFilters = ({
 
           {/* Instrument Filter */}
           <div className="flex items-center space-x-2">
-            {selectedInstrument && (
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                tabIndex={0}
-                className="h-5 w-5 p-0"
-                aria-label="Clear Instrument filter"
-                onClick={e => {
-                  e.stopPropagation();
-                  setSelectedInstrument('');
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
             <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
               <SelectTrigger className="flex-1 relative">
                 <SelectValue placeholder="Instrument" />
+                {selectedInstrument && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
+                    aria-label="Clear Instrument filter"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSelectedInstrument('');
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </SelectTrigger>
               <SelectContent>
                 {instruments.map((instrument) => (
@@ -212,25 +212,25 @@ const BrowseFilters = ({
 
           {/* Experience Filter */}
           <div className="flex items-center space-x-2">
-            {selectedExperience && (
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                tabIndex={0}
-                className="h-5 w-5 p-0"
-                aria-label="Clear Experience filter"
-                onClick={e => {
-                  e.stopPropagation();
-                  setSelectedExperience('');
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
             <Select value={selectedExperience} onValueChange={setSelectedExperience}>
               <SelectTrigger className="flex-1 relative">
                 <SelectValue placeholder="Experience" />
+                {selectedExperience && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
+                    aria-label="Clear Experience filter"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSelectedExperience('');
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="beginner">Beginner</SelectItem>
@@ -243,22 +243,6 @@ const BrowseFilters = ({
 
           {/* Location Filter */}
           <div className="relative flex items-center space-x-2">
-            {location && (
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                tabIndex={0}
-                className="h-5 w-5 p-0"
-                aria-label="Clear location filter"
-                onClick={e => {
-                  e.stopPropagation();
-                  setLocation('');
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
             <Input
               placeholder="City, State or ZIP Code"
               value={location}
@@ -267,6 +251,16 @@ const BrowseFilters = ({
               onFocus={() => setLocationFocused(true)}
               onBlur={() => setTimeout(() => setLocationFocused(false), 100)}
             />
+            {location && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation('')}
+                aria-label="Clear location filter"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
             {location && filteredCities.length > 0 && !location.match(/^\d{5}$/) && locationFocused && (
               <div
                 className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
