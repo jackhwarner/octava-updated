@@ -241,7 +241,7 @@ const BrowseFilters = ({
           </div>
 
           {/* Location Filter and Search Button */}
-          <div className="relative col-span-2 flex items-center space-x-2">
+          <div className="relative flex items-center space-x-2">
             <Input
               placeholder="City, State or ZIP Code"
               value={location}
