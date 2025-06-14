@@ -123,7 +123,7 @@ const BrowseFilters = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none" key="_role_clear" className="text-gray-400">
-                  Role
+                  Clear
                 </SelectItem>
                 {roles.map((role) => (
                   <SelectItem
@@ -148,7 +148,7 @@ const BrowseFilters = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none" key="_genre_clear" className="text-gray-400">
-                  Genre
+                  Clear
                 </SelectItem>
                 {genres.map((genre) => (
                   <SelectItem
@@ -173,7 +173,7 @@ const BrowseFilters = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none" key="_instrument_clear" className="text-gray-400">
-                  Instrument
+                  Clear
                 </SelectItem>
                 {instruments.map((instrument) => (
                   <SelectItem
@@ -198,7 +198,7 @@ const BrowseFilters = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none" key="_experience_clear" className="text-gray-400">
-                  Experience
+                  Clear
                 </SelectItem>
                 <SelectItem value="beginner">Beginner</SelectItem>
                 <SelectItem value="intermediate">Intermediate</SelectItem>
