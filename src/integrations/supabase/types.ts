@@ -790,17 +790,14 @@ export type Database = {
       }
       projects: {
         Row: {
-          bpm: number | null
           budget: number | null
           created_at: string | null
           current_phase_index: number | null
-          daw: string | null
           deadline: string | null
           description: string | null
           folder_id: string | null
           genre: string | null
           id: string
-          key: string | null
           mood: string | null
           name: string | null
           owner_id: string
@@ -812,17 +809,14 @@ export type Database = {
           visibility: Database["public"]["Enums"]["visibility_type"] | null
         }
         Insert: {
-          bpm?: number | null
           budget?: number | null
           created_at?: string | null
           current_phase_index?: number | null
-          daw?: string | null
           deadline?: string | null
           description?: string | null
           folder_id?: string | null
           genre?: string | null
           id?: string
-          key?: string | null
           mood?: string | null
           name?: string | null
           owner_id: string
@@ -834,17 +828,14 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["visibility_type"] | null
         }
         Update: {
-          bpm?: number | null
           budget?: number | null
           created_at?: string | null
           current_phase_index?: number | null
-          daw?: string | null
           deadline?: string | null
           description?: string | null
           folder_id?: string | null
           genre?: string | null
           id?: string
-          key?: string | null
           mood?: string | null
           name?: string | null
           owner_id?: string

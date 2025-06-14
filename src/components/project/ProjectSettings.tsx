@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,9 +24,6 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
     visibility: project.visibility || 'private',
     deadline: project.deadline || '',
     budget: project.budget || '',
-    bpm: project.bpm || '',
-    key: project.key || '',
-    daw: project.daw || '',
     mood: project.mood || '',
     version_approval_enabled: project.version_approval_enabled || false
   });
@@ -53,9 +49,6 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
         visibility: formData.visibility as any,
         deadline: formData.deadline || null,
         budget: formData.budget ? parseFloat(formData.budget) : null,
-        bpm: formData.bpm ? parseInt(formData.bpm) : null,
-        key: formData.key,
-        daw: formData.daw,
         mood: formData.mood,
         version_approval_enabled: formData.version_approval_enabled
       });
@@ -152,47 +145,6 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
         </CardContent>
       </Card>
 
-      {/* Technical Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Technical Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="bpm">BPM</Label>
-              <Input 
-                id="bpm" 
-                type="number" 
-                value={formData.bpm} 
-                onChange={e => handleInputChange('bpm', e.target.value)} 
-                placeholder="120" 
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="key">Key</Label>
-              <Input 
-                id="key" 
-                value={formData.key} 
-                onChange={e => handleInputChange('key', e.target.value)} 
-                placeholder="C Major" 
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="daw">DAW</Label>
-              <Input 
-                id="daw" 
-                value={formData.daw} 
-                onChange={e => handleInputChange('daw', e.target.value)} 
-                placeholder="Pro Tools, Logic, etc." 
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Project Timeline */}
       <Card>
         <CardHeader>
@@ -221,14 +173,9 @@ const ProjectSettings = ({ project }: ProjectSettingsProps) => {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="version-approval">Version Approval</Label>
-              <p className="text-sm text-gray-500">Require approval for new file versions</p>
+              <Label htmlFor="version-approval">Replacement Mode</Label>
+              <p className="text-sm text-gray-500">If you upload a file with the same name, the old file is replaced.</p>
             </div>
-            <Switch 
-              id="version-approval" 
-              checked={formData.version_approval_enabled} 
-              onCheckedChange={checked => handleInputChange('version_approval_enabled', checked)} 
-            />
           </div>
         </CardContent>
       </Card>

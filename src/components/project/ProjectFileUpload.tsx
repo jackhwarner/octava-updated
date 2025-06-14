@@ -6,6 +6,7 @@ import { Upload, Plus, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotifications } from '@/hooks/useNotifications';
+import ReplaceFileDialog from './ReplaceFileDialog';
 
 interface ProjectFileUploadProps {
   projectId: string;
@@ -17,88 +18,124 @@ interface ProjectFileUploadProps {
 const ProjectFileUpload = ({ projectId, currentUser, projectSettings, onFileUploaded }: ProjectFileUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [existingFiles, setExistingFiles] = useState<any[]>([]);
+  const [replaceInfo, setReplaceInfo] = useState<{ file: File; exists: any } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { notifyFileUpload } = useNotifications();
 
+  // Fetch existing files for this project when component mounts
+  // and whenever a file is uploaded
+  const fetchExistingFiles = async () => {
+    const { data } = await supabase
+      .from('project_files')
+      .select('file_name, id')
+      .eq('project_id', projectId);
+    setExistingFiles(data || []);
+  };
+
+  // Fetch once on mount.
+  // (In real app: maybe refetch on upload, or promote this up for better cache)
+  useState(() => {
+    fetchExistingFiles();
+    // eslint-disable-next-line
+  }, []);
+
   const handleFileUpload = async (selectedFiles: FileList) => {
     if (!selectedFiles || selectedFiles.length === 0) return;
+    const filesArr = Array.from(selectedFiles);
+    for (const file of filesArr) {
+      // Check if file exists (by name, in this project)
+      const exists = existingFiles.find(f => f.file_name === file.name);
+      if (exists) {
+        setReplaceInfo({ file, exists });
+        return; // Wait for user confirmation
+      }
+      // No conflict, upload directly
+      await doUpload(file);
+    }
+  };
 
+  const doUpload = async (file: File) => {
     setUploading(true);
-    console.log('Starting file upload for project:', projectId);
-
     try {
-      if (!currentUser) {
-        throw new Error('User not authenticated');
-      }
+      if (!currentUser) throw new Error('User not authenticated');
+      const fileData = {
+        project_id: projectId,
+        file_name: file.name,
+        file_size: file.size,
+        file_type: file.type,
+        file_path: `projects/${projectId}/${file.name}`,
+        uploaded_by: currentUser.id,
+        description: `File uploaded: ${file.name}`,
+        version: 1,
+        is_pending_approval: false,
+        approved_at: new Date().toISOString(),
+        approved_by: currentUser.id,
+        parent_file_id: null,
+        version_notes: null
+      };
 
-      const isOwner = currentUser.id === projectSettings?.owner_id;
-      const needsApproval = projectSettings?.version_approval_enabled && !isOwner;
+      const { data, error } = await supabase
+        .from('project_files')
+        .insert([fileData])
+        .select(`
+          *,
+          uploader:profiles!project_files_uploaded_by_fkey (
+            name,
+            username
+          )
+        `)
+        .single();
 
-      for (const file of Array.from(selectedFiles)) {
-        console.log('Uploading file:', file.name);
-        
-        const fileData = {
-          project_id: projectId,
-          file_name: file.name,
-          file_size: file.size,
-          file_type: file.type,
-          file_path: `projects/${projectId}/${file.name}`,
-          uploaded_by: currentUser.id,
-          description: `File uploaded: ${file.name}`,
-          version: 1,
-          is_pending_approval: needsApproval,
-          approved_at: needsApproval ? null : new Date().toISOString(),
-          approved_by: needsApproval ? null : currentUser.id,
-          parent_file_id: null,
-          version_notes: null
-        };
+      if (error) throw error;
 
-        const { data, error } = await supabase
-          .from('project_files')
-          .insert([fileData])
-          .select(`
-            *,
-            uploader:profiles!project_files_uploaded_by_fkey (
-              name,
-              username
-            )
-          `)
-          .single();
-
-        if (error) throw error;
-        
-        onFileUploaded(data);
-
-        if (needsApproval) {
-          await notifyFileUpload(
-            projectSettings.owner_id,
-            file.name,
-            data.uploader?.name || currentUser.email || 'Unknown',
-            'Project'
-          );
-        }
-      }
-
+      onFileUploaded(data);
+      await fetchExistingFiles();
       toast({
-        title: "Files uploaded successfully",
-        description: needsApproval 
-          ? "Files uploaded and pending approval from project owner."
-          : `${selectedFiles.length} file(s) uploaded to the project.`,
+        title: "File uploaded successfully",
+        description: `${file.name} was uploaded to the project.`
       });
     } catch (error) {
-      console.error('Error uploading files:', error);
+      console.error('Error uploading file:', error);
       toast({
         title: "Upload failed",
-        description: `There was an error uploading your files: ${error.message}`,
+        description: `There was an error uploading: ${error.message}`,
         variant: "destructive",
       });
     } finally {
       setUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
+  };
+
+  // Delete previous file then upload the replacement
+  const handleConfirmReplace = async () => {
+    if (!replaceInfo) return;
+    setUploading(true);
+    try {
+      // Delete in DB
+      const { error } = await supabase
+        .from('project_files')
+        .delete()
+        .eq('id', replaceInfo.exists.id);
+      if (error) throw error;
+      // Upload new file
+      await doUpload(replaceInfo.file);
+    } catch (error) {
+      toast({
+        title: "Could not replace file",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setReplaceInfo(null);
+      setUploading(false);
+      // Refetch files
+      await fetchExistingFiles();
+    }
+  };
+  const handleCancelReplace = () => {
+    setReplaceInfo(null);
   };
 
   const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +159,7 @@ const ProjectFileUpload = ({ projectId, currentUser, projectSettings, onFileUplo
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files);
     }
@@ -176,13 +213,19 @@ const ProjectFileUpload = ({ projectId, currentUser, projectSettings, onFileUplo
                 <div className="flex items-center justify-center space-x-2">
                   <AlertCircle className="w-4 h-4 text-yellow-600" />
                   <span className="text-sm text-yellow-800">
-                    Files will require approval from the project owner before being published.
+                    Files with the same name will replace existing files after confirmation.
                   </span>
                 </div>
               </div>
             )}
           </div>
         </div>
+        <ReplaceFileDialog
+          open={!!replaceInfo}
+          fileName={replaceInfo?.file.name || ''}
+          onCancel={handleCancelReplace}
+          onConfirm={handleConfirmReplace}
+        />
       </CardContent>
     </Card>
   );
