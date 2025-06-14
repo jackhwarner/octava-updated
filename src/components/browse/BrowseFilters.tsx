@@ -3,6 +3,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, X } from 'lucide-react';
+import roles from '@/constants/roles';
+import genres from '@/constants/genres';
+import instruments from '@/constants/instruments';
 
 interface BrowseFiltersProps {
   selectedRole: string;
@@ -101,12 +104,13 @@ const BrowseFilters = ({
                 <SelectValue placeholder="Role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="vocalist">Vocalist</SelectItem>
-                <SelectItem value="producer">Producer</SelectItem>
-                <SelectItem value="instrumentalist">Instrumentalist</SelectItem>
-                <SelectItem value="songwriter">Songwriter</SelectItem>
-                <SelectItem value="composer">Composer</SelectItem>
-                <SelectItem value="engineer">Engineer</SelectItem>
+                {roles.map((role) => (
+                  <SelectItem 
+                    key={role.toLowerCase()} 
+                    value={role.toLowerCase()}>
+                    {role}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {selectedRole && (
@@ -127,14 +131,13 @@ const BrowseFilters = ({
                 <SelectValue placeholder="Genre" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pop">Pop</SelectItem>
-                <SelectItem value="rock">Rock</SelectItem>
-                <SelectItem value="hip-hop">Hip-Hop</SelectItem>
-                <SelectItem value="r&b">R&B</SelectItem>
-                <SelectItem value="country">Country</SelectItem>
-                <SelectItem value="electronic">Electronic</SelectItem>
-                <SelectItem value="jazz">Jazz</SelectItem>
-                <SelectItem value="classical">Classical</SelectItem>
+                {genres.map((genre) => (
+                  <SelectItem 
+                    key={genre.toLowerCase()} 
+                    value={genre.toLowerCase()}>
+                    {genre}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {selectedGenre && (
@@ -155,14 +158,13 @@ const BrowseFilters = ({
                 <SelectValue placeholder="Instrument" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="piano">Piano</SelectItem>
-                <SelectItem value="guitar">Guitar</SelectItem>
-                <SelectItem value="drums">Drums</SelectItem>
-                <SelectItem value="bass">Bass</SelectItem>
-                <SelectItem value="violin">Violin</SelectItem>
-                <SelectItem value="vocals">Vocals</SelectItem>
-                <SelectItem value="saxophone">Saxophone</SelectItem>
-                <SelectItem value="trumpet">Trumpet</SelectItem>
+                {instruments.map((instrument) => (
+                  <SelectItem 
+                    key={instrument.toLowerCase()} 
+                    value={instrument.toLowerCase()}>
+                    {instrument}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {selectedInstrument && (
