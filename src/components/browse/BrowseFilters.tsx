@@ -94,7 +94,7 @@ const BrowseFilters = ({
   return (
     <Card className="mb-8">
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           <div className="flex items-center space-x-2">
             <Select value={selectedRole} onValueChange={setSelectedRole}>
               <SelectTrigger className="flex-1">
@@ -233,7 +233,7 @@ const BrowseFilters = ({
             )}
           </div>
 
-          <div>
+          <div className="flex items-center">
             <Button 
               onClick={handleSearch} 
               aria-label="Search" 
