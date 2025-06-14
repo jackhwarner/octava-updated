@@ -15,12 +15,20 @@ import ProjectTodos from './project/ProjectTodos';
 
 // UUID validation regex
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 const ProjectDetail = () => {
-  const { projectId } = useParams();
+  const {
+    projectId
+  } = useParams();
   const navigate = useNavigate();
-  const { projects, loading } = useProjects();
-  const { stats, loading: statsLoading, refetch: refetchStats } = useProjectStats(projectId || '');
+  const {
+    projects,
+    loading
+  } = useProjects();
+  const {
+    stats,
+    loading: statsLoading,
+    refetch: refetchStats
+  } = useProjectStats(projectId || '');
   const [project, setProject] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [mainActiveTab, setMainActiveTab] = useState('projects');
@@ -34,18 +42,20 @@ const ProjectDetail = () => {
   // Get current user
   useEffect(() => {
     const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getCurrentUser();
   }, []);
-
   useEffect(() => {
     if (!isValidProjectId) {
       setProject(null);
       return;
     }
-
     const foundProject = projects.find(p => p.id === projectId);
     if (foundProject) {
       setProject(foundProject);
@@ -57,16 +67,16 @@ const ProjectDetail = () => {
       fetchSharedProject();
     }
   }, [projectId, projects, loading, currentUser, isValidProjectId]);
-
   const checkProjectAccess = async () => {
     if (!currentUser || !isValidProjectId) return;
-    
     try {
-      const { data, error } = await supabase.rpc('user_can_access_project', {
+      const {
+        data,
+        error
+      } = await supabase.rpc('user_can_access_project', {
         project_id: projectId,
         user_id: currentUser.id
       });
-      
       if (error) throw error;
       setHasAccess(data);
     } catch (error) {
@@ -74,14 +84,13 @@ const ProjectDetail = () => {
       setHasAccess(false);
     }
   };
-
   const fetchSharedProject = async () => {
     if (!isValidProjectId) return;
-
     try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('projects').select(`
           *,
           collaborators:project_collaborators (
             id,
@@ -93,13 +102,8 @@ const ProjectDetail = () => {
               username
             )
           )
-        `)
-        .eq('id', projectId)
-        .eq('visibility', 'public')
-        .single();
-
+        `).eq('id', projectId).eq('visibility', 'public').single();
       if (error) throw error;
-      
       if (data) {
         setProject(data);
         setHasAccess(false); // Viewing as a guest
@@ -113,101 +117,69 @@ const ProjectDetail = () => {
   // Set up real-time listeners for stats updates
   useEffect(() => {
     if (!isValidProjectId) return;
-
-    const channel = supabase
-      .channel('project-stats-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'project_files',
-          filter: `project_id=eq.${projectId}`
-        },
-        () => refetchStats()
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'project_todos',
-          filter: `project_id=eq.${projectId}`
-        },
-        () => refetchStats()
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-          filter: `project_id=eq.${projectId}`
-        },
-        () => refetchStats()
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'project_file_deletions',
-          filter: `project_id=eq.${projectId}`
-        },
-        () => {
-          refetchStats();
-          fetchRecentFiles();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'projects',
-          filter: `id=eq.${projectId}`
-        },
-        (payload) => {
-          // Update the project state with new data
-          setProject(prev => ({ ...prev, ...payload.new }));
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel('project-stats-updates').on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'project_files',
+      filter: `project_id=eq.${projectId}`
+    }, () => refetchStats()).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'project_todos',
+      filter: `project_id=eq.${projectId}`
+    }, () => refetchStats()).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'messages',
+      filter: `project_id=eq.${projectId}`
+    }, () => refetchStats()).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'project_file_deletions',
+      filter: `project_id=eq.${projectId}`
+    }, () => {
+      refetchStats();
+      fetchRecentFiles();
+    }).on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'projects',
+      filter: `id=eq.${projectId}`
+    }, payload => {
+      // Update the project state with new data
+      setProject(prev => ({
+        ...prev,
+        ...payload.new
+      }));
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, [projectId, refetchStats, isValidProjectId]);
-
   const fetchRecentFiles = async () => {
     if (!isValidProjectId) return;
-
     try {
-      const { data, error } = await supabase
-        .from('project_files')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('project_files').select(`
           *,
           uploader:profiles!project_files_uploaded_by_fkey (
             name,
             username
           )
-        `)
-        .eq('project_id', projectId)
-        .eq('is_pending_approval', false)
-        .order('created_at', { ascending: false })
-        .limit(3);
-
+        `).eq('project_id', projectId).eq('is_pending_approval', false).order('created_at', {
+        ascending: false
+      }).limit(3);
       if (error) throw error;
       setRecentFiles(data || []);
     } catch (error) {
       console.error('Error fetching recent files:', error);
     }
   };
-
   const handleMainNavigation = (tab: string) => {
     navigate(`/${tab}`);
   };
-
   if (loading) {
     return <div className="min-h-screen bg-white flex">
         <div className="fixed top-0 left-0 h-screen z-10">
@@ -221,7 +193,6 @@ const ProjectDetail = () => {
         </div>
       </div>;
   }
-
   if (!isValidProjectId || !project) {
     return <div className="min-h-screen bg-white flex">
         <div className="fixed top-0 left-0 h-screen z-10">
@@ -240,26 +211,33 @@ const ProjectDetail = () => {
         </div>
       </div>;
   }
-
   const getProjectStatus = (project: any) => {
     if (!project.phases || project.phases.length === 0) {
-      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
+      return {
+        label: 'Not Started',
+        color: 'bg-red-100 text-red-800'
+      };
     }
-    
     const currentPhase = project.current_phase_index || 0;
     const totalPhases = project.phases.length;
-    
     if (currentPhase === 0) {
-      return { label: 'Not Started', color: 'bg-red-100 text-red-800' };
+      return {
+        label: 'Not Started',
+        color: 'bg-red-100 text-red-800'
+      };
     } else if (currentPhase >= totalPhases - 1) {
-      return { label: 'Completed', color: 'bg-green-100 text-green-800' };
+      return {
+        label: 'Completed',
+        color: 'bg-green-100 text-green-800'
+      };
     } else {
-      return { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' };
+      return {
+        label: 'In Progress',
+        color: 'bg-yellow-100 text-yellow-800'
+      };
     }
   };
-
   const projectStatus = getProjectStatus(project);
-
   const getStatusColor = status => {
     switch (status) {
       case 'active':
@@ -274,7 +252,6 @@ const ProjectDetail = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getStatusLabel = status => {
     switch (status) {
       case 'active':
@@ -289,7 +266,6 @@ const ProjectDetail = () => {
         return status;
     }
   };
-
   const getVisibilityIcon = visibility => {
     switch (visibility) {
       case 'public':
@@ -302,11 +278,9 @@ const ProjectDetail = () => {
         return <Lock className="w-4 h-4" />;
     }
   };
-
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-
   const getFileIcon = (type: string) => {
     if (type?.startsWith('audio/')) {
       return <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
@@ -324,39 +298,31 @@ const ProjectDetail = () => {
   };
 
   // Filter sidebar items based on access level
-  const sidebarItems = [
-    {
-      id: 'overview',
-      label: 'Overview',
-      icon: Info
-    },
-    ...(hasAccess ? [{
-      id: 'files',
-      label: 'Files',
-      icon: FileText
-    }] : []),
-    ...(hasAccess ? [{
-      id: 'todos',
-      label: 'To-Do',
-      icon: ListTodo
-    }] : []),
-    ...(hasAccess ? [{
-      id: 'chat',
-      label: 'Chat',
-      icon: MessageSquare
-    }] : []),
-    ...(hasAccess ? [{
-      id: 'collaborators',
-      label: 'Team',
-      icon: Users
-    }] : []),
-    ...(hasAccess ? [{
-      id: 'settings',
-      label: 'Settings',
-      icon: Settings
-    }] : [])
-  ];
-
+  const sidebarItems = [{
+    id: 'overview',
+    label: 'Overview',
+    icon: Info
+  }, ...(hasAccess ? [{
+    id: 'files',
+    label: 'Files',
+    icon: FileText
+  }] : []), ...(hasAccess ? [{
+    id: 'todos',
+    label: 'To-Do',
+    icon: ListTodo
+  }] : []), ...(hasAccess ? [{
+    id: 'chat',
+    label: 'Chat',
+    icon: MessageSquare
+  }] : []), ...(hasAccess ? [{
+    id: 'collaborators',
+    label: 'Team',
+    icon: Users
+  }] : []), ...(hasAccess ? [{
+    id: 'settings',
+    label: 'Settings',
+    icon: Settings
+  }] : [])];
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -375,7 +341,6 @@ const ProjectDetail = () => {
         return <ProjectInfo project={project} stats={stats} />;
     }
   };
-
   return <div className="min-h-screen bg-gray-50 flex">
       {/* Main Navigation Sidebar */}
       <div className="fixed top-0 left-0 h-screen z-20">
@@ -412,7 +377,7 @@ const ProjectDetail = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 border-b">
+        <nav className="p-4 border-b flex-grow ">
           <ul className="space-y-2">
             {sidebarItems.map(item => {
             const Icon = item.icon;
@@ -427,33 +392,7 @@ const ProjectDetail = () => {
         </nav>
 
         {/* Recent Activity - only show if user has access */}
-        {hasAccess && (
-          <div className="flex-1 p-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Files</h3>
-            <div className="space-y-3">
-              {recentFiles.length === 0 ? (
-                <p className="text-sm text-gray-500">No recent files</p>
-              ) : (
-                recentFiles.map(file => (
-                  <div key={file.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      {getFileIcon(file.file_type)}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{file.file_name}</p>
-                        <p className="text-xs text-gray-500">by {file.uploader?.name || 'Unknown'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <button className="p-1 text-gray-400 hover:text-gray-600">
-                        <Download className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
+        {hasAccess}
 
         {/* Project Stats */}
         <div className="p-4 border-t">
@@ -466,8 +405,7 @@ const ProjectDetail = () => {
               <span className="text-gray-500">Updated</span>
               <span className="text-gray-900">{new Date(project.updated_at).toLocaleDateString()}</span>
             </div>
-            {hasAccess && (
-              <>
+            {hasAccess && <>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Files</span>
                   <span className="text-gray-900">{statsLoading ? '...' : stats.totalFiles}</span>
@@ -480,8 +418,7 @@ const ProjectDetail = () => {
                   <span className="text-gray-500">Messages</span>
                   <span className="text-gray-900">{statsLoading ? '...' : stats.totalMessages}</span>
                 </div>
-              </>
-            )}
+              </>}
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Team Size</span>
               <span className="text-gray-900">{statsLoading ? '...' : stats.teamSize}</span>
@@ -535,5 +472,4 @@ const ProjectDetail = () => {
       </div>
     </div>;
 };
-
 export default ProjectDetail;
