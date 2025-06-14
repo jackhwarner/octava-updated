@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +26,7 @@ const ProjectFileUpload = ({
   const [dragActive, setDragActive] = useState(false);
   const [existingFiles, setExistingFiles] = useState<any[]>([]);
   const [replaceInfo, setReplaceInfo] = useState<{ file: File, exists: any } | null>(null);
+  const [hiddenFileIds, setHiddenFileIds] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -129,6 +129,8 @@ const ProjectFileUpload = ({
       if (onFileDeleted) {
         onFileDeleted(replaceInfo.exists.id);
       }
+      // Also hide from local upload state right away for UI
+      setHiddenFileIds(prev => [...prev, replaceInfo.exists.id]);
 
       // 3. Upload the replacement file with incremented version
       const previousVersion = Number(replaceInfo.exists.version) || 1;

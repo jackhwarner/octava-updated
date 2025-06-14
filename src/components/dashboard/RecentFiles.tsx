@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,10 +5,12 @@ import { File, Download, Image, Video, Music, FileText, Trash2 } from 'lucide-re
 import { useRecentFiles } from '@/hooks/useRecentFiles';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 export const RecentFiles = () => {
   const { files, loading, refetch } = useRecentFiles();
   const { toast } = useToast();
+  const [hiddenFileIds, setHiddenFileIds] = useState<string[]>([]);
 
   const getFileIcon = (type: string) => {
     if (type?.startsWith('audio/')) return <Music className="w-4 h-4" />;
@@ -36,43 +37,30 @@ export const RecentFiles = () => {
     });
   };
 
-  const handleDeleteFile = async (fileId: string, projectId: string) => {
+  const handleDeleteFile = (fileId: string, projectId: string) => {
+    setHiddenFileIds(prev => [...prev, fileId]);
+    toast({
+      title: "File hidden",
+      description: "This entry is now hidden from view.",
+    });
+    // Uncomment below to enable actual deletion from DB and log
+    /*
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
-
-      // Record the deletion
       await supabase
         .from('project_file_deletions')
-        .insert([{
-          file_id: fileId,
-          project_id: projectId,
-          deleted_by: user.id
-        }]);
-
-      // Delete the file
+        .insert([{ file_id: fileId, project_id: projectId, deleted_by: user.id }]);
       const { error } = await supabase
         .from('project_files')
         .delete()
         .eq('id', fileId);
-
       if (error) throw error;
-
-      toast({
-        title: "File deleted",
-        description: "The file has been removed from the project.",
-      });
-
-      // Refresh the files list
       refetch();
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete file",
-        variant: "destructive",
-      });
+    } catch(error) {
+      // ...error handling unchanged...
     }
+    */
   };
 
   if (loading) {
@@ -106,7 +94,9 @@ export const RecentFiles = () => {
       <CardContent>
         {files.length > 0 ? (
           <div className="space-y-3">
-            {files.map((file) => (
+            {files
+              .filter(file => !hiddenFileIds.includes(file.id))
+              .map((file) => (
               <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
