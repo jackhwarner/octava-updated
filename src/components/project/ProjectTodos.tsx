@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -190,10 +189,10 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-8">
-            <div className="animate-pulse space-y-4">
+      <div className="flex flex-col h-full min-h-0">
+        <Card className="flex-1 min-h-0">
+          <CardContent className="p-8 h-full">
+            <div className="animate-pulse space-y-4 h-full">
               <div className="h-4 bg-gray-200 rounded w-1/4"></div>
               <div className="h-32 bg-gray-200 rounded"></div>
             </div>
@@ -204,7 +203,7 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full min-h-0">
       {/* Add Todo */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -259,114 +258,117 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
         </CardContent>
       </Card>
 
-      {/* Incomplete Todos */}
-      {incompleteTodos.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Clock className="w-5 h-5 mr-2 text-yellow-600" />
-              Pending ({incompleteTodos.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {incompleteTodos.map((todo) => (
-                <div
-                  key={todo.id}
-                  className="flex items-start justify-between p-4 border rounded-lg hover:bg-gray-50"
-                >
-                  <div className="flex items-start space-x-3 flex-1">
-                    <button
-                      onClick={() => handleToggleTodo(todo.id, todo.completed)}
-                      className="mt-1 w-5 h-5 border-2 border-gray-300 rounded-full hover:border-purple-600 transition-colors"
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{todo.title}</h4>
-                      {todo.description && (
-                        <p className="text-sm text-gray-600 mt-1">{todo.description}</p>
-                      )}
-                      <div className="flex items-center space-x-2 mt-2 text-xs text-gray-500">
-                        <span>Created by {todo.creator.name}</span>
-                        <span>•</span>
-                        <span>{new Date(todo.created_at).toLocaleDateString()}</span>
+      {/* Scrollable todo list area */}
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-6 mt-4">
+        {/* Incomplete Todos */}
+        {incompleteTodos.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Clock className="w-5 h-5 mr-2 text-yellow-600" />
+                Pending ({incompleteTodos.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {incompleteTodos.map((todo) => (
+                  <div
+                    key={todo.id}
+                    className="flex items-start justify-between p-4 border rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex items-start space-x-3 flex-1">
+                      <button
+                        onClick={() => handleToggleTodo(todo.id, todo.completed)}
+                        className="mt-1 w-5 h-5 border-2 border-gray-300 rounded-full hover:border-purple-600 transition-colors"
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{todo.title}</h4>
+                        {todo.description && (
+                          <p className="text-sm text-gray-600 mt-1">{todo.description}</p>
+                        )}
+                        <div className="flex items-center space-x-2 mt-2 text-xs text-gray-500">
+                          <span>Created by {todo.creator.name}</span>
+                          <span>•</span>
+                          <span>{new Date(todo.created_at).toLocaleDateString()}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteTodo(todo.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Completed Todos */}
-      {completedTodos.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-              Completed ({completedTodos.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {completedTodos.map((todo) => (
-                <div
-                  key={todo.id}
-                  className="flex items-start justify-between p-4 border rounded-lg bg-green-50 hover:bg-green-100"
-                >
-                  <div className="flex items-start space-x-3 flex-1">
-                    <button
-                      onClick={() => handleToggleTodo(todo.id, todo.completed)}
-                      className="mt-1 w-5 h-5 bg-green-600 border-2 border-green-600 rounded-full flex items-center justify-center hover:bg-green-700 transition-colors"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteTodo(todo.id)}
+                      className="text-red-600 hover:text-red-700"
                     >
-                      <Check className="w-3 h-3 text-white" />
-                    </button>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 line-through">{todo.title}</h4>
-                      {todo.description && (
-                        <p className="text-sm text-gray-600 mt-1 line-through">{todo.description}</p>
-                      )}
-                      <div className="flex items-center space-x-2 mt-2 text-xs text-gray-500">
-                        <span>Created by {todo.creator.name}</span>
-                        <span>•</span>
-                        <span>Completed {new Date(todo.completed_at || '').toLocaleDateString()}</span>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Completed Todos */}
+        {completedTodos.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+                Completed ({completedTodos.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {completedTodos.map((todo) => (
+                  <div
+                    key={todo.id}
+                    className="flex items-start justify-between p-4 border rounded-lg bg-green-50 hover:bg-green-100"
+                  >
+                    <div className="flex items-start space-x-3 flex-1">
+                      <button
+                        onClick={() => handleToggleTodo(todo.id, todo.completed)}
+                        className="mt-1 w-5 h-5 bg-green-600 border-2 border-green-600 rounded-full flex items-center justify-center hover:bg-green-700 transition-colors"
+                      >
+                        <Check className="w-3 h-3 text-white" />
+                      </button>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 line-through">{todo.title}</h4>
+                        {todo.description && (
+                          <p className="text-sm text-gray-600 mt-1 line-through">{todo.description}</p>
+                        )}
+                        <div className="flex items-center space-x-2 mt-2 text-xs text-gray-500">
+                          <span>Created by {todo.creator.name}</span>
+                          <span>•</span>
+                          <span>Completed {new Date(todo.completed_at || '').toLocaleDateString()}</span>
+                        </div>
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteTodo(todo.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteTodo(todo.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Empty State */}
-      {todos.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <CheckCircle className="mx-auto h-12 w-12 text-gray-400" />
-            <p className="mt-2 text-gray-500">No todos yet</p>
-            <p className="text-sm text-gray-400">Add your first todo to get started</p>
-          </CardContent>
-        </Card>
-      )}
+        {/* Empty State */}
+        {todos.length === 0 && (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <CheckCircle className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-2 text-gray-500">No todos yet</p>
+              <p className="text-sm text-gray-400">Add your first todo to get started</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
