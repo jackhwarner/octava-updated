@@ -1,13 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { UserPlus, UserCheck, UserX, UserMinus } from 'lucide-react';
 import { useConnections, ConnectionState } from '@/hooks/useConnections';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { Textarea } from '../ui/textarea';
-import { Label } from '../ui/label';
+import { ConnectionRequestDialog } from './ConnectionRequestDialog';
 
 interface ConnectionButtonProps {
   userId: string;
+  userName?: string;
   className?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
@@ -15,20 +15,18 @@ interface ConnectionButtonProps {
 
 export const ConnectionButton = ({ 
   userId, 
+  userName = 'User',
   className = '', 
   variant = 'default',
   size = 'default'
 }: ConnectionButtonProps) => {
-  const [connectionState, setConnectionState] = useState<ConnectionState>({ status: 'none', isPrivate: false });
+  const [connectionState, setConnectionState] = useState<ConnectionState>({ status: 'none' });
   const [isLoading, setIsLoading] = useState(true);
   const [showRequestDialog, setShowRequestDialog] = useState(false);
-  const [requestMessage, setRequestMessage] = useState('');
   
   const {
     loading,
     getConnectionState,
-    followUser,
-    unfollowUser,
     sendConnectionRequest,
     acceptConnectionRequest,
     declineConnectionRequest,
@@ -44,39 +42,27 @@ export const ConnectionButton = ({
     fetchConnectionState();
   }, [userId, getConnectionState]);
 
-  const handleFollow = async () => {
-    if (connectionState.isPrivate) {
-      setShowRequestDialog(true);
-    } else {
-      await followUser(userId);
-      setConnectionState(prev => ({ ...prev, status: 'following' }));
-    }
-  };
-
-  const handleUnfollow = async () => {
-    await unfollowUser(userId);
-    setConnectionState(prev => ({ ...prev, status: 'none' }));
-  };
-
   const handleConnect = async () => {
-    if (requestMessage.trim()) {
-      await sendConnectionRequest(userId, requestMessage);
-    } else {
-      await sendConnectionRequest(userId);
-    }
+    setShowRequestDialog(true);
+  };
+
+  const handleSendRequest = async (message: string) => {
+    await sendConnectionRequest(userId, message);
     setConnectionState(prev => ({ ...prev, status: 'requested' }));
-    setShowRequestDialog(false);
-    setRequestMessage('');
   };
 
-  const handleAcceptRequest = async (requestId: string) => {
-    await acceptConnectionRequest(requestId);
-    setConnectionState(prev => ({ ...prev, status: 'connected' }));
+  const handleAcceptRequest = async () => {
+    if (connectionState.requestId) {
+      await acceptConnectionRequest(connectionState.requestId);
+      setConnectionState(prev => ({ ...prev, status: 'connected' }));
+    }
   };
 
-  const handleDeclineRequest = async (requestId: string) => {
-    await declineConnectionRequest(requestId);
-    setConnectionState(prev => ({ ...prev, status: 'none' }));
+  const handleDeclineRequest = async () => {
+    if (connectionState.requestId) {
+      await declineConnectionRequest(connectionState.requestId);
+      setConnectionState(prev => ({ ...prev, status: 'none' }));
+    }
   };
 
   const handleRemoveConnection = async () => {
@@ -95,30 +81,25 @@ export const ConnectionButton = ({
   switch (connectionState.status) {
     case 'none':
       return (
-        <Button 
-          onClick={handleFollow}
-          variant={variant}
-          size={size}
-          className={className}
-          disabled={loading}
-        >
-          <UserPlus className="w-4 h-4 mr-2" />
-          {connectionState.isPrivate ? 'Request to Follow' : 'Follow'}
-        </Button>
-      );
-
-    case 'following':
-      return (
-        <Button 
-          onClick={handleUnfollow}
-          variant="outline"
-          size={size}
-          className={className}
-          disabled={loading}
-        >
-          <UserMinus className="w-4 h-4 mr-2" />
-          Unfollow
-        </Button>
+        <>
+          <Button 
+            onClick={handleConnect}
+            variant={variant}
+            size={size}
+            className={className}
+            disabled={loading}
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            Connect
+          </Button>
+          <ConnectionRequestDialog
+            isOpen={showRequestDialog}
+            onClose={() => setShowRequestDialog(false)}
+            onSend={handleSendRequest}
+            recipientName={userName}
+            loading={loading}
+          />
+        </>
       );
 
     case 'connected':
@@ -130,8 +111,8 @@ export const ConnectionButton = ({
           className={className}
           disabled={loading}
         >
-          <UserX className="w-4 h-4 mr-2" />
-          Remove Connection
+          <UserMinus className="w-4 h-4 mr-2" />
+          Remove
         </Button>
       );
 
@@ -152,20 +133,20 @@ export const ConnectionButton = ({
       return (
         <div className="flex gap-2">
           <Button 
-            onClick={() => handleAcceptRequest(connectionState.requestId!)}
+            onClick={handleAcceptRequest}
             variant="default"
             size={size}
-            className={className}
+            className="bg-green-600 hover:bg-green-700"
             disabled={loading}
           >
             <UserCheck className="w-4 h-4 mr-2" />
             Accept
           </Button>
           <Button 
-            onClick={() => handleDeclineRequest(connectionState.requestId!)}
+            onClick={handleDeclineRequest}
             variant="outline"
             size={size}
-            className={className}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
             disabled={loading}
           >
             <UserX className="w-4 h-4 mr-2" />
@@ -177,39 +158,4 @@ export const ConnectionButton = ({
     default:
       return null;
   }
-
-  return (
-    <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Send Connection Request</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="message">Message (optional)</Label>
-            <Textarea
-              id="message"
-              placeholder="Add a personal message to your connection request..."
-              value={requestMessage}
-              onChange={(e) => setRequestMessage(e.target.value)}
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowRequestDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConnect}
-              disabled={loading}
-            >
-              Send Request
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}; 
+};

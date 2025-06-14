@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User } from 'lucide-react';
+import { User, UserPlus } from 'lucide-react';
 import { useCollaborators } from '@/hooks/useCollaborators';
 
 interface Collaborator {
@@ -79,9 +79,10 @@ const SuggestedCollaborators = ({ onConnectCollaborator }: SuggestedCollaborator
                 </div>
                 <Button 
                   size="sm" 
-                  className="bg-purple-600 hover:bg-purple-700 text-xs px-3"
+                  className="bg-purple-600 hover:bg-purple-700 text-xs px-4 py-2"
                   onClick={() => onConnectCollaborator(collaborator)}
                 >
+                  <UserPlus className="w-3 h-3 mr-1" />
                   Connect
                 </Button>
               </div>

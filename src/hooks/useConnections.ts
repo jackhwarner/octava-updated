@@ -1,20 +1,18 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export type ConnectionStatus = 
   | 'none' 
-  | 'following' 
-  | 'followed_by' 
   | 'connected' 
   | 'requested' 
   | 'pending_request';
 
 export interface ConnectionState {
   status: ConnectionStatus;
-  isPrivate: boolean;
-  requestMessage?: string;
   requestId?: string;
+  requestMessage?: string;
 }
 
 export const useConnections = () => {
@@ -27,167 +25,59 @@ export const useConnections = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Get target user's privacy setting
-      const { data: targetProfile } = await supabase
-        .from('profiles')
-        .select('visibility')
-        .eq('id', targetUserId)
-        .single();
-
-      const isPrivate = targetProfile?.visibility === 'private';
-
-      // Check follow relationships
-      const { data: followData } = await supabase
-        .from('followers')
-        .select('*')
-        .or(`follower_id.eq.${user.id},following_id.eq.${user.id}`)
-        .eq('follower_id', targetUserId)
-        .eq('following_id', user.id);
-
       // Check existing connections
       const { data: connections } = await supabase
-        .from('connection_requests')
-        .select('id, sender_id, receiver_id, message, status, created_at, updated_at')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${targetUserId}`)
-        .or(`sender_id.eq.${targetUserId},receiver_id.eq.${user.id}`)
-        .eq('status', 'accepted');
+        .from('connections')
+        .select('*')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .or(`user1_id.eq.${targetUserId},user2_id.eq.${targetUserId}`);
 
-      const connection = connections?.[0];
+      const connection = connections?.find(c => 
+        (c.user1_id === user.id && c.user2_id === targetUserId) ||
+        (c.user1_id === targetUserId && c.user2_id === user.id)
+      );
+
+      if (connection) {
+        return { status: 'connected' };
+      }
 
       // Check connection requests
       const { data: connectionData } = await supabase
         .from('connection_requests')
-        .select('id, sender_id, receiver_id, message, status, created_at, updated_at')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${targetUserId}`)
-        .or(`sender_id.eq.${targetUserId},receiver_id.eq.${user.id}`)
+        .select('*')
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .or(`sender_id.eq.${targetUserId},receiver_id.eq.${targetUserId}`)
         .eq('status', 'pending');
 
-      let status: ConnectionStatus = 'none';
+      const request = connectionData?.find(r =>
+        (r.sender_id === user.id && r.receiver_id === targetUserId) ||
+        (r.sender_id === targetUserId && r.receiver_id === user.id)
+      );
 
-      if (connection) {
-        status = 'connected';
-      } else if (connectionData?.length > 0) {
-        const request = connectionData[0];
+      if (request) {
         if (request.sender_id === user.id) {
-          status = 'requested';
+          return { 
+            status: 'requested',
+            requestId: request.id,
+            requestMessage: request.message
+          };
         } else {
-          status = 'pending_request';
-        }
-      } else if (followData?.length > 0) {
-        const follow = followData[0];
-        if (follow.follower_id === user.id) {
-          status = 'following';
-        } else {
-          status = 'followed_by';
+          return { 
+            status: 'pending_request',
+            requestId: request.id,
+            requestMessage: request.message
+          };
         }
       }
 
-      return {
-        status,
-        isPrivate,
-        requestMessage: connectionData?.[0]?.message,
-        requestId: connectionData?.[0]?.id
-      };
+      return { status: 'none' };
     } catch (error) {
       console.error('Error getting connection state:', error);
-      return { status: 'none', isPrivate: false };
+      return { status: 'none' };
     }
   };
 
-  // Follow a user
-  const followUser = async (userId: string) => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      // Check if already following
-      const { data: existingFollow } = await supabase
-        .from('followers')
-        .select('*')
-        .eq('follower_id', user.id)
-        .eq('following_id', userId)
-        .single();
-
-      if (existingFollow) {
-        toast({
-          title: "Already Following",
-          description: "You are already following this user",
-        });
-        return;
-      }
-
-      const { error: followError } = await supabase
-        .from('followers')
-        .insert({
-          follower_id: user.id,
-          following_id: userId,
-          created_at: new Date().toISOString()
-        });
-
-      if (followError) throw followError;
-
-      // Create notification
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: userId,
-          type: 'follow',
-          sender_id: user.id,
-          created_at: new Date().toISOString(),
-          read: false
-        });
-
-      if (notificationError) throw notificationError;
-
-      toast({
-        title: "Success",
-        description: "You are now following this user",
-      });
-    } catch (error) {
-      console.error('Error following user:', error);
-      toast({
-        title: "Error",
-        description: "Failed to follow user",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Unfollow a user
-  const unfollowUser = async (userId: string) => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { error } = await supabase
-        .from('followers')
-        .delete()
-        .eq('follower_id', user.id)
-        .eq('following_id', userId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "You have unfollowed this user",
-      });
-    } catch (error) {
-      console.error('Error unfollowing user:', error);
-      toast({
-        title: "Error",
-        description: "Failed to unfollow user",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Send connection request
+  // Send connection request with optional message
   const sendConnectionRequest = async (userId: string, message?: string) => {
     try {
       setLoading(true);
@@ -208,13 +98,46 @@ export const useConnections = () => {
 
       if (requestError) throw requestError;
 
+      // If there's a message, send it as well
+      if (message && message.trim()) {
+        const { error: messageError } = await supabase
+          .from('messages')
+          .insert({
+            content: message,
+            sender_id: user.id,
+            recipient_id: userId,
+            created_at: now
+          });
+
+        if (messageError) {
+          console.error('Error sending connection message:', messageError);
+          // Don't throw here, the request was successful
+        }
+
+        // Update message limits
+        const { error: limitError } = await supabase
+          .from('message_limits')
+          .upsert({
+            sender_id: user.id,
+            receiver_id: userId,
+            message_count: 1,
+            updated_at: now
+          }, {
+            onConflict: 'sender_id,receiver_id'
+          });
+
+        if (limitError) {
+          console.error('Error updating message limits:', limitError);
+        }
+      }
+
       // Create notification
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
           user_id: userId,
           type: 'connection_request',
-          sender_id: user.id,
+          actor_id: user.id,
           created_at: new Date().toISOString(),
           read: false
         });
@@ -241,11 +164,7 @@ export const useConnections = () => {
   const acceptConnectionRequest = async (requestId: string) => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
       const now = new Date().toISOString();
-      // Update request status
       const { error: updateError } = await supabase
         .from('connection_requests')
         .update({ 
@@ -255,19 +174,6 @@ export const useConnections = () => {
         .eq('id', requestId);
 
       if (updateError) throw updateError;
-
-      // Create notification
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: user.id,
-          type: 'connection_accepted',
-          sender_id: user.id,
-          created_at: new Date().toISOString(),
-          read: false
-        });
-
-      if (notificationError) throw notificationError;
 
       toast({
         title: "Success",
@@ -323,16 +229,12 @@ export const useConnections = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const now = new Date().toISOString();
+      // Delete the connection
       const { error } = await supabase
-        .from('connection_requests')
-        .update({ 
-          status: 'declined',
-          updated_at: now
-        })
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
-        .eq('status', 'accepted');
+        .from('connections')
+        .delete()
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
 
       if (error) throw error;
 
@@ -355,11 +257,9 @@ export const useConnections = () => {
   return {
     loading,
     getConnectionState,
-    followUser,
-    unfollowUser,
     sendConnectionRequest,
     acceptConnectionRequest,
     declineConnectionRequest,
     removeConnection
   };
-}; 
+};

@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { MapPin, Users } from 'lucide-react';
@@ -68,7 +69,8 @@ const SuggestedCollaborators = ({ collaborators }: SuggestedCollaboratorsProps) 
 
                   <ConnectionButton 
                     userId={profile.id}
-                    className="w-full"
+                    userName={profile.name}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                   />
                 </div>
               </CardContent>

@@ -196,36 +196,42 @@ export type Database = {
           },
         ]
       }
-      followers: {
+      message_limits: {
         Row: {
-          created_at: string | null
-          follower_id: string
-          following_id: string
+          created_at: string
           id: string
+          message_count: number
+          receiver_id: string
+          sender_id: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          follower_id: string
-          following_id: string
+          created_at?: string
           id?: string
+          message_count?: number
+          receiver_id: string
+          sender_id: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          follower_id?: string
-          following_id?: string
+          created_at?: string
           id?: string
+          message_count?: number
+          receiver_id?: string
+          sender_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "followers_follower_id_fkey"
-            columns: ["follower_id"]
+            foreignKeyName: "message_limits_receiver_id_fkey"
+            columns: ["receiver_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "followers_following_id_fkey"
-            columns: ["following_id"]
+            foreignKeyName: "message_limits_sender_id_fkey"
+            columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -389,12 +395,12 @@ export type Database = {
           experience: string | null
           full_name: string | null
           genres: string[] | null
-          hourly_rate: number | null
           id: string
           location: string | null
           name: string | null
           portfolio_urls: string[] | null
           profile_picture_url: string | null
+          profile_setup_completed: boolean | null
           role: string | null
           skills: string[] | null
           total_plays: number
@@ -411,12 +417,12 @@ export type Database = {
           experience?: string | null
           full_name?: string | null
           genres?: string[] | null
-          hourly_rate?: number | null
           id: string
           location?: string | null
           name?: string | null
           portfolio_urls?: string[] | null
           profile_picture_url?: string | null
+          profile_setup_completed?: boolean | null
           role?: string | null
           skills?: string[] | null
           total_plays?: number
@@ -433,12 +439,12 @@ export type Database = {
           experience?: string | null
           full_name?: string | null
           genres?: string[] | null
-          hourly_rate?: number | null
           id?: string
           location?: string | null
           name?: string | null
           portfolio_urls?: string[] | null
           profile_picture_url?: string | null
+          profile_setup_completed?: boolean | null
           role?: string | null
           skills?: string[] | null
           total_plays?: number
@@ -714,67 +720,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "project_looking_for_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      project_todos: {
-        Row: {
-          completed: boolean | null
-          completed_at: string | null
-          completed_by: string | null
-          created_at: string | null
-          created_by: string
-          description: string | null
-          id: string
-          project_id: string
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          completed?: boolean | null
-          completed_at?: string | null
-          completed_by?: string | null
-          created_at?: string | null
-          created_by: string
-          description?: string | null
-          id?: string
-          project_id: string
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          completed?: boolean | null
-          completed_at?: string | null
-          completed_by?: string | null
-          created_at?: string | null
-          created_by?: string
-          description?: string | null
-          id?: string
-          project_id?: string
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "project_todos_completed_by_fkey"
-            columns: ["completed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_todos_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_todos_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -1094,6 +1039,10 @@ export type Database = {
     Functions: {
       are_mutual_followers: {
         Args: { user1_id: string; user2_id: string }
+        Returns: boolean
+      }
+      can_message_user: {
+        Args: { sender_id: string; receiver_id: string }
         Returns: boolean
       }
       increment_play_count: {

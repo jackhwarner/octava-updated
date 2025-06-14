@@ -15,13 +15,13 @@ const Following = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Following</h1>
-          <p className="text-gray-600">Manage your connections and follow requests</p>
+          <p className="text-gray-600">Manage your connections and connection requests</p>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="mutuals" className="w-full">
+        <Tabs defaultValue="connections" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="mutuals">Mutuals</TabsTrigger>
+            <TabsTrigger value="connections">Connections</TabsTrigger>
             <TabsTrigger value="requests">Requests</TabsTrigger>
           </TabsList>
 
@@ -36,7 +36,7 @@ const Following = () => {
             />
           </div>
 
-          <TabsContent value="mutuals">
+          <TabsContent value="connections">
             <FollowingMutuals searchQuery={searchQuery} />
           </TabsContent>
 

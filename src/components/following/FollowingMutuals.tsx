@@ -5,11 +5,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { UserMinus } from 'lucide-react';
+import { UserMinus, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 
-interface MutualUser {
+interface ConnectedUser {
   id: string;
   name: string;
   username: string;
@@ -24,24 +24,33 @@ interface FollowingMutualsProps {
 }
 
 const FollowingMutuals = ({ searchQuery }: FollowingMutualsProps) => {
-  const [mutuals, setMutuals] = useState<MutualUser[]>([]);
+  const [connections, setConnections] = useState<ConnectedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  const fetchMutuals = async () => {
+  const fetchConnections = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
       
-      // Get mutual followers (users who follow me and I follow them)
-      const { data: mutualData, error } = await supabase
-        .from('followers')
+      // Get all connections for the current user
+      const { data: connectionsData, error } = await supabase
+        .from('connections')
         .select(`
-          following_id,
-          following:profiles!followers_following_id_fkey (
+          user1_id,
+          user2_id,
+          user1:profiles!connections_user1_id_fkey (
+            id,
+            name,
+            username,
+            avatar_url,
+            role,
+            location
+          ),
+          user2:profiles!connections_user2_id_fkey (
             id,
             name,
             username,
@@ -50,46 +59,43 @@ const FollowingMutuals = ({ searchQuery }: FollowingMutualsProps) => {
             location
           )
         `)
-        .eq('follower_id', user.id)
-        .in('following_id', 
-          supabase
-            .from('followers')
-            .select('follower_id')
-            .eq('following_id', user.id)
-        );
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
 
       if (error) throw error;
 
-      // Mock online status (in a real app, you'd get this from presence/session data)
-      const mutualsWithStatus: MutualUser[] = (mutualData || []).map(item => ({
-        id: item.following.id,
-        name: item.following.name || 'Unknown',
-        username: item.following.username || 'unknown',
-        avatar_url: item.following.avatar_url || '',
-        role: item.following.role || 'Musician',
-        location: item.following.location || '',
-        isOnline: Math.random() > 0.5 // Mock online status
-      }));
+      // Extract the other user from each connection
+      const connectedUsers: ConnectedUser[] = (connectionsData || []).map(connection => {
+        const otherUser = connection.user1_id === user.id ? connection.user2 : connection.user1;
+        return {
+          id: otherUser.id,
+          name: otherUser.name || 'Unknown',
+          username: otherUser.username || 'unknown',
+          avatar_url: otherUser.avatar_url || '',
+          role: otherUser.role || 'Musician',
+          location: otherUser.location || '',
+          isOnline: Math.random() > 0.5 // Mock online status
+        };
+      });
 
       // Filter by search query
-      const filteredMutuals = mutualsWithStatus.filter(mutual =>
-        mutual.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-        mutual.username.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+      const filteredConnections = connectedUsers.filter(connection =>
+        connection.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        connection.username.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
       );
 
       // Sort: online first, then offline
-      const sortedMutuals = filteredMutuals.sort((a, b) => {
+      const sortedConnections = filteredConnections.sort((a, b) => {
         if (a.isOnline && !b.isOnline) return -1;
         if (!a.isOnline && b.isOnline) return 1;
         return a.name.localeCompare(b.name);
       });
 
-      setMutuals(sortedMutuals);
+      setConnections(sortedConnections);
     } catch (error) {
-      console.error('Error fetching mutuals:', error);
+      console.error('Error fetching connections:', error);
       toast({
         title: "Error",
-        description: "Failed to load mutual followers",
+        description: "Failed to load connections",
         variant: "destructive",
       });
     } finally {
@@ -97,28 +103,28 @@ const FollowingMutuals = ({ searchQuery }: FollowingMutualsProps) => {
     }
   };
 
-  const handleUnfollow = async (userId: string) => {
+  const handleRemoveConnection = async (userId: string) => {
     if (!user) return;
 
     try {
       const { error } = await supabase
-        .from('followers')
+        .from('connections')
         .delete()
-        .eq('follower_id', user.id)
-        .eq('following_id', userId);
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
 
       if (error) throw error;
 
-      setMutuals(mutuals.filter(mutual => mutual.id !== userId));
+      setConnections(connections.filter(connection => connection.id !== userId));
       toast({
         title: "Success",
-        description: "Successfully unfollowed user",
+        description: "Connection removed successfully",
       });
     } catch (error) {
-      console.error('Error unfollowing user:', error);
+      console.error('Error removing connection:', error);
       toast({
         title: "Error",
-        description: "Failed to unfollow user",
+        description: "Failed to remove connection",
         variant: "destructive",
       });
     }
@@ -129,7 +135,7 @@ const FollowingMutuals = ({ searchQuery }: FollowingMutualsProps) => {
   };
 
   useEffect(() => {
-    fetchMutuals();
+    fetchConnections();
   }, [user, debouncedSearchQuery]);
 
   if (loading) {
@@ -150,17 +156,17 @@ const FollowingMutuals = ({ searchQuery }: FollowingMutualsProps) => {
     );
   }
 
-  if (mutuals.length === 0) {
+  if (connections.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-gray-400 mb-4">
           <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-            <UserMinus className="w-8 h-8" />
+            <Users className="w-8 h-8" />
           </div>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No mutual followers found</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No connections found</h3>
         <p className="text-gray-500">
-          {searchQuery ? 'No mutuals match your search.' : 'Start following people to see your mutual connections here.'}
+          {searchQuery ? 'No connections match your search.' : 'Start connecting with people to see your network here.'}
         </p>
       </div>
     );
@@ -168,36 +174,36 @@ const FollowingMutuals = ({ searchQuery }: FollowingMutualsProps) => {
 
   return (
     <div className="space-y-4">
-      {mutuals.map((mutual) => (
-        <div key={mutual.id} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
+      {connections.map((connection) => (
+        <div key={connection.id} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <Avatar className="w-12 h-12">
-                  <AvatarImage src={mutual.avatar_url} />
+                  <AvatarImage src={connection.avatar_url} />
                   <AvatarFallback className="bg-purple-100 text-purple-700">
-                    {getInitials(mutual.name)}
+                    {getInitials(connection.name)}
                   </AvatarFallback>
                 </Avatar>
-                {mutual.isOnline && (
+                {connection.isOnline && (
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                 )}
               </div>
               
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
-                  <h3 className="font-medium text-gray-900">{mutual.name}</h3>
-                  <Badge variant={mutual.isOnline ? "default" : "secondary"} className="text-xs">
-                    {mutual.isOnline ? "Online" : "Offline"}
+                  <h3 className="font-medium text-gray-900">{connection.name}</h3>
+                  <Badge variant={connection.isOnline ? "default" : "secondary"} className="text-xs">
+                    {connection.isOnline ? "Online" : "Offline"}
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-500">@{mutual.username}</p>
+                <p className="text-sm text-gray-500">@{connection.username}</p>
                 <div className="flex items-center space-x-2 mt-1">
-                  <span className="text-xs text-gray-400">{mutual.role}</span>
-                  {mutual.location && (
+                  <span className="text-xs text-gray-400">{connection.role}</span>
+                  {connection.location && (
                     <>
                       <span className="text-xs text-gray-300">•</span>
-                      <span className="text-xs text-gray-400">{mutual.location}</span>
+                      <span className="text-xs text-gray-400">{connection.location}</span>
                     </>
                   )}
                 </div>
@@ -207,11 +213,11 @@ const FollowingMutuals = ({ searchQuery }: FollowingMutualsProps) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleUnfollow(mutual.id)}
+              onClick={() => handleRemoveConnection(connection.id)}
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <UserMinus className="w-4 h-4 mr-2" />
-              Unfollow
+              Remove
             </Button>
           </div>
         </div>
