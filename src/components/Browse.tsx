@@ -56,6 +56,13 @@ const Browse = () => {
   });
 
   const handleSearch = () => {
+    // Only search if at least one filter is set
+    const anyFilters = selectedRole || selectedGenre || selectedInstrument || selectedExperience || location;
+    if (!anyFilters) {
+      console.log('No filters selected. Search will not be performed.');
+      // Optionally: use a toast to inform user they must set at least one filter.
+      return;
+    }
     console.log('Search triggered with filters:', {
       role: selectedRole,
       genre: selectedGenre,
@@ -195,6 +202,11 @@ const Browse = () => {
         onSearch={handleSearch}
       />
 
+      {/* Always show Suggested Collaborators below the filters */}
+      {filteredSuggestedCollaborators.length > 0 && (
+        <SuggestedCollaborators collaborators={filteredSuggestedCollaborators} />
+      )}
+
       {hasSearched ? (
         <SearchResults profiles={profiles} />
       ) : (
@@ -215,12 +227,6 @@ const Browse = () => {
               </div>
             </div>
           )}
-
-          {/* Suggested Collaborators Section */}
-          {filteredSuggestedCollaborators.length > 0 && (
-            <SuggestedCollaborators collaborators={filteredSuggestedCollaborators} />
-          )}
-
         </div>
       )}
     </div>
