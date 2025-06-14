@@ -106,9 +106,9 @@ const BrowseFilters = ({
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
 
           {/* Role Filter */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="flex-1 relative">
+              <SelectTrigger className="flex-1 relative pr-10">
                 <SelectValue placeholder="Role" />
                 {selectedRole && (
                   <Button
@@ -116,7 +116,7 @@ const BrowseFilters = ({
                     size="icon"
                     type="button"
                     tabIndex={-1}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
+                    className="absolute right-8 top-1/2 -translate-y-1/2 h-5 w-5 p-0 z-10"
                     aria-label="Clear Role filter"
                     onClick={e => {
                       e.stopPropagation();
@@ -126,6 +126,7 @@ const BrowseFilters = ({
                     <X className="h-4 w-4" />
                   </Button>
                 )}
+                {/* Chevron (dropdown arrow) is handled by Select */}
               </SelectTrigger>
               <SelectContent>
                 {roles.map((role) => (
@@ -141,9 +142,9 @@ const BrowseFilters = ({
           </div>
 
           {/* Genre Filter */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-              <SelectTrigger className="flex-1 relative">
+              <SelectTrigger className="flex-1 relative pr-10">
                 <SelectValue placeholder="Genre" />
                 {selectedGenre && (
                   <Button
@@ -151,7 +152,7 @@ const BrowseFilters = ({
                     size="icon"
                     type="button"
                     tabIndex={-1}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
+                    className="absolute right-8 top-1/2 -translate-y-1/2 h-5 w-5 p-0 z-10"
                     aria-label="Clear Genre filter"
                     onClick={e => {
                       e.stopPropagation();
@@ -176,9 +177,9 @@ const BrowseFilters = ({
           </div>
 
           {/* Instrument Filter */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-              <SelectTrigger className="flex-1 relative">
+              <SelectTrigger className="flex-1 relative pr-10">
                 <SelectValue placeholder="Instrument" />
                 {selectedInstrument && (
                   <Button
@@ -186,7 +187,7 @@ const BrowseFilters = ({
                     size="icon"
                     type="button"
                     tabIndex={-1}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
+                    className="absolute right-8 top-1/2 -translate-y-1/2 h-5 w-5 p-0 z-10"
                     aria-label="Clear Instrument filter"
                     onClick={e => {
                       e.stopPropagation();
@@ -211,9 +212,9 @@ const BrowseFilters = ({
           </div>
 
           {/* Experience Filter */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <Select value={selectedExperience} onValueChange={setSelectedExperience}>
-              <SelectTrigger className="flex-1 relative">
+              <SelectTrigger className="flex-1 relative pr-10">
                 <SelectValue placeholder="Experience" />
                 {selectedExperience && (
                   <Button
@@ -221,7 +222,7 @@ const BrowseFilters = ({
                     size="icon"
                     type="button"
                     tabIndex={-1}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
+                    className="absolute right-8 top-1/2 -translate-y-1/2 h-5 w-5 p-0 z-10"
                     aria-label="Clear Experience filter"
                     onClick={e => {
                       e.stopPropagation();
@@ -242,42 +243,52 @@ const BrowseFilters = ({
           </div>
 
           {/* Location Filter */}
-          <div className="relative flex items-center space-x-2">
-            <Input
-              placeholder="City, State or ZIP Code"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="w-full flex-1"
-              onFocus={() => setLocationFocused(true)}
-              onBlur={() => setTimeout(() => setLocationFocused(false), 100)}
-            />
-            {location && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLocation('')}
-                aria-label="Clear location filter"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-            {location && filteredCities.length > 0 && !location.match(/^\d{5}$/) && locationFocused && (
-              <div
-                className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
-                style={{ top: '100%', left: 0 }}
-              >
-                {filteredCities.slice(0, 10).map((city) => (
-                  <button
-                    key={city}
-                    type="button"
-                    className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100"
-                    onMouseDown={() => handleLocationSelect(city)}
-                  >
-                    {city}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="relative flex items-center">
+            <div className="w-full relative">
+              <Input
+                placeholder="City, State or ZIP Code"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full flex-1 pr-10"
+                onFocus={() => setLocationFocused(true)}
+                onBlur={() => setTimeout(() => setLocationFocused(false), 100)}
+                style={{ minWidth: 0 }}
+              />
+              {location && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-8 top-1/2 -translate-y-1/2 h-5 w-5 p-0 z-10"
+                  aria-label="Clear location filter"
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setLocation('');
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+              {location && filteredCities.length > 0 && !location.match(/^\d{5}$/) && locationFocused && (
+                <div
+                  className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                  style={{ top: '100%', left: 0 }}
+                >
+                  {filteredCities.slice(0, 10).map((city) => (
+                    <button
+                      key={city}
+                      type="button"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100"
+                      onMouseDown={() => handleLocationSelect(city)}
+                    >
+                      {city}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Search Button */}
