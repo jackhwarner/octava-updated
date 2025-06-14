@@ -12,9 +12,17 @@ interface ProjectFileUploadProps {
   currentUser: any;
   projectSettings: any;
   onFileUploaded: (file: any) => void;
+  /** Immediately called when a file is deleted */
+  onFileDeleted?: (fileId: string) => void;
 }
 
-const ProjectFileUpload = ({ projectId, currentUser, projectSettings, onFileUploaded }: ProjectFileUploadProps) => {
+const ProjectFileUpload = ({
+  projectId,
+  currentUser,
+  projectSettings,
+  onFileUploaded,
+  onFileDeleted,
+}: ProjectFileUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [existingFiles, setExistingFiles] = useState<any[]>([]);
@@ -89,18 +97,27 @@ const ProjectFileUpload = ({ projectId, currentUser, projectSettings, onFileUplo
     }
   };
 
-  // Delete previous file then upload the replacement
+  // Delete previous file then upload the replacement file
   const handleConfirmReplace = async () => {
     if (!replaceInfo) return;
     setUploading(true);
     try {
-      // Delete the previous DB record by id
+      // 1. Delete the previous DB record by id
       const { error } = await supabase
         .from("project_files")
         .delete()
         .eq("id", replaceInfo.exists.id);
+
       if (error) throw error;
+
+      // 2. Immediately update parent file list so user sees removal without refresh
+      if (onFileDeleted) {
+        onFileDeleted(replaceInfo.exists.id);
+      }
+
+      // 3. Upload the replacement file (will be added to file list via onFileUploaded)
       await doUpload(replaceInfo.file);
+
       setReplaceInfo(null);
       await fetchExistingFiles();
     } catch (error: any) {
