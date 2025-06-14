@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,13 +17,13 @@ interface ProjectFileListProps {
   onVersionReverted: (versionId: string) => void;
 }
 
-const ProjectFileList = ({ 
-  files, 
-  currentUser, 
-  projectSettings, 
-  onFileDeleted, 
-  onFileApproved, 
-  onVersionReverted 
+const ProjectFileList = ({
+  files,
+  currentUser,
+  projectSettings,
+  onFileDeleted,
+  onFileApproved,
+  onVersionReverted,
 }: ProjectFileListProps) => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const { toast } = useToast();
@@ -222,6 +223,12 @@ const ProjectFileList = ({
                         <p className="font-medium text-gray-900">{file.file_name}</p>
                         {getStatusIcon(file)}
                         {getStatusBadge(file)}
+                      </div>
+                      {/* Version text below file name */}
+                      <div>
+                        <span className="text-xs text-gray-500">
+                          Version v{file.version || 1}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span>{formatFileSize(file.file_size || 0)}</span>

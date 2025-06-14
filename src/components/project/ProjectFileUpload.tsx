@@ -34,21 +34,35 @@ const ProjectFileUpload = ({
   const fetchExistingFiles = async () => {
     const { data } = await supabase
       .from('project_files')
-      .select('file_name, id')
+      .select('file_name, id, version')
       .eq('project_id', projectId);
     setExistingFiles(data || []);
   };
 
-  // Fetch once on mount.
   useState(() => {
     fetchExistingFiles();
     // eslint-disable-next-line
   }, []);
 
-  const doUpload = async (file: File) => {
+  // Find the highest version number for a given file name
+  const getLatestVersionForFileName = (fileName: string) => {
+    const matches = existingFiles.filter(f => f.file_name === fileName);
+    if (matches.length === 0) return 1;
+    const versions = matches.map(f => Number(f.version) || 1);
+    return Math.max(...versions) || 1;
+  };
+
+  // Upload new file or replacement
+  const doUpload = async (file: File, replaceVersion?: number) => {
     setUploading(true);
     try {
       if (!currentUser) throw new Error("User not authenticated");
+      let version = 1;
+      if (typeof replaceVersion === "number") {
+        version = replaceVersion;
+      } else {
+        version = getLatestVersionForFileName(file.name) + 1;
+      }
       const fileData = {
         project_id: projectId,
         file_name: file.name,
@@ -57,11 +71,12 @@ const ProjectFileUpload = ({
         file_path: `projects/${projectId}/${file.name}`,
         uploaded_by: currentUser.id,
         description: `File uploaded: ${file.name}`,
-        version_notes: null,
+        version: version,
         is_pending_approval: false,
         approved_at: new Date().toISOString(),
         approved_by: currentUser.id,
         parent_file_id: null,
+        version_notes: null,
       };
 
       const { data, error } = await supabase
@@ -97,7 +112,7 @@ const ProjectFileUpload = ({
     }
   };
 
-  // Delete previous file then upload the replacement file
+  // Delete previous file then upload the replacement file (with incremented version)
   const handleConfirmReplace = async () => {
     if (!replaceInfo) return;
     setUploading(true);
@@ -115,11 +130,13 @@ const ProjectFileUpload = ({
         onFileDeleted(replaceInfo.exists.id);
       }
 
-      // 3. Upload the replacement file (will be added to file list via onFileUploaded)
-      await doUpload(replaceInfo.file);
+      // 3. Upload the replacement file with incremented version
+      const previousVersion = Number(replaceInfo.exists.version) || 1;
+      await doUpload(replaceInfo.file, previousVersion + 1);
 
       setReplaceInfo(null);
-      await fetchExistingFiles();
+      // Immediately update local list to remove old, fetch fresh state for true reactivity
+      fetchExistingFiles();
     } catch (error: any) {
       toast({
         title: "Could not replace file",
@@ -134,17 +151,17 @@ const ProjectFileUpload = ({
     setReplaceInfo(null);
   };
 
+  // If a file exists, begin replacement flow
   const handleFileUpload = async (selectedFiles: FileList) => {
     if (!selectedFiles || selectedFiles.length === 0) return;
     const filesArr = Array.from(selectedFiles);
     for (const file of filesArr) {
-      // Check if a file with the same name exists for this project
       const exists = existingFiles.find(f => f.file_name === file.name);
       if (exists) {
         setReplaceInfo({ file, exists });
-        return; // Wait for user confirmation
+        return; // Stop and wait for user to confirm replace
       }
-      await doUpload(file);
+      await doUpload(file); // Regular upload for new files, assigns version 2+ automatically over time
     }
   };
 
