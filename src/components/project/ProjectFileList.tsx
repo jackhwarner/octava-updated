@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -224,14 +223,11 @@ const ProjectFileList = ({
                         {getStatusIcon(file)}
                         {getStatusBadge(file)}
                       </div>
-                      {/* Version text below file name */}
-                      <div>
-                        <span className="text-xs text-gray-500">
-                          Version v{file.version || 1}
-                        </span>
-                      </div>
+                      {/* Inline file info: size, version, owner, date */}
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span>{formatFileSize(file.file_size || 0)}</span>
+                        <span>•</span>
+                        <span className="text-xs text-gray-500">{`v${file.version || 1}`}</span>
                         <span>•</span>
                         <span>by {file.uploader?.name || 'Unknown'}</span>
                         <span>•</span>
