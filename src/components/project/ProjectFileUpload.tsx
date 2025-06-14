@@ -1,13 +1,11 @@
+
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Upload, Plus, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useNotifications } from '@/hooks/useNotifications';
 import ReplaceFileDialog from './ReplaceFileDialog';
 import ProjectFileDropzone from "./ProjectFileDropzone";
-import { useProjectFileUpload } from "@/hooks/useProjectFileUpload";
+import { Button } from '@/components/ui/button';
 
 interface ProjectFileUploadProps {
   projectId: string;
@@ -20,12 +18,11 @@ const ProjectFileUpload = ({ projectId, currentUser, projectSettings, onFileUplo
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [existingFiles, setExistingFiles] = useState<any[]>([]);
+  const [replaceInfo, setReplaceInfo] = useState<{ file: File, exists: any } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const { notifyFileUpload } = useNotifications();
 
   // Fetch existing files for this project when component mounts
-  // and whenever a file is uploaded
   const fetchExistingFiles = async () => {
     const { data } = await supabase
       .from('project_files')
@@ -40,33 +37,96 @@ const ProjectFileUpload = ({ projectId, currentUser, projectSettings, onFileUplo
     // eslint-disable-next-line
   }, []);
 
-  // Use custom hook for upload logic
-  const {
-    uploading: uploadingFile,
-    replaceInfo,
-    setReplaceInfo,
-    doUpload,
-    handleConfirmReplace,
-    handleCancelReplace,
-  } = useProjectFileUpload({
-    projectId,
-    currentUser,
-    onFileUploaded,
-    fetchExistingFiles,
-    toast,
-  });
+  const doUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      if (!currentUser) throw new Error("User not authenticated");
+      const fileData = {
+        project_id: projectId,
+        file_name: file.name,
+        file_size: file.size,
+        file_type: file.type,
+        file_path: `projects/${projectId}/${file.name}`,
+        uploaded_by: currentUser.id,
+        description: `File uploaded: ${file.name}`,
+        version_notes: null,
+        is_pending_approval: false,
+        approved_at: new Date().toISOString(),
+        approved_by: currentUser.id,
+        parent_file_id: null,
+      };
+
+      const { data, error } = await supabase
+        .from("project_files")
+        .insert([fileData])
+        .select(
+          `
+          *,
+          uploader:profiles!project_files_uploaded_by_fkey (
+            name,
+            username
+          )
+        `
+        )
+        .single();
+
+      if (error) throw error;
+      onFileUploaded(data);
+      await fetchExistingFiles();
+      toast({
+        title: "File uploaded successfully",
+        description: `${file.name} was uploaded to the project.`,
+      });
+    } catch (error: any) {
+      console.error("Error uploading file:", error);
+      toast({
+        title: "Upload failed",
+        description: `There was an error uploading: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Delete previous file then upload the replacement
+  const handleConfirmReplace = async () => {
+    if (!replaceInfo) return;
+    setUploading(true);
+    try {
+      // Delete the previous DB record by id
+      const { error } = await supabase
+        .from("project_files")
+        .delete()
+        .eq("id", replaceInfo.exists.id);
+      if (error) throw error;
+      await doUpload(replaceInfo.file);
+      setReplaceInfo(null);
+      await fetchExistingFiles();
+    } catch (error: any) {
+      toast({
+        title: "Could not replace file",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+  const handleCancelReplace = () => {
+    setReplaceInfo(null);
+  };
 
   const handleFileUpload = async (selectedFiles: FileList) => {
     if (!selectedFiles || selectedFiles.length === 0) return;
     const filesArr = Array.from(selectedFiles);
     for (const file of filesArr) {
-      // Check if file exists (by name, in this project)
+      // Check if a file with the same name exists for this project
       const exists = existingFiles.find(f => f.file_name === file.name);
       if (exists) {
         setReplaceInfo({ file, exists });
         return; // Wait for user confirmation
       }
-      // No conflict, upload directly
       await doUpload(file);
     }
   };
@@ -81,10 +141,8 @@ const ProjectFileUpload = ({ projectId, currentUser, projectSettings, onFileUplo
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
+    if (e.type === "dragenter" || e.type === "dragleave" || e.type === "dragover") {
+      setDragActive(e.type === "dragenter" || e.type === "dragover");
     }
   };
 
@@ -107,7 +165,7 @@ const ProjectFileUpload = ({ projectId, currentUser, projectSettings, onFileUplo
       </CardHeader>
       <CardContent>
         <ProjectFileDropzone
-          uploading={uploading || uploadingFile}
+          uploading={uploading}
           handleFileInputChange={handleFileInputChange}
           onDrop={handleDrop}
           onDrag={handleDrag}

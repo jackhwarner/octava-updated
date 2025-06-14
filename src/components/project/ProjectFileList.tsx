@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download, Trash2, History, Archive, RotateCcw, File, Image, Video, FileText, Play, CheckCircle, Clock } from 'lucide-react';
+import { Download, Trash2, Archive, File, Image, Video, FileText, Play, CheckCircle, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,9 +24,6 @@ const ProjectFileList = ({
   onFileApproved, 
   onVersionReverted 
 }: ProjectFileListProps) => {
-  const [selectedFile, setSelectedFile] = useState<any>(null);
-  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-  const [fileVersions, setFileVersions] = useState([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -67,35 +63,12 @@ const ProjectFileList = ({
     return null;
   };
 
-  const fetchFileVersions = async (fileName: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('project_files')
-        .select(`
-          *,
-          uploader:profiles!project_files_uploaded_by_fkey (
-            name,
-            username
-          )
-        `)
-        .eq('project_id', selectedFile.project_id)
-        .eq('file_name', fileName)
-        .order('version', { ascending: false });
-
-      if (error) throw error;
-      setFileVersions(data || []);
-    } catch (error) {
-      console.error('Error fetching file versions:', error);
-    }
-  };
-
   const handleDeleteFile = async (fileId: string) => {
     try {
       const { error } = await supabase
         .from('project_files')
         .delete()
         .eq('id', fileId);
-
       if (error) throw error;
 
       onFileDeleted(fileId);
@@ -150,12 +123,6 @@ const ProjectFileList = ({
     });
   };
 
-  const openVersionHistory = (file: any) => {
-    setSelectedFile(file);
-    fetchFileVersions(file.file_name);
-    setIsHistoryDialogOpen(true);
-  };
-
   const isOwner = currentUser?.id === projectSettings?.owner_id;
   const pendingFiles = files.filter(file => file.is_pending_approval);
   const approvedFiles = files.filter(file => !file.is_pending_approval);
@@ -186,8 +153,6 @@ const ProjectFileList = ({
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span>{formatFileSize(file.file_size || 0)}</span>
                         <span>•</span>
-                        <span>v{file.version}</span>
-                        <span>•</span>
                         <span>by {file.uploader?.name || 'Unknown'}</span>
                       </div>
                       {file.version_notes && (
@@ -195,7 +160,6 @@ const ProjectFileList = ({
                       )}
                     </div>
                   </div>
-                  
                   <div className="flex items-center space-x-2">
                     <Button 
                       size="sm"
@@ -262,8 +226,6 @@ const ProjectFileList = ({
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span>{formatFileSize(file.file_size || 0)}</span>
                         <span>•</span>
-                        <span>v{file.version}</span>
-                        <span>•</span>
                         <span>by {file.uploader?.name || 'Unknown'}</span>
                         <span>•</span>
                         <span>{new Date(file.created_at).toLocaleDateString()}</span>
@@ -273,15 +235,7 @@ const ProjectFileList = ({
                       )}
                     </div>
                   </div>
-                  
                   <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => openVersionHistory(file)}
-                    >
-                      <History className="w-4 h-4" />
-                    </Button>
                     <Button variant="ghost" size="sm">
                       <Download className="w-4 h-4" />
                     </Button>
@@ -300,45 +254,6 @@ const ProjectFileList = ({
           )}
         </CardContent>
       </Card>
-
-      {/* Version History Dialog */}
-      <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Version History - {selectedFile?.file_name}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {fileVersions.map((version) => (
-              <div key={version.id} className="flex items-center justify-between p-3 border rounded">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium">v{version.version}</span>
-                    {getStatusBadge(version)}
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    by {version.uploader?.name || 'Unknown'} • {new Date(version.created_at).toLocaleDateString()}
-                  </p>
-                  {version.version_notes && (
-                    <p className="text-sm text-gray-600 mt-1">{version.version_notes}</p>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => onVersionReverted(version.id)}
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Download className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Image Preview Dialog */}
       {previewImage && (
