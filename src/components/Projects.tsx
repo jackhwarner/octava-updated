@@ -280,7 +280,8 @@ const Projects = () => {
 
       <ProjectFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
-      {!folderId && !searchTerm && (
+      {/* Show folders section ONLY if at least one folder exists */}
+      {!folderId && !searchTerm && folders.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Folders</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
