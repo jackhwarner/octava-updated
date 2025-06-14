@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -62,12 +63,16 @@ const BrowseFilters = ({
   setLocation,
   onSearch
 }: BrowseFiltersProps) => {
-  const filteredCities = cities.filter(city => 
+  // manage input focus state
+  const [locationFocused, setLocationFocused] = useState(false);
+
+  const filteredCities = cities.filter(city =>
     city.toLowerCase().includes(location.toLowerCase())
   );
 
   const handleLocationSelect = (selectedCity: string) => {
     setLocation(selectedCity);
+    setLocationFocused(false);
   };
 
   const handleSearch = () => {
@@ -204,11 +209,14 @@ const BrowseFilters = ({
           </div>
 
           <div className="relative col-span-2 flex items-center space-x-2">
-            <Input 
-              placeholder="City, State or ZIP Code" 
-              value={location} 
-              onChange={(e) => setLocation(e.target.value)} 
+            <Input
+              placeholder="City, State or ZIP Code"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
               className="w-full flex-1"
+              onFocus={() => setLocationFocused(true)}
+              onBlur={() => setTimeout(() => setLocationFocused(false), 100)}
+              // timeout ensures click on dropdown option registers first
             />
             {location && (
               <Button
@@ -220,13 +228,17 @@ const BrowseFilters = ({
                 <X className="h-4 w-4" />
               </Button>
             )}
-            {location && filteredCities.length > 0 && !location.match(/^\d{5}$/) && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+            {location && filteredCities.length > 0 && !location.match(/^\d{5}$/) && locationFocused && (
+              <div
+                className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                style={{ top: '100%', left: 0 }}
+              >
                 {filteredCities.slice(0, 10).map((city) => (
                   <button
                     key={city}
+                    type="button"
                     className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100"
-                    onClick={() => handleLocationSelect(city)}
+                    onMouseDown={() => handleLocationSelect(city)}
                   >
                     {city}
                   </button>
