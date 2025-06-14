@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import BrowseFilters from './browse/BrowseFilters';
 import SearchResults from './browse/SearchResults';
@@ -102,9 +101,8 @@ const Browse = () => {
         onSearch={handleSearch}
       />
 
-      {filteredSuggestedCollaborators.length > 0 && (
-        <SuggestedCollaborators collaborators={filteredSuggestedCollaborators} />
-      )}
+      {/* Always show Suggested Collaborators, even if empty */}
+      <SuggestedCollaborators collaborators={filteredSuggestedCollaborators} />
 
       {hasSearched ? (
         <SearchResults profiles={collaboratorsFormatted} />
