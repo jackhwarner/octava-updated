@@ -99,17 +99,32 @@ const BrowseFilters = ({
     }
   };
 
+  // Unified handler for Selects to allow 'clear'
+  const handleSelectClearable = (value: string, setter: (v: string) => void) => {
+    if (value === 'none') {
+      setter('');
+    } else {
+      setter(value);
+    }
+  };
+
   return (
     <Card className="mb-8">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           {/* Role Filter */}
           <div className="flex items-center relative">
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
+            <Select 
+              value={selectedRole || ""}
+              onValueChange={(v) => handleSelectClearable(v, setSelectedRole)}
+            >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Role" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none" key="_role_clear" className="text-gray-400">
+                  Role
+                </SelectItem>
                 {roles.map((role) => (
                   <SelectItem
                     key={role.toLowerCase()}
@@ -124,11 +139,17 @@ const BrowseFilters = ({
 
           {/* Genre Filter */}
           <div className="flex items-center relative">
-            <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+            <Select 
+              value={selectedGenre || ""}
+              onValueChange={(v) => handleSelectClearable(v, setSelectedGenre)}
+            >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Genre" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none" key="_genre_clear" className="text-gray-400">
+                  Genre
+                </SelectItem>
                 {genres.map((genre) => (
                   <SelectItem
                     key={genre.toLowerCase()}
@@ -143,11 +164,17 @@ const BrowseFilters = ({
 
           {/* Instrument Filter */}
           <div className="flex items-center relative">
-            <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+            <Select 
+              value={selectedInstrument || ""}
+              onValueChange={(v) => handleSelectClearable(v, setSelectedInstrument)}
+            >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Instrument" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none" key="_instrument_clear" className="text-gray-400">
+                  Instrument
+                </SelectItem>
                 {instruments.map((instrument) => (
                   <SelectItem
                     key={instrument.toLowerCase()}
@@ -162,11 +189,17 @@ const BrowseFilters = ({
 
           {/* Experience Filter */}
           <div className="flex items-center relative">
-            <Select value={selectedExperience} onValueChange={setSelectedExperience}>
+            <Select 
+              value={selectedExperience || ""}
+              onValueChange={(v) => handleSelectClearable(v, setSelectedExperience)}
+            >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Experience" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none" key="_experience_clear" className="text-gray-400">
+                  Experience
+                </SelectItem>
                 <SelectItem value="beginner">Beginner</SelectItem>
                 <SelectItem value="intermediate">Intermediate</SelectItem>
                 <SelectItem value="professional">Professional</SelectItem>
