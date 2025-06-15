@@ -220,7 +220,6 @@ const BrowseFilters = ({
                 onBlur={() => setTimeout(() => setLocationFocused(false), 100)}
                 style={{ minWidth: 0 }}
               />
-              {/* Removed clear (X) button for location */}
               {location && filteredCities.length > 0 && !location.match(/^\d{5}$/) && locationFocused && (
                 <div
                   className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
@@ -238,6 +237,9 @@ const BrowseFilters = ({
                   ))}
                 </div>
               )}
+              <p className="text-xs text-gray-500 mt-1 ml-1">
+                You can enter a city, state, or ZIP code.
+              </p>
             </div>
           </div>
 
