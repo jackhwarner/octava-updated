@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,7 +69,6 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
       
       if (value.length === 5) {
         try {
-          // Mock API call - in real app, you'd use a service like Zippopotam.us
           const response = await fetch(`https://api.zippopotam.us/us/${value}`);
           if (response.ok) {
             const data = await response.json();
@@ -87,7 +87,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
     }
   };
 
-  // Username uniqueness check, runs when username is changed
+  // Username uniqueness check using proper Supabase client
   useEffect(() => {
     let cancelled = false;
     const checkUsername = async () => {
@@ -95,49 +95,40 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
         setUsernameError('');
         return;
       }
+      
       setCheckingUsername(true);
       try {
-        // Use Supabase client directly to get the anon key, so we never rely on environment variables
-        // @ts-ignore
-        const anonKey = supabase ? supabase['headers']?.apikey || supabase['apikey'] || supabase['rest']?.apikey || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjb3dzZm9udGhzeWpsZm9pcW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjM5MTMsImV4cCI6MjA2MzY5OTkxM30.FY3_Gbq7Ydj_VnS_i2Mt6jtWduqJdCf5Ycs845btr68" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjb3dzZm9udGhzeWpsZm9pcW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjM5MTMsImV4cCI6MjA2MzY5OTkxM30.FY3_Gbq7Ydj_VnS_i2Mt6jtWduqJdCf5Ycs845btr68";
-        // If you ever rotate anon keys, update the fallback above!
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', data.username)
+          .maybeSingle();
 
-        const url = "https://rcowsfonthsyjlfoiqoo.supabase.co/rest/v1/profiles?username=eq." + encodeURIComponent(data.username);
-
-        const res = await fetch(url, {
-          headers: {
-            apikey: anonKey,
-            Authorization: `Bearer ${anonKey}`,
-          }
-        });
-        if (!res.ok) {
-          let errorMsg: string;
-          if (res.status === 429) {
-            errorMsg = 'Too many requests. Please wait and try again.';
-          } else if (res.status === 401 || res.status === 403) {
-            errorMsg = 'Sign up error: Could not check username. Please try again soon.';
-          } else {
-            errorMsg = 'Unexpected error checking username. Please try again.';
-          }
-          setUsernameError(errorMsg);
-          setCheckingUsername(false);
-          return;
-        }
-        const result = await res.json();
         if (!cancelled) {
-          if (result && Array.isArray(result) && result.length > 0) {
+          if (error && error.code !== 'PGRST116') {
+            // PGRST116 is "no rows returned" which is fine
+            console.error('Error checking username:', error);
+            setUsernameError('Unable to check username availability. Please try again.');
+          } else if (profiles) {
             setUsernameError('This username is already taken.');
           } else {
             setUsernameError('');
           }
         }
       } catch (error: any) {
-        if (!cancelled) setUsernameError('Connection error while checking username. Please check your internet or try again later.');
+        console.error('Error checking username:', error);
+        if (!cancelled) {
+          setUsernameError('Connection error while checking username. Please check your internet or try again later.');
+        }
       }
       setCheckingUsername(false);
     };
-    checkUsername();
-    return () => { cancelled = true; };
+
+    const timeoutId = setTimeout(checkUsername, 300); // Debounce the check
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [data.username]);
 
   const isFormValid =
@@ -169,8 +160,10 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
               placeholder="your_username"
               value={data.username}
               onChange={(e) => onUpdate({ username: e.target.value })}
-              onBlur={() => {/* Triggers useEffect check for username */}}
             />
+            {checkingUsername && (
+              <p className="text-xs text-gray-500">Checking availability...</p>
+            )}
             {usernameError && (
               <p className="text-xs text-red-500">{usernameError}</p>
             )}
