@@ -57,7 +57,7 @@ export const LinksTab = () => {
   const portfolioUrls = profile?.portfolio_urls || [];
   return <>
       <Card>
-        <CardHeader>
+        <CardHeader className="pt-4 ">
           <div className="flex items-center justify-between">
             <CardTitle>Links</CardTitle>
             <Button variant="outline" onClick={() => setShowEditDialog(true)}>
