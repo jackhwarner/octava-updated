@@ -84,36 +84,40 @@ const Browse = () => {
   }
 
   return (
-    <div className="p-10">
-      <div className="mb-8">
+    <div className="min-h-screen bg-gray-50 p-10">
+      <div className="max-w-6xl mx-auto mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Browse Musicians and Projects</h1>
+        <p className="text-gray-600 text-base mt-2">
+          Find new collaborators and join music projects
+        </p>
       </div>
-      <BrowseFilters
-        selectedRole={selectedRole}
-        setSelectedRole={setSelectedRole}
-        selectedGenre={selectedGenre}
-        setSelectedGenre={setSelectedGenre}
-        selectedInstrument={selectedInstrument}
-        setSelectedInstrument={setSelectedInstrument}
-        selectedExperience={selectedExperience}
-        setSelectedExperience={setSelectedExperience}
-        location={location}
-        setLocation={setLocation}
-        onSearch={handleSearch}
-      />
+      <div className="max-w-6xl mx-auto">
+        <BrowseFilters
+          selectedRole={selectedRole}
+          setSelectedRole={setSelectedRole}
+          selectedGenre={selectedGenre}
+          setSelectedGenre={setSelectedGenre}
+          selectedInstrument={selectedInstrument}
+          setSelectedInstrument={setSelectedInstrument}
+          selectedExperience={selectedExperience}
+          setSelectedExperience={setSelectedExperience}
+          location={location}
+          setLocation={setLocation}
+          onSearch={handleSearch}
+        />
 
-      {hasSearched ? (
-        <SearchResults profiles={collaboratorsFormatted} />
-      ) : (
-        <div className="space-y-10">
-          <BulletinBoard userProfile={profile} />
-          <FilteredSuggestedProjects filteredSuggestedProjects={filteredSuggestedProjects} />
-          <SuggestedCollaborators collaborators={filteredSuggestedCollaborators} />
-        </div>
-      )}
+        {hasSearched ? (
+          <SearchResults profiles={collaboratorsFormatted} />
+        ) : (
+          <div className="space-y-10">
+            <BulletinBoard userProfile={profile} />
+            <FilteredSuggestedProjects filteredSuggestedProjects={filteredSuggestedProjects} />
+            <SuggestedCollaborators collaborators={filteredSuggestedCollaborators} />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default Browse;
-
