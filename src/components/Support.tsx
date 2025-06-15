@@ -1,4 +1,4 @@
-
+import React, { useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HelpCircle } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+
+const SUPPORT_FUNCTION_URL = "https://rcowsfonthsyjlfoiqoo.functions.supabase.co/send-support-email";
 
 const Support = () => {
   const faqItems = [
@@ -35,6 +38,55 @@ const Support = () => {
     }
   ];
 
+  const { toast } = useToast();
+  const [sending, setSending] = useState(false);
+  const [subject, setSubject] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subject || !email || !message) {
+      toast({
+        title: "Please fill out all fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSending(true);
+    try {
+      const res = await fetch(SUPPORT_FUNCTION_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject, email, message }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        toast({
+          title: "Message sent!",
+          description: "Your support request has been sent. We'll follow up by email.",
+        });
+        setSubject("");
+        setEmail("");
+        setMessage("");
+      } else {
+        toast({
+          title: "Failed to send message.",
+          description: data.error || "Please try again later.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Something went wrong.",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
@@ -53,36 +105,54 @@ const Support = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="subject">Subject</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a topic" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border shadow-md">
-                    <SelectItem value="technical">Technical Issue</SelectItem>
-                    <SelectItem value="billing">Billing Question</SelectItem>
-                    <SelectItem value="feature">Feature Request</SelectItem>
-                    <SelectItem value="general">General Question</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <form className="space-y-4" onSubmit={handleSend}>
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Subject</Label>
+                  <Select value={subject} onValueChange={setSubject}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a topic" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-md">
+                      <SelectItem value="technical">Technical Issue</SelectItem>
+                      <SelectItem value="billing">Billing Question</SelectItem>
+                      <SelectItem value="feature">Feature Request</SelectItem>
+                      <SelectItem value="general">General Question</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="your@email.com" />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
-                <Textarea id="message" placeholder="Describe your issue or question" rows={5} />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="message">Message</Label>
+                  <Textarea
+                    id="message"
+                    placeholder="Describe your issue or question"
+                    rows={5}
+                    value={message}
+                    onChange={e => setMessage(e.target.value)}
+                  />
+                </div>
 
-              <div className="flex justify-center">
-                <Button className="bg-purple-600 hover:bg-purple-700 w-1/2">
-                  Send Message
-                </Button>
-              </div>
+                <div className="flex justify-center">
+                  <Button
+                    className="bg-purple-600 hover:bg-purple-700 w-1/2"
+                    type="submit"
+                    disabled={sending}
+                  >
+                    {sending ? "Sending..." : "Send Message"}
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
         </div>
