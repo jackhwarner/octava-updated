@@ -25,7 +25,7 @@ export const ProfileHeader = ({ profile, cityName, onEditClick, isOwnProfile = t
   };
 
   return (
-    <Card className="mb-8">
+    <Card className="mb-8 shadow-none hover:shadow-none transition-none">
       <CardContent className="p-10">
         <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
           <Avatar className="w-28 h-28 flex-shrink-0">
@@ -55,11 +55,12 @@ export const ProfileHeader = ({ profile, cityName, onEditClick, isOwnProfile = t
 
             <div className="flex flex-wrap justify-between items-center">
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-purple-100 text-purple-700 px-3 py-1.5 text-sm">
+                {/* Remove hover by making the badge static */}
+                <Badge className="bg-purple-100 text-purple-700 px-3 py-1.5 text-sm pointer-events-none">
                   {formatRole(profile?.role)}
                 </Badge>
                 {profile?.genres?.slice(0, 3).map((genre) => (
-                  <Badge key={genre} variant="outline" className="px-3 py-1.5 text-sm">
+                  <Badge key={genre} variant="outline" className="px-3 py-1.5 text-sm pointer-events-none">
                     {genre}
                   </Badge>
                 ))}
