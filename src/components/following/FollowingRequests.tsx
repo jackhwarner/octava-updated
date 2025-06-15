@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -221,7 +220,7 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
     return (
       <div className="space-y-6">
         {[...Array(2)].map((_, idx) => (
-          <div key={idx} className="bg-white px-0">
+          <div key={idx} className="bg-white px-0 rounded-xl">
             <div className="py-4 border-b border-gray-200 flex items-center gap-4 animate-pulse">
               <div className="w-12 h-12 bg-gray-200 rounded-full" />
               <div className="flex-1 space-y-2">
@@ -242,7 +241,7 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
   const renderRequestRow = (request: ConnectionRequest, isIncoming: boolean, isLast: boolean) => (
     <div
       key={request.id}
-      className={`flex items-center justify-between px-0 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}
+      className={`flex items-center justify-between gap-4 bg-white p-5 rounded-xl shadow-sm mb-3`}
     >
       <div className="flex items-center gap-4">
         <Avatar className="w-12 h-12 bg-gray-100">
@@ -275,7 +274,7 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
               variant="default"
               size="sm"
               onClick={() => handleAcceptRequest(request.id)}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-600 hover:bg-green-700 text-white shadow-none"
             >
               <UserCheck className="w-4 h-4 mr-1" />
               Accept
@@ -305,16 +304,27 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
     </div>
   );
 
-  const renderSection = (label: string, requests: ConnectionRequest[], emptyIcon: React.ReactNode, emptyTitle: string, emptyMessage: string, isIncoming: boolean) => (
-    <section className="bg-white w-full mb-6">
-      <header className="flex items-center gap-2 px-0 py-4 border-b-2 border-gray-200">
+  const renderSection = (
+    label: string,
+    requests: ConnectionRequest[],
+    emptyIcon: React.ReactNode,
+    emptyTitle: string,
+    emptyMessage: string,
+    isIncoming: boolean
+  ) => (
+    <section className="w-full bg-white py-0 px-0 mb-8 rounded-xl">
+      <header className="flex items-center gap-2 px-1 sm:px-0 py-4 border-b-2 border-gray-200 mb-4">
         {emptyIcon}
         <h2 className="text-base sm:text-lg font-bold text-gray-900">{label}</h2>
-        <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${isIncoming ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+        <span
+          className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
+            isIncoming ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+          }`}
+        >
           {requests.length}
         </span>
       </header>
-      <div className="divide-y divide-gray-100">
+      <div className="flex flex-col gap-2 px-0 sm:px-2">
         {requests.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <div className="mb-3">{emptyIcon}</div>
@@ -333,7 +343,7 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
   );
 
   return (
-    <div className="w-full flex flex-col gap-6">
+    <div className="w-full flex flex-col gap-8">
       {renderSection(
         "Incoming Requests",
         incomingRequests,
