@@ -34,7 +34,8 @@ const ProfileSetup = () => {
       soundcloud: '',
       instagram: '',
       tiktok: '',
-    }
+    },
+    profile_setup_completed: false
   });
 
   const steps = [
@@ -47,6 +48,12 @@ const ProfileSetup = () => {
     if (currentStep < steps.length) {
       setCompletedSteps(prev => [...prev, currentStep]);
       setCurrentStep(currentStep + 1);
+
+      // Mark profile not completed yet (each step that is not the last)
+      setProfileData(prev => ({
+        ...prev,
+        profile_setup_completed: false
+      }));
     }
   };
 
@@ -73,7 +80,7 @@ const ProfileSetup = () => {
           role: profileData.role,
           genres: profileData.genres,
           skills: profileData.instruments,
-          profile_setup_completed: true  // <-- Mark profile setup as completed!
+          profile_setup_completed: true // <-- Mark profile setup as COMPLETE here!
         });
 
       if (error) throw error;
@@ -83,7 +90,7 @@ const ProfileSetup = () => {
         title: "Profile setup complete!",
         description: "Now let's set up your subscription to get started.",
       });
-      
+
       // Redirect to subscription page instead of dashboard
       navigate('/subscription');
     } catch (error: any) {

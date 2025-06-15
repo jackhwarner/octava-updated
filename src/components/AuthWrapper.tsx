@@ -25,6 +25,7 @@ interface AuthWrapperProps {
 const AuthWrapper = ({ children }: AuthWrapperProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileComplete, setProfileComplete] = useState<boolean>(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -50,26 +51,36 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
         .maybeSingle();
 
       if (cancelled) return;
+
+      const completed = !!profile && (
+        profile.profile_setup_completed === true ||
+        (
+          !!profile?.name &&
+          !!profile?.username &&
+          !!profile?.bio &&
+          !!profile?.location &&
+          !!profile?.experience
+        )
+      );
+
+      setProfileComplete(completed);
       setLoading(false);
 
       // If user is not on /profile-setup and profile not completed, redirect
       const onProfileSetupPage = location.pathname === '/profile-setup';
-      if (
-        !onProfileSetupPage &&
-        (!profile || !isProfileSetupComplete(profile))
-      ) {
-        // User must complete profile
+      if (!onProfileSetupPage && !completed) {
         navigate('/profile-setup', { replace: true });
       }
-      // Else, stay on page or render children
+      // If user is on /profile-setup BUT they've just completed it, redirect to dashboard
+      if (onProfileSetupPage && completed) {
+        navigate('/dashboard', { replace: true });
+      }
     }
 
-    // Setup auth change subscription
     unsub = supabase.auth.onAuthStateChange((event, session) => {
       checkAuthAndProfile(session?.user ?? null);
     });
 
-    // Initial fetch
     supabase.auth.getSession().then(({ data: { session } }) => {
       checkAuthAndProfile(session?.user ?? null);
     });
@@ -91,8 +102,10 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
     );
   }
 
-  if (!user) {
-    return null; // Will redirect to login
+  // Only render children if authenticated AND profile is completed
+  if (!user || !profileComplete) {
+    // We already redirected above, nothing to render here
+    return null;
   }
 
   return <>{children}</>;
