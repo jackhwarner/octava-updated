@@ -11,6 +11,7 @@ import Settings from '../components/Settings';
 import Support from '../components/Support';
 import AuthWrapper from '../components/AuthWrapper';
 import TutorialOverlay from '../components/TutorialOverlay';
+import Collaborators from '../components/Collaborators';
 import { useIsMobile } from "../hooks/use-mobile";
 
 const Index = () => {
@@ -26,7 +27,7 @@ const Index = () => {
     if (pathname === '/browse') return 'browse';
     if (pathname === '/messages' || pathname.startsWith('/messages/')) return 'messages';
     if (pathname === '/projects') return 'projects';
-    if (pathname === '/following') return 'following';
+    if (pathname === '/collaborators') return 'collaborators';
     if (pathname === '/profile' || pathname.startsWith('/profile/')) return 'profile'; // Treat user profile view as profile tab
     if (pathname === '/settings') return 'settings';
     if (pathname === '/support') return 'support';
@@ -46,18 +47,14 @@ const Index = () => {
   }, [location.pathname]); // Dependency array includes only location.pathname
 
   const handleNavigate = (tab: string) => {
-    // Update active tab state and navigate
     setActiveTab(tab);
-    // Construct the correct path based on the tab
     let path = `/${tab}`;
     if (tab === 'dashboard') {
-      path = '/dashboard'; // Navigate to /dashboard for the dashboard tab
+      path = '/dashboard';
     }
-
-     if (location.pathname !== path) {
-         navigate(path);
-     }
-    // Handle navigation for sub-routes like /projects/folder/:folderId within specific components
+    if (location.pathname !== path) {
+      navigate(path);
+    }
   };
 
   const renderContent = () => {
@@ -69,10 +66,9 @@ const Index = () => {
       case 'messages':
         return <Messages />;
       case 'projects':
-        // The Projects component will need to read route params (like folderId) itself
         return <Projects />;
-      case 'following':
-        return <Following />;
+      case 'collaborators':
+        return <Collaborators />;
       case 'profile':
         return <Profile />;
       case 'settings':

@@ -36,7 +36,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
     { id: 'browse', label: 'Browse', icon: Search },
     { id: 'messages', label: 'Messages', icon: MessageCircle },
     { id: 'projects', label: 'Projects', icon: FolderOpen },
-    { id: 'following', label: 'Following', icon: Users }
+    { id: 'collaborators', label: 'Collaborators', icon: Users } // Changed id and label from 'following'
   ];
 
   const handleViewAllNotifications = () => {
