@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import { useCollaborators } from '@/hooks/useCollaborators';
 import UserAvatar from '@/components/UserAvatar';
+import { useState } from 'react';
+import { CollaboratorProfileDialog } from './CollaboratorProfileDialog';
 
 interface Collaborator {
   id: string;
@@ -18,6 +20,7 @@ interface OnlineCollaboratorsProps {
 
 const OnlineCollaborators = ({ onMessageCollaborator }: OnlineCollaboratorsProps) => {
   const { onlineCollaborators, loading } = useCollaborators();
+  const [viewedCollaborator, setViewedCollaborator] = useState<Collaborator | null>(null);
 
   if (loading) {
     return (
@@ -47,42 +50,63 @@ const OnlineCollaborators = ({ onMessageCollaborator }: OnlineCollaboratorsProps
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Online Collaborators</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {onlineCollaborators.length === 0 ? (
-            <p className="text-gray-500 text-sm">No collaborators online</p>
-          ) : (
-            onlineCollaborators.map((collaborator) => (
-              <div key={collaborator.id} className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                <UserAvatar
-                  name={collaborator.name}
-                  src={collaborator.avatar_url}
-                  size="sm"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{collaborator.name}</p>
-                  <p className="text-xs text-gray-500">{collaborator.role || 'Musician'}</p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onMessageCollaborator(collaborator)}
-                  className="p-2"
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Online Collaborators</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {onlineCollaborators.length === 0 ? (
+              <p className="text-gray-500 text-sm">No collaborators online</p>
+            ) : (
+              onlineCollaborators.map((collaborator) => (
+                <div
+                  key={collaborator.id}
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-accent/50 rounded transition"
+                  onClick={(e) => {
+                    // Only open popup if NOT clicking the button itself
+                    if (
+                      e.target instanceof HTMLElement &&
+                      e.target.closest("button")
+                    ) {
+                      return;
+                    }
+                    setViewedCollaborator(collaborator);
+                  }}
                 >
-                  <Send className="w-3 h-3" />
-                </Button>
-              </div>
-            ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
+                  <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                  <UserAvatar
+                    name={collaborator.name}
+                    src={collaborator.avatar_url}
+                    size="sm"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{collaborator.name}</p>
+                    <p className="text-xs text-gray-500">{collaborator.role || 'Musician'}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onMessageCollaborator(collaborator)}
+                    className="p-2"
+                  >
+                    <Send className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      <CollaboratorProfileDialog
+        open={!!viewedCollaborator}
+        onOpenChange={(open) => setViewedCollaborator(open ? viewedCollaborator : null)}
+        collaborator={viewedCollaborator}
+      />
+    </>
   );
 };
 
 export default OnlineCollaborators;
+

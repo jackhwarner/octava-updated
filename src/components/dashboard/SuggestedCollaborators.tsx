@@ -1,10 +1,12 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { User, UserPlus, Music } from 'lucide-react';
+import { Music, UserPlus } from 'lucide-react';
 import { useCollaborators } from '@/hooks/useCollaborators';
 import UserAvatar from "@/components/UserAvatar";
+import { useState } from "react";
+import { CollaboratorProfileDialog } from './CollaboratorProfileDialog';
 
 interface Collaborator {
   id: string;
@@ -26,6 +28,7 @@ const SuggestedCollaborators = ({
     suggestedCollaborators,
     loading
   } = useCollaborators();
+  const [viewedCollaborator, setViewedCollaborator] = useState<Collaborator | null>(null);
 
   if (loading) {
     return (
@@ -57,76 +60,96 @@ const SuggestedCollaborators = ({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Suggested Collaborators</CardTitle>
-        <CardDescription>Connect with new musicians</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {suggestedCollaborators.length === 0 ? (
-            <p className="text-gray-500 text-sm">No suggestions available</p>
-          ) : (
-            suggestedCollaborators.slice(0, 5).map(collaborator => (
-              <div key={collaborator.id} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  {/* Use global UserAvatar */}
-                  <UserAvatar
-                    name={collaborator.name}
-                    src={collaborator.avatar_url}
-                    size="sm"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{collaborator.name}</p>
-                    <div className="flex items-center space-x-2">
-                      <p className="text-xs text-gray-500">{collaborator.role || 'Musician'}</p>
-                      {collaborator.genres && collaborator.genres.length > 0 && (
-                        <>
-                          <span className="text-xs text-gray-300">•</span>
-                          <div className="flex flex-wrap gap-1">
-                            {collaborator.genres.slice(0, 2).map((genre) => (
-                              <Badge key={genre} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
-                                {genre}
-                              </Badge>
-                            ))}
-                            {collaborator.genres.length > 2 && (
-                              <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600">
-                                +{collaborator.genres.length - 2}
-                              </Badge>
-                            )}
-                          </div>
-                        </>
-                      )}
-                      {collaborator.skills && collaborator.skills.length > 0 && (
-                        <>
-                          <span className="text-xs text-gray-300">•</span>
-                          <div className="flex items-center space-x-1">
-                            <Music className="w-3 h-3 text-gray-400" />
-                            <span className="text-xs text-gray-500">
-                              {collaborator.skills.slice(0, 2).join(', ')}
-                              {collaborator.skills.length > 2 && ` +${collaborator.skills.length - 2}`}
-                            </span>
-                          </div>
-                        </>
-                      )}
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Suggested Collaborators</CardTitle>
+          <CardDescription>Connect with new musicians</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {suggestedCollaborators.length === 0 ? (
+              <p className="text-gray-500 text-sm">No suggestions available</p>
+            ) : (
+              suggestedCollaborators.slice(0, 5).map(collaborator => (
+                <div
+                  key={collaborator.id}
+                  className="flex items-center justify-between cursor-pointer hover:bg-accent/50 rounded transition"
+                  onClick={e => {
+                    // Only open dialog if NOT clicking the connect button
+                    if (
+                      e.target instanceof HTMLElement &&
+                      e.target.closest("button")
+                    ) {
+                      return;
+                    }
+                    setViewedCollaborator(collaborator);
+                  }}
+                >
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <UserAvatar
+                      name={collaborator.name}
+                      src={collaborator.avatar_url}
+                      size="sm"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{collaborator.name}</p>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-xs text-gray-500">{collaborator.role || 'Musician'}</p>
+                        {collaborator.genres && collaborator.genres.length > 0 && (
+                          <>
+                            <span className="text-xs text-gray-300">•</span>
+                            <div className="flex flex-wrap gap-1">
+                              {collaborator.genres.slice(0, 2).map((genre) => (
+                                <Badge key={genre} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                  {genre}
+                                </Badge>
+                              ))}
+                              {collaborator.genres.length > 2 && (
+                                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600">
+                                  +{collaborator.genres.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          </>
+                        )}
+                        {collaborator.skills && collaborator.skills.length > 0 && (
+                          <>
+                            <span className="text-xs text-gray-300">•</span>
+                            <div className="flex items-center space-x-1">
+                              <Music className="w-3 h-3 text-gray-400" />
+                              <span className="text-xs text-gray-500">
+                                {collaborator.skills.slice(0, 2).join(', ')}
+                                {collaborator.skills.length > 2 && ` +${collaborator.skills.length - 2}`}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
+                  <Button 
+                    size="sm" 
+                    className="bg-purple-600 hover:bg-purple-700 text-xs px-4 py-2" 
+                    onClick={() => onConnectCollaborator(collaborator)}
+                  >
+                    <UserPlus className="w-3 h-3 mr-1" />
+                    Connect
+                  </Button>
                 </div>
-                <Button 
-                  size="sm" 
-                  className="bg-purple-600 hover:bg-purple-700 text-xs px-4 py-2" 
-                  onClick={() => onConnectCollaborator(collaborator)}
-                >
-                  <UserPlus className="w-3 h-3 mr-1" />
-                  Connect
-                </Button>
-              </div>
-            ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      <CollaboratorProfileDialog
+        open={!!viewedCollaborator}
+        onOpenChange={(open) => setViewedCollaborator(open ? viewedCollaborator : null)}
+        collaborator={viewedCollaborator}
+      />
+    </>
   );
 };
 
 export default SuggestedCollaborators;
+
