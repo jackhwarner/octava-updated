@@ -118,7 +118,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                 )}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 p-3 mr-32">
+            <DropdownMenuContent align="end" className="w-80 p-3 mr-44">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">Notifications</h3>
                 <button 
@@ -179,7 +179,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 p-3 mr-32">
+            <DropdownMenuContent align="end" className="w-80 p-3 mr-44">
               <div className="flex items-center p-3 mb-2">
                 <Avatar className="w-10 h-10 mr-4">
                   <AvatarImage src={profile?.avatar_url || profile?.profile_picture_url} />
