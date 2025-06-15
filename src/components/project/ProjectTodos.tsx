@@ -192,7 +192,7 @@ const ProjectTodos = ({
   return <div className="flex flex-col h-full min-h-0">
       {/* Add Todo */}
       <Card>
-        <CardHeader className="flex flex-row items-start justify-between ">
+        <CardHeader className="flex flex-row items-center justify-between \n">
           {/* Left: title + counts */}
           <div className="flex flex-col gap-1">
             <CardTitle className="mb-0">To-Do List</CardTitle>
@@ -239,7 +239,7 @@ const ProjectTodos = ({
             </DialogContent>
           </Dialog>
         </CardHeader>
-        <CardContent />
+        
       </Card>
 
       {/* Scrollable todo list area */}
