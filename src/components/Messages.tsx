@@ -147,8 +147,21 @@ const Messages = () => {
   return (
     <div className="p-8 min-h-screen flex flex-col bg-gray-50">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
-        <p className="text-gray-600">Keep in touch with your collaborators. Manage your conversations and start new chats.</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
+            <p className="text-gray-600">
+              Keep in touch with your collaborators. Manage your conversations and start new chats.
+            </p>
+          </div>
+          <Button
+            className="bg-purple-600 hover:bg-purple-700"
+            onClick={() => setShowNewMessageDialog(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Message
+          </Button>
+        </div>
       </div>
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
         {/* Chat List */}
