@@ -33,9 +33,7 @@ const cityToZipCodes: {
   'Phoenix, AZ': ['85001', '85002', '85003', '85004', '85005', '85006', '85007', '85008', '85009', '85010'],
   'Philadelphia, PA': ['19101', '19102', '19103', '19104', '19105', '19106', '19107', '19108', '19109', '19110'],
   'San Antonio, TX': ['78201', '78202', '78203', '78204', '78205', '78206', '78207', '78208', '78209', '78210'],
-  'San Diego, CA': ['92101', '92102', '92103', '92104', '92105', '92106', '92107', '92108', '92109', '92110'],
-  'Dallas, TX': ['75201', '75202', '75203', '75204', '75205', '75206', '75207', '75208', '75209', '75210'],
-  'San Jose, CA': ['95101', '95102', '95103', '95104', '95105', '95106', '95107', '95108', '95109', '95110']
+  'San Diego, CA': ['92101', '92102', '92103', '92104', '92105', '92106', '92107', '92108', '92109', '92110']
   // Add more cities as needed
 };
 const BrowseFilters = ({
@@ -164,18 +162,33 @@ const BrowseFilters = ({
           {/* Location Filter */}
           <div className="relative flex items-center">
             <div className="w-full relative">
-              <Input placeholder="City, State, or ZIP" value={location} onChange={e => setLocation(e.target.value)} className="w-full flex-1" onFocus={() => setLocationFocused(true)} onBlur={() => setTimeout(() => setLocationFocused(false), 100)} style={{
-              minWidth: 0
-            }} />
-              {location && filteredCities.length > 0 && !location.match(/^\d{5}$/) && locationFocused && <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto" style={{
-              top: '100%',
-              left: 0
-            }}>
-                  {filteredCities.slice(0, 10).map(city => <button key={city} type="button" className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100" onMouseDown={() => handleLocationSelect(city)}>
+              <Input
+                placeholder="City or ZIP Code"
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                className="w-full flex-1"
+                onFocus={() => setLocationFocused(true)}
+                onBlur={() => setTimeout(() => setLocationFocused(false), 100)}
+                style={{ minWidth: 0 }}
+              />
+              {location && filteredCities.length > 0 && !location.match(/^\d{5}$/) && locationFocused && (
+                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto" style={{ top: '100%', left: 0 }}>
+                  {filteredCities.slice(0, 10).map(city => (
+                    <button
+                      key={city}
+                      type="button"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100"
+                      onMouseDown={() => handleLocationSelect(city)}
+                    >
                       {city}
-                    </button>)}
-                </div>}
-              
+                    </button>
+                  ))}
+                </div>
+              )}
+              {/* Helper text if previously added */}
+              <span className="text-xs text-gray-400 mt-1 block">
+                {/* Remove if redundant since placeholder is now clear */}
+              </span>
             </div>
           </div>
 
