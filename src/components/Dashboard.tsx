@@ -16,45 +16,44 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
   const [selectedCollaborator, setSelectedCollaborator] = useState<any>(null);
 
   const handleConnectCollaborator = (collaborator: any) => {
-    // Navigate to messages and potentially pre-select collaborator
     if (onNavigate) {
       onNavigate('messages');
     }
   };
 
   const handleMessageCollaborator = (collaborator: any) => {
-    // Navigate to messages and potentially pre-select collaborator
     if (onNavigate) {
       onNavigate('messages');
     }
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here's what's happening with your projects.</p>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">Welcome back! Here's what's happening with your projects.</p>
+        </div>
 
-      {/* Dashboard Stats */}
-      <DashboardStats onNavigate={onNavigate || (() => {})} />
+        {/* Dashboard Stats */}
+        <DashboardStats onNavigate={onNavigate || (() => {})} />
 
-      <div className="space-y-8">
-        {/* Quick Actions and Recent Projects Row with adjusted spacing */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <QuickActions onNavigate={onNavigate || (() => {})} />
-          <div className="lg:col-span-2">
-            <RecentProjects onNavigate={onNavigate || (() => {})} />
+        <div className="space-y-8">
+          {/* Quick Actions and Recent Projects Row with adjusted spacing */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <QuickActions onNavigate={onNavigate || (() => {})} />
+            <div className="lg:col-span-2">
+              <RecentProjects onNavigate={onNavigate || (() => {})} />
+            </div>
+          </div>
+
+          {/* Online Collaborators and Suggested Collaborators Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <OnlineCollaborators onMessageCollaborator={handleMessageCollaborator} />
+            <SuggestedCollaborators onConnectCollaborator={handleConnectCollaborator} />
           </div>
         </div>
-
-        {/* Online Collaborators and Suggested Collaborators Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <OnlineCollaborators onMessageCollaborator={handleMessageCollaborator} />
-          <SuggestedCollaborators onConnectCollaborator={handleConnectCollaborator} />
-        </div>
       </div>
-
       <NotificationsPanel 
         isOpen={showNotificationsPanel} 
         onClose={() => setShowNotificationsPanel(false)} 
@@ -64,3 +63,4 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 };
 
 export default Dashboard;
+
