@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,9 +18,14 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
-      
+
+      // If not logged in, redirect to login
       if (!session?.user) {
         navigate('/login', { state: { from: location }, replace: true });
+      } else {
+        // If landing on /profile-setup and user is now authenticated, stay
+        // Or, if user is NOT on /profile-setup and profile is incomplete, send them there
+        // We'll fetch the user profile to check (optional, for future improvement)
       }
     });
 
@@ -30,9 +34,11 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
       async (event, session) => {
         setUser(session?.user ?? null);
         setLoading(false);
-        
+
         if (!session?.user) {
           navigate('/login', { state: { from: location }, replace: true });
+        } else {
+          // See above: can optionally fetch and redirect to profile-setup here if needed
         }
       }
     );

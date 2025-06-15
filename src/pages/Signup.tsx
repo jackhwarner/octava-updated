@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+const EMAIL_CONFIRMATION_REQUIRED = true; // Set to true if your Supabase project requires email confirmation
+
 const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,12 +22,14 @@ const Signup = () => {
   const [accountType, setAccountType] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successEmail, setSuccessEmail] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!agreeTerms) {
       toast({
         variant: "destructive",
@@ -33,14 +38,18 @@ const Signup = () => {
       });
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
+      // Always include the emailRedirectTo for confirmation emails!
+      const redirectToUrl = `${window.location.origin}/login`;
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: redirectToUrl,
           data: {
             full_name: name,
             role: accountType
@@ -50,11 +59,17 @@ const Signup = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Account created successfully",
-        description: "Welcome to Octava! Let's set up your profile..."
-      });
-      navigate("/profile-setup", { state: { role: accountType, fullName: name } });
+      setShowSuccess(true);
+      setSuccessEmail(email);
+
+      // Only allow profile setup after confirming email (to eliminate ghost login)
+      if (!EMAIL_CONFIRMATION_REQUIRED) {
+        toast({
+          title: "Account created",
+          description: "Let's set up your profile."
+        });
+        navigate("/profile-setup", { state: { role: accountType, fullName: name } });
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -68,7 +83,7 @@ const Signup = () => {
 
   const handleGoogleSignup = async () => {
     setIsLoading(true);
-    
+
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -88,16 +103,59 @@ const Signup = () => {
     }
   };
 
+  if (showSuccess) {
+    // Success state after signup: email confirmation required
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex flex-col justify-center items-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-center">Check your email</CardTitle>
+            <CardDescription className="text-center">
+              We sent a confirmation link to <span className="font-bold">{successEmail}</span>.<br />
+              Please verify your email before logging in.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 text-center text-sm text-gray-600">
+              Didn’t get the email? Check your spam/junk folder or&nbsp;
+              <button
+                className="text-purple-600 underline hover:text-purple-700"
+                onClick={async () => {
+                  setIsLoading(true);
+                  const { error } = await supabase.auth.resend({ type: 'signup', email: successEmail });
+                  setIsLoading(false);
+                  toast({
+                    title: error ? "Failed to resend confirmation email" : "Confirmation email resent",
+                    description: error?.message || "Please check your inbox.",
+                    variant: error ? "destructive" : undefined,
+                  });
+                }}
+                disabled={isLoading}
+              >resend it</button>.
+            </div>
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              onClick={() => navigate("/login")}
+              disabled={isLoading}
+            >
+              Continue to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex flex-col justify-center items-center p-4">
       <Link to="/" className="flex items-center mb-8">
-        <img 
-          src="/lovable-uploads/octava-large-purple.png" 
-          alt="Octava Logo" 
-          className="h-10 mr-2" 
+        <img
+          src="/lovable-uploads/octava-large-purple.png"
+          alt="Octava Logo"
+          className="h-10 mr-2"
         />
       </Link>
-      
+
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
@@ -109,7 +167,7 @@ const Signup = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input 
+              <Input
                 id="name"
                 placeholder="John Doe"
                 value={name}
@@ -117,10 +175,10 @@ const Signup = () => {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
+              <Input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
@@ -129,11 +187,11 @@ const Signup = () => {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Input 
+                <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
@@ -159,7 +217,7 @@ const Signup = () => {
                 Must be at least 8 characters long with a number and special character
               </p>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="account-type">I am a...</Label>
               <Select value={accountType} onValueChange={setAccountType}>
@@ -177,11 +235,11 @@ const Signup = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="terms" 
-                checked={agreeTerms} 
+              <Checkbox
+                id="terms"
+                checked={agreeTerms}
                 onCheckedChange={(checked) => setAgreeTerms(checked === true)}
               />
               <label
@@ -198,16 +256,16 @@ const Signup = () => {
                 </Link>
               </label>
             </div>
-            
-            <Button 
-              type="submit" 
+
+            <Button
+              type="submit"
               className="w-full bg-purple-600 hover:bg-purple-700"
               disabled={isLoading}
             >
               {isLoading ? "Creating account..." : "Sign Up"}
             </Button>
           </form>
-          
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t"></span>
@@ -216,11 +274,11 @@ const Signup = () => {
               <span className="bg-white px-2 text-gray-500">or</span>
             </div>
           </div>
-          
-          <Button 
-            variant="outline" 
-            type="button" 
-            className="w-full" 
+
+          <Button
+            variant="outline"
+            type="button"
+            className="w-full"
             onClick={handleGoogleSignup}
             disabled={isLoading}
           >
@@ -237,9 +295,9 @@ const Signup = () => {
           </p>
         </CardFooter>
       </Card>
-      
+
       <p className="mt-6 text-center text-xs text-gray-500 max-w-md">
-        By signing up, you'll start with a 7-day free trial of Octava Pro. After the trial ends, you'll be charged 
+        By signing up, you'll start with a 7-day free trial of Octava Pro. After the trial ends, you'll be charged
         $9.99/month unless you cancel before the trial period.
       </p>
     </div>
