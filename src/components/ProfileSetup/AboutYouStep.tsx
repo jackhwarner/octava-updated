@@ -42,8 +42,10 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
     'Oboe', 'Percussion', 'Electric Guitar', 'Acoustic Guitar'
   ];
 
+  const maxGenres = 5;
+
   const addGenre = (genre: string) => {
-    if (genre && !data.genres.includes(genre)) {
+    if (genre && !data.genres.includes(genre) && data.genres.length < maxGenres) {
       onUpdate({ genres: [...data.genres, genre] });
     }
   };
@@ -237,7 +239,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label>Genres</Label>
+          <Label>Genres (5 max)</Label>
           <div className="flex flex-wrap gap-2 mb-2">
             {data.genres.map((genre: string) => (
               <Badge key={genre} variant="outline" className="px-3 py-1">
@@ -250,17 +252,20 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            {commonGenres.filter(g => !data.genres.includes(g)).map((genre) => (
-              <Button
-                key={genre}
-                variant="ghost"
-                size="sm"
-                onClick={() => addGenre(genre)}
-                className="text-xs"
-              >
-                + {genre}
-              </Button>
-            ))}
+            {commonGenres
+              .filter(g => !data.genres.includes(g))
+              .map((genre) => (
+                <Button
+                  key={genre}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addGenre(genre)}
+                  className="text-xs"
+                  disabled={data.genres.length >= maxGenres}
+                >
+                  + {genre}
+                </Button>
+              ))}
           </div>
         </div>
 
