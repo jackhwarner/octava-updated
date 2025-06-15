@@ -135,7 +135,7 @@ const Messages = () => {
 
   if (loading) {
     return (
-      <div className="p-8 h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen bg-gray-50 p-6 sm:p-8">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
@@ -148,27 +148,23 @@ const Messages = () => {
   }
 
   return (
-    <div className="p-8 min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen bg-gray-50 p-6 sm:p-8 flex flex-col">
       {/* Page header */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
-            <p className="text-gray-600">
-              Keep in touch with your collaborators. Manage your conversations and start new chats.
-            </p>
-          </div>
-          <Button
-            className="bg-purple-600 hover:bg-purple-700"
-            onClick={() => setShowNewMessageDialog(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Message
-          </Button>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">Messages</h1>
+          <p className="text-gray-600 text-base">Keep in touch with your collaborators. Manage your conversations and start new chats.</p>
         </div>
+        <Button
+          className="bg-purple-600 hover:bg-purple-700"
+          onClick={() => setShowNewMessageDialog(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Message
+        </Button>
       </div>
 
-      {/* Big card with 4 rounded corners, split by a vertical line */}
+      {/* Main card area */}
       <div className="flex-1 flex justify-center items-stretch">
         <Card className="flex w-full max-w-6xl flex-1 min-h-[600px] rounded-2xl shadow border bg-white overflow-hidden">
           {/* Conversations List */}
