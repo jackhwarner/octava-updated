@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { User, UserPlus, Music } from 'lucide-react';
 import { useCollaborators } from '@/hooks/useCollaborators';
 
@@ -11,6 +12,7 @@ interface Collaborator {
   role?: string;
   avatar_url?: string;
   skills?: string[];
+  genres?: string[];
 }
 
 interface SuggestedCollaboratorsProps {
@@ -68,21 +70,36 @@ const SuggestedCollaborators = ({
             suggestedCollaborators.slice(0, 5).map(collaborator => (
               <div key={collaborator.id} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  {collaborator.avatar_url ? (
-                    <img 
-                      src={collaborator.avatar_url} 
+                  <Avatar className="w-8 h-8 flex-shrink-0">
+                    <AvatarImage 
+                      src={collaborator.avatar_url || undefined} 
                       alt={collaborator.name} 
-                      className="w-8 h-8 rounded-full flex-shrink-0" 
                     />
-                  ) : (
-                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                    <AvatarFallback>
                       <User className="w-4 h-4" />
-                    </div>
-                  )}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{collaborator.name}</p>
                     <div className="flex items-center space-x-2">
                       <p className="text-xs text-gray-500">{collaborator.role || 'Musician'}</p>
+                      {collaborator.genres && collaborator.genres.length > 0 && (
+                        <>
+                          <span className="text-xs text-gray-300">•</span>
+                          <div className="flex flex-wrap gap-1">
+                            {collaborator.genres.slice(0, 2).map((genre) => (
+                              <Badge key={genre} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                {genre}
+                              </Badge>
+                            ))}
+                            {collaborator.genres.length > 2 && (
+                              <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600">
+                                +{collaborator.genres.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        </>
+                      )}
                       {collaborator.skills && collaborator.skills.length > 0 && (
                         <>
                           <span className="text-xs text-gray-300">•</span>
