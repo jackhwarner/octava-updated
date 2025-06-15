@@ -198,13 +198,15 @@ const Projects = () => {
 
   if (projectsLoading || foldersLoading) {
     return (
-      <div className="p-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8" data-testid="loading-skeleton" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded" data-testid="loading-skeleton" />
-            ))}
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8" data-testid="loading-skeleton" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-64 bg-gray-200 rounded" data-testid="loading-skeleton" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -225,93 +227,95 @@ const Projects = () => {
   }
 
   return (
-    <div className="p-8">
-      {/* Header - all on the same row for alignment */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">Projects</h1>
-          <p className="text-gray-600 text-base">Manage your music projects and collaborate with others</p>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header - consistent with Connections page */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
+            <p className="text-gray-600 text-base">Manage your music projects and collaborate with others</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <CreateFolderDialog 
+              isOpen={isCreateFolderDialogOpen}
+              setIsOpen={setIsCreateFolderDialogOpen}
+              onCreateFolder={handleFolderCreated}
+            />
+            <CreateProjectDialog folders={folders} onCreateProject={handleCreateProject} />
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <CreateFolderDialog 
-            isOpen={isCreateFolderDialogOpen}
-            setIsOpen={setIsCreateFolderDialogOpen}
-            onCreateFolder={handleFolderCreated}
-          />
-          <CreateProjectDialog folders={folders} onCreateProject={handleCreateProject} />
-        </div>
-      </div>
 
-      {/* Filters Row: search and sort on the same line */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-        <div className="flex-1">
-          <ProjectFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+        {/* Filters Row: search and sort on the same line */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+          <div className="flex-1">
+            <ProjectFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+          </div>
+          <div>
+            <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="updated">Last Updated</SelectItem>
+                <SelectItem value="created">Last Created</SelectItem>
+                <SelectItem value="name">Name (A-Z)</SelectItem>
+                <SelectItem value="status">Status</SelectItem>
+                <SelectItem value="collaborators">Collaborators</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div>
-          <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="updated">Last Updated</SelectItem>
-              <SelectItem value="created">Last Created</SelectItem>
-              <SelectItem value="name">Name (A-Z)</SelectItem>
-              <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="collaborators">Collaborators</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      {/* Show folders section ONLY if at least one folder exists */}
-      {!folderId && !searchTerm && folders.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Folders</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {folders.map(folder => (
-              <FolderCard 
-                key={folder.id} 
-                folder={folder}
-                onDelete={handleFolderDeleted}
+        {/* Show folders section ONLY if at least one folder exists */}
+        {!folderId && !searchTerm && folders.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Folders</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {folders.map(folder => (
+                <FolderCard 
+                  key={folder.id} 
+                  folder={folder}
+                  onDelete={handleFolderDeleted}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">
+              {searchTerm 
+                ? `Search Results (${filteredProjects.length})` 
+                : folderId 
+                  ? currentFolder?.name || 'Folder Projects'
+                  : 'Projects'
+              }
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map(project => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                folders={folders}
+                searchTerm={searchTerm}
+                onProjectUpdate={handleProjectUpdate}
+                onProjectDelete={handleProjectDelete}
+                onShare={handleShareProject}
               />
             ))}
           </div>
-        </div>
-      )}
 
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">
-            {searchTerm 
-              ? `Search Results (${filteredProjects.length})` 
-              : folderId 
-                ? currentFolder?.name || 'Folder Projects'
-                : 'Projects'
-            }
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map(project => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              folders={folders}
+          {filteredProjects.length === 0 && (
+            <EmptyState
               searchTerm={searchTerm}
-              onProjectUpdate={handleProjectUpdate}
-              onProjectDelete={handleProjectDelete}
-              onShare={handleShareProject}
+              currentFolderId={folderId || null}
+              currentFolderName={currentFolder?.name}
+              onCreateProject={() => {}}
             />
-          ))}
+          )}
         </div>
-
-        {filteredProjects.length === 0 && (
-          <EmptyState
-            searchTerm={searchTerm}
-            currentFolderId={folderId || null}
-            currentFolderName={currentFolder?.name}
-            onCreateProject={() => {}}
-          />
-        )}
       </div>
     </div>
   );
