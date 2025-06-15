@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import AboutYouStep from './ProfileSetup/AboutYouStep';
 import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
+import { REDIRECT_IF_NO_SUBSCRIPTION } from '@/constants/subscription';
 
 const ProfileSetup = () => {
   console.log('ProfileSetup component rendering');
@@ -92,11 +93,17 @@ const ProfileSetup = () => {
       setCompletedSteps(prev => [...prev, currentStep]);
       toast({
         title: "Profile setup complete!",
-        description: "Now let's set up your subscription to get started.",
+        description: REDIRECT_IF_NO_SUBSCRIPTION
+          ? "Now let's set up your subscription to get started."
+          : "You're all set! Redirecting to your dashboard.",
       });
 
-      // Redirect to subscription page instead of dashboard
-      navigate('/subscription');
+      // Respect the subscription enforcement toggle!
+      if (REDIRECT_IF_NO_SUBSCRIPTION) {
+        navigate('/subscription');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       toast({
         title: "Error",
