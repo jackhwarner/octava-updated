@@ -1,8 +1,8 @@
-
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { MapPin, Users, Music } from 'lucide-react';
 import { ConnectionButton } from '../connections/ConnectionButton';
+import UserAvatar from "../UserAvatar";
 
 interface SuggestedCollaborator {
   id: string;
@@ -41,9 +41,16 @@ const SuggestedCollaborators = ({ collaborators }: SuggestedCollaboratorsProps) 
             <Card key={profile.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg">{profile.name}</h3>
-                    <p className="text-sm text-gray-500">@{profile.username}</p>
+                  <div className="flex items-center space-x-3">
+                    <UserAvatar
+                      name={profile.name}
+                      src={profile.avatar_url}
+                      size="sm"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-lg">{profile.name}</h3>
+                      <p className="text-sm text-gray-500">@{profile.username}</p>
+                    </div>
                   </div>
                   <Badge variant="secondary" className="capitalize">
                     {profile.role}

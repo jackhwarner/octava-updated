@@ -1,10 +1,10 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { User, UserPlus, Music } from 'lucide-react';
 import { useCollaborators } from '@/hooks/useCollaborators';
+import UserAvatar from "@/components/UserAvatar";
 
 interface Collaborator {
   id: string;
@@ -70,15 +70,12 @@ const SuggestedCollaborators = ({
             suggestedCollaborators.slice(0, 5).map(collaborator => (
               <div key={collaborator.id} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarImage 
-                      src={collaborator.avatar_url || undefined} 
-                      alt={collaborator.name} 
-                    />
-                    <AvatarFallback>
-                      <User className="w-4 h-4" />
-                    </AvatarFallback>
-                  </Avatar>
+                  {/* Use global UserAvatar */}
+                  <UserAvatar
+                    name={collaborator.name}
+                    src={collaborator.avatar_url}
+                    size="sm"
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{collaborator.name}</p>
                     <div className="flex items-center space-x-2">
