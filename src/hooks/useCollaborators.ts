@@ -1,6 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useProfile } from '@/hooks/useProfile';
+import { rankCollaborators } from '@/utils/collaboratorMatching';
 
 interface Collaborator {
   id: string;
@@ -21,6 +24,7 @@ export const useCollaborators = () => {
   const [onlineCollaborators, setOnlineCollaborators] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { profile } = useProfile();
 
   useEffect(() => {
     const fetchCollaborators = async () => {
@@ -83,11 +87,15 @@ export const useCollaborators = () => {
 
         console.log('Processed collaborators:', processedCollaborators);
 
-        // Set all processed collaborators as suggested collaborators
-        setSuggestedCollaborators(processedCollaborators);
+        // Rank collaborators based on user's profile
+        const rankedCollaborators = rankCollaborators(processedCollaborators, profile);
+        console.log('Ranked collaborators:', rankedCollaborators);
+
+        // Set all ranked collaborators as suggested collaborators
+        setSuggestedCollaborators(rankedCollaborators);
         
-        // Set online collaborators
-        setOnlineCollaborators(processedCollaborators.filter(c => c.is_online));
+        // Set online collaborators (also ranked)
+        setOnlineCollaborators(rankedCollaborators.filter(c => c.is_online));
       } catch (error) {
         console.error('Error in fetchCollaborators:', {
           error,
@@ -105,7 +113,7 @@ export const useCollaborators = () => {
     };
 
     fetchCollaborators();
-  }, [toast]);
+  }, [toast, profile]); // Added profile to dependencies so it re-ranks when profile changes
 
   return { suggestedCollaborators, onlineCollaborators, loading };
 };
