@@ -1,11 +1,13 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Music, Folder as FolderIcon, Clock } from 'lucide-react';
+import { Calendar, Users, Folder as FolderIcon, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ProjectActions } from './ProjectActions';
 import type { Project } from '@/types/project';
 import type { Folder } from '@/hooks/useFolders';
+
 interface ProjectCardProps {
   project: Project;
   folders: Folder[];
@@ -14,6 +16,7 @@ interface ProjectCardProps {
   onProjectDelete: (project: Project) => void;
   onShare: (project: Project) => void;
 }
+
 export const ProjectCard = ({
   project,
   folders,
@@ -23,6 +26,7 @@ export const ProjectCard = ({
   onShare
 }: ProjectCardProps) => {
   const navigate = useNavigate();
+
   const getProjectStatus = (project: Project) => {
     if (!project.phases || project.phases.length === 0) {
       return {
@@ -30,8 +34,10 @@ export const ProjectCard = ({
         color: 'bg-red-100 text-red-800'
       };
     }
+
     const currentPhase = project.current_phase_index || 0;
     const totalPhases = project.phases.length;
+
     if (currentPhase === 0) {
       return {
         label: 'Not Started',
@@ -49,15 +55,20 @@ export const ProjectCard = ({
       };
     }
   };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
+
   const projectStatus = getProjectStatus(project);
   const folder = folders.find(f => f.id === project.folder_id);
-  return <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow cursor-pointer">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -66,16 +77,27 @@ export const ProjectCard = ({
               <Badge className={projectStatus.color}>
                 {projectStatus.label}
               </Badge>
-              {project.genre && <Badge variant="outline">{project.genre}</Badge>}
+              {project.genre && (
+                <Badge variant="outline">{project.genre}</Badge>
+              )}
             </div>
-            {folder && searchTerm && <div className="flex items-center text-sm text-gray-500 mb-2">
-                <div className="w-3 h-3 rounded-full mr-2" style={{
-              backgroundColor: folder.color || '#3b82f6'
-            }} />
+            {folder && searchTerm && (
+              <div className="flex items-center text-sm text-gray-500 mb-2">
+                <div 
+                  className="w-3 h-3 rounded-full mr-2" 
+                  style={{ backgroundColor: folder.color || '#3b82f6' }} 
+                />
                 {folder.name}
-              </div>}
+              </div>
+            )}
           </div>
-          <ProjectActions project={project} folders={folders} onUpdate={onProjectUpdate} onDelete={onProjectDelete} onShare={onShare} />
+          <ProjectActions 
+            project={project} 
+            folders={folders} 
+            onUpdate={onProjectUpdate} 
+            onDelete={onProjectDelete} 
+            onShare={onShare} 
+          />
         </div>
       </CardHeader>
       
@@ -101,34 +123,41 @@ export const ProjectCard = ({
             Updated {formatDate(project.updated_at)}
           </div>
           
-          {(project.bpm || project.key) && <div className="flex items-center space-x-4 text-sm text-gray-500">
-              {project.bpm && <div className="flex items-center">
-                  <Music className="w-4 h-4 mr-1" />
-                  {project.bpm} BPM
-                </div>}
-              {project.key && <span>Key: {project.key}</span>}
-            </div>}
-          
-          {project.collaborators && project.collaborators.length > 0 && <div className="flex items-center space-x-2">
+          {project.collaborators && project.collaborators.length > 0 && (
+            <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">Team:</span>
               <div className="flex -space-x-2">
-                {project.collaborators.slice(0, 3).map((collaborator, index) => <div key={index} className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white">
+                {project.collaborators.slice(0, 3).map((collaborator, index) => (
+                  <div 
+                    key={index} 
+                    className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white"
+                  >
                     <span className="text-xs text-purple-700">
                       {getInitials(collaborator.profiles?.name || 'U')}
                     </span>
-                  </div>)}
-                {project.collaborators.length > 3 && <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
+                  </div>
+                ))}
+                {project.collaborators.length > 3 && (
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
                     <span className="text-xs text-gray-600">+{project.collaborators.length - 3}</span>
-                  </div>}
+                  </div>
+                )}
               </div>
-            </div>}
+            </div>
+          )}
         </div>
         
         <div className="flex items-center justify-between mt-4 pt-4 border-t">
-          <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${project.id}`)} className="w-full text-white hover:text-white bg-purple-600 hover:bg-purple-700 ">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate(`/projects/${project.id}`)} 
+            className="w-full text-white hover:text-white bg-purple-600 hover:bg-purple-700"
+          >
             Open Project
           </Button>
         </div>
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };

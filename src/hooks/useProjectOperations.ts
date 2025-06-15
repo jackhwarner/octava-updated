@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Project } from '@/types/project';
@@ -15,9 +16,6 @@ export const useProjectOperations = () => {
     deadline?: string;
     budget?: number;
     folder_id?: string;
-    bpm?: number;
-    key?: string;
-    daw?: string;
     mood?: string;
     phases?: string[];
     version_approval_enabled?: boolean;
@@ -62,9 +60,6 @@ export const useProjectOperations = () => {
     deadline?: string;
     budget?: number;
     folder_id?: string;
-    bpm?: number;
-    key?: string;
-    daw?: string;
     mood?: string;
     phases?: string[];
     current_phase_index?: number;

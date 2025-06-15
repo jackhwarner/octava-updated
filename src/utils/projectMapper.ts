@@ -29,9 +29,6 @@ export const mapProjectDataToDatabase = (projectData: {
   deadline?: string;
   budget?: number;
   folder_id?: string;
-  bpm?: number;
-  key?: string;
-  daw?: string;
   mood?: string;
   phases?: string[];
   version_approval_enabled?: boolean;
@@ -47,9 +44,6 @@ export const mapProjectDataToDatabase = (projectData: {
     budget: projectData.budget,
     status: 'active' as const,
     folder_id: projectData.folder_id,
-    bpm: projectData.bpm,
-    key: projectData.key,
-    daw: projectData.daw,
     mood: projectData.mood,
     phases: projectData.phases || ['Demo', 'Production', 'Mixing', 'Mastering', 'Complete'],
     current_phase_index: 0,
@@ -67,9 +61,6 @@ export const mapProjectUpdatesToDatabase = (updates: {
   deadline?: string;
   budget?: number;
   folder_id?: string;
-  bpm?: number;
-  key?: string;
-  daw?: string;
   mood?: string;
   phases?: string[];
   current_phase_index?: number;
