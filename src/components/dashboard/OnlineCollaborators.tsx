@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Music } from 'lucide-react';
 import { useCollaborators } from '@/hooks/useCollaborators';
 import UserAvatar from '@/components/UserAvatar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CollaboratorProfileDialog } from './CollaboratorProfileDialog';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Collaborator {
   id: string;
@@ -14,6 +16,7 @@ interface Collaborator {
   avatar_url?: string;
   genres?: string[];
   skills?: string[];
+  is_online?: boolean;
 }
 
 interface OnlineCollaboratorsProps {
@@ -21,10 +24,54 @@ interface OnlineCollaboratorsProps {
 }
 
 const OnlineCollaborators = ({ onMessageCollaborator }: OnlineCollaboratorsProps) => {
+  const { user } = useAuth();
   const { onlineCollaborators, loading } = useCollaborators();
   const [viewedCollaborator, setViewedCollaborator] = useState<Collaborator | null>(null);
+  const [mutuals, setMutuals] = useState<string[]>([]);
+  const [connectionsLoading, setConnectionsLoading] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    const fetchConnections = async () => {
+      setConnectionsLoading(true);
+      if (!user) {
+        setMutuals([]);
+        setConnectionsLoading(false);
+        return;
+      }
+      // Fetch mutual connections (connections where current user is user1 or user2)
+      const { data: connections, error } = await supabase
+        .from('connections')
+        .select('user1_id, user2_id')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+      if (error) {
+        console.error('Error fetching connections:', error);
+        setMutuals([]);
+        setConnectionsLoading(false);
+        return;
+      }
+
+      const mutualIds = [];
+      if (connections) {
+        for (const c of connections) {
+          if (c.user1_id === user.id) {
+            mutualIds.push(c.user2_id);
+          } else if (c.user2_id === user.id) {
+            mutualIds.push(c.user1_id);
+          }
+        }
+      }
+      setMutuals(mutualIds);
+      setConnectionsLoading(false);
+    };
+    fetchConnections();
+  }, [user]);
+
+  // Only show online collaborators who are our mutuals/connections
+  const onlineConnectionCollaborators =
+    onlineCollaborators.filter((collab) => mutuals.includes(collab.id));
+
+  if (loading || connectionsLoading) {
     return (
       <Card>
         <CardHeader>
@@ -58,15 +105,14 @@ const OnlineCollaborators = ({ onMessageCollaborator }: OnlineCollaboratorsProps
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            {onlineCollaborators.length === 0 ? (
+            {onlineConnectionCollaborators.length === 0 ? (
               <p className="text-gray-500 text-sm">No collaborators online</p>
             ) : (
-              onlineCollaborators.map((collaborator) => (
+              onlineConnectionCollaborators.map((collaborator) => (
                 <div
                   key={collaborator.id}
                   className="flex items-center justify-between cursor-pointer hover:bg-accent/50 rounded transition px-3 py-2"
                   onClick={(e) => {
-                    // Only open dialog if NOT clicking a button (no button now)
                     setViewedCollaborator(collaborator);
                   }}
                 >
@@ -119,7 +165,6 @@ const OnlineCollaborators = ({ onMessageCollaborator }: OnlineCollaboratorsProps
                       </div>
                     </div>
                   </div>
-                  {/* Message button removed */}
                 </div>
               ))
             )}
@@ -136,3 +181,4 @@ const OnlineCollaborators = ({ onMessageCollaborator }: OnlineCollaboratorsProps
 };
 
 export default OnlineCollaborators;
+
