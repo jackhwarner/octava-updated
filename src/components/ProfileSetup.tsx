@@ -10,7 +10,7 @@ import AboutYouStep from './ProfileSetup/AboutYouStep';
 import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
 import { REDIRECT_IF_NO_SUBSCRIPTION } from '@/constants/subscription';
-+import { useAuthAndProfile } from '@/hooks/useAuthAndProfile';
+import { useAuthAndProfile } from '@/hooks/useAuthAndProfile';
 
 const ProfileSetup = () => {
   console.log('ProfileSetup component rendering');
