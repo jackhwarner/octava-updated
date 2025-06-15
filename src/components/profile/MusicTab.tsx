@@ -108,7 +108,7 @@ export const MusicTab = () => {
   }
   return <>
       <Card>
-        <CardHeader>
+        <CardHeader className="pt-4 ">
           <CardTitle className="flex items-center justify-between">
             My Tracks
             <Button onClick={() => setShowUploadDialog(true)} className="bg-purple-600 hover:bg-purple-700 ">
