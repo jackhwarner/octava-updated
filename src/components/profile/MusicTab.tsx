@@ -113,15 +113,18 @@ export const MusicTab = ({
       </CardContent>
     </Card>;
   }
-  return <>
+  return (
+    <>
       <Card>
         <CardHeader className="pt-4 pb-0">
           <CardTitle className="flex items-center justify-between font-semibold text-2xl">
-            My Tracks
-            {isOwnProfile && <Button onClick={() => setShowUploadDialog(true)} className="bg-purple-600 hover:bg-purple-700">
+            Music
+            {isOwnProfile && (
+              <Button onClick={() => setShowUploadDialog(true)} className="bg-purple-600 hover:bg-purple-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Upload Track
-              </Button>}
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -190,5 +193,6 @@ export const MusicTab = ({
             </DialogFooter>
           </DialogContent>
         </Dialog>}
-    </>;
+    </>
+  );
 };
