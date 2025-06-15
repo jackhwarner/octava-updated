@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { X, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AboutYouStepProps {
   data: any;
@@ -96,9 +97,32 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
       }
       setCheckingUsername(true);
       try {
-        const res = await fetch(`/rest/v1/profiles?username=eq.${encodeURIComponent(data.username)}`, {
-          headers: { apikey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "" }
+        // Use Supabase client directly to get the anon key, so we never rely on environment variables
+        // @ts-ignore
+        const anonKey = supabase ? supabase['headers']?.apikey || supabase['apikey'] || supabase['rest']?.apikey || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjb3dzZm9udGhzeWpsZm9pcW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjM5MTMsImV4cCI6MjA2MzY5OTkxM30.FY3_Gbq7Ydj_VnS_i2Mt6jtWduqJdCf5Ycs845btr68" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjb3dzZm9udGhzeWpsZm9pcW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjM5MTMsImV4cCI6MjA2MzY5OTkxM30.FY3_Gbq7Ydj_VnS_i2Mt6jtWduqJdCf5Ycs845btr68";
+        // If you ever rotate anon keys, update the fallback above!
+
+        const url = "https://rcowsfonthsyjlfoiqoo.supabase.co/rest/v1/profiles?username=eq." + encodeURIComponent(data.username);
+
+        const res = await fetch(url, {
+          headers: {
+            apikey: anonKey,
+            Authorization: `Bearer ${anonKey}`,
+          }
         });
+        if (!res.ok) {
+          let errorMsg: string;
+          if (res.status === 429) {
+            errorMsg = 'Too many requests. Please wait and try again.';
+          } else if (res.status === 401 || res.status === 403) {
+            errorMsg = 'Sign up error: Could not check username. Please try again soon.';
+          } else {
+            errorMsg = 'Unexpected error checking username. Please try again.';
+          }
+          setUsernameError(errorMsg);
+          setCheckingUsername(false);
+          return;
+        }
         const result = await res.json();
         if (!cancelled) {
           if (result && Array.isArray(result) && result.length > 0) {
@@ -107,8 +131,8 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
             setUsernameError('');
           }
         }
-      } catch (error) {
-        if (!cancelled) setUsernameError('Error checking username.');
+      } catch (error: any) {
+        if (!cancelled) setUsernameError('Connection error while checking username. Please check your internet or try again later.');
       }
       setCheckingUsername(false);
     };
