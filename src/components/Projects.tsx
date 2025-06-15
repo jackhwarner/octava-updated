@@ -226,12 +226,16 @@ const Projects = () => {
 
   return (
     <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
+        <p className="text-gray-600 text-base">Manage your music projects and collaborate with others</p>
+      </div>
+
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-          <p className="text-gray-600">Manage your music projects and collaborate with others</p>
+          {/* (Moved the title/subtitle to the header above for better structure) */}
         </div>
-        
         <div className="flex items-center space-x-3">
           <CreateFolderDialog 
             isOpen={isCreateFolderDialogOpen}
