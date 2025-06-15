@@ -212,7 +212,7 @@ const BrowseFilters = ({
           <div className="relative flex items-center">
             <div className="w-full relative">
               <Input
-                placeholder="City, State or ZIP Code"
+                placeholder="City, State, or ZIP"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="w-full flex-1"
