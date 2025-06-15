@@ -6,9 +6,7 @@ import type { User } from '@supabase/supabase-js';
 
 // Helper to check if profile is completed (you can adjust if needed)
 const isProfileSetupComplete = (profile: any) => {
-  // Accept true-ish or required fields
   if (profile?.profile_setup_completed === true) return true;
-  // Fallback: check required fields
   return (
     !!profile?.name &&
     !!profile?.username &&
@@ -41,12 +39,10 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
         return;
       }
 
-      // Always fetch latest profile
+      // -- FIX: Make sure select string is correct, no ":1" --
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select(
-          'id, name, username, bio, location, experience, profile_setup_completed'
-        )
+        .select('id, name, username, bio, location, experience, profile_setup_completed')
         .eq('id', sessionUser.id)
         .maybeSingle();
 
