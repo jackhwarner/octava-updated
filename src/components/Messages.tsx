@@ -14,6 +14,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Separator } from './ui/separator';
+import ConversationList from './messages/ConversationList';
+import ChatWindow from './messages/ChatWindow';
 
 const Messages = () => {
   const { threadId } = useParams<{ threadId: string }>();
@@ -166,203 +168,49 @@ const Messages = () => {
         </div>
       </div>
 
-      {/* Big card with 4 rounded corners */}
+      {/* Big card with 4 rounded corners, split by a vertical line */}
       <div className="flex-1 flex justify-center items-stretch">
         <Card className="flex w-full max-w-6xl flex-1 min-h-[600px] rounded-2xl shadow border bg-white overflow-hidden">
           {/* Conversations List */}
-          <div className="flex flex-col w-72 min-w-[220px] max-w-xs bg-white">
-            <CardHeader className="border-b">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input placeholder="Search messages..." className="pl-9" />
-              </div>
-            </CardHeader>
-            <CardContent className="p-0 flex-1 flex flex-col">
-              <ScrollArea className="flex-1 h-96">
-                {threads.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">
-                    No conversations yet
-                  </div>
-                ) : (
-                  <ul role="list" className="divide-y divide-gray-200">
-                    {threads.map((thread) => {
-                      const otherParticipant = getOtherParticipant(thread);
-                      return (
-                        <li
-                          key={thread.id}
-                          role="listitem"
-                          onClick={() => handleThreadClick(thread.id)}
-                          className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
-                            selectedThreadId === thread.id ? 'bg-purple-50 border-r-2 border-r-purple-600' : ''
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            {thread.is_group ? (
-                              <GroupAvatar 
-                                participants={thread.participants?.map(p => ({
-                                  name: p.profiles.name,
-                                  username: p.profiles.username
-                                })) || []} 
-                                size="md" 
-                              />
-                            ) : (
-                              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                                {otherParticipant?.name?.[0] || otherParticipant?.username?.[0] || '?'}
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-medium truncate">
-                                  {thread.name || otherParticipant?.name || otherParticipant?.username || 'Unknown'}
-                                </h4>
-                                <span className="text-xs text-gray-500">
-                                  {thread.latest_message && formatDistanceToNow(new Date(thread.latest_message.created_at), { addSuffix: true })}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-500 truncate">
-                                {thread.latest_message?.content || 'No messages yet'}
-                              </p>
-                            </div>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </div>
+          <ConversationList
+            threads={threads}
+            selectedThreadId={selectedThreadId}
+            handleThreadClick={handleThreadClick}
+            getOtherParticipant={getOtherParticipant}
+            formatDistanceToNow={formatDistanceToNow}
+          />
 
-          {/* Vertical line without a gap, just a thin divider */}
+          {/* Vertical line - thin, no spacing */}
           <Separator orientation="vertical" className="w-px bg-gray-200" />
 
           {/* Messages view */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {selectedThread ? (
-              <>
-                <CardHeader className="border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {selectedThread.is_group ? (
-                        <GroupAvatar 
-                          participants={selectedThread.participants?.map(p => ({
-                            name: p.profiles.name,
-                            username: p.profiles.username
-                          })) || []} 
-                          size="md" 
-                        />
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                          {getOtherParticipant(selectedThread)?.name?.[0] || getOtherParticipant(selectedThread)?.username?.[0] || '?'}
-                        </div>
-                      )}
-                      <div>
-                        <CardTitle className="text-lg">
-                          {selectedThread.name || getOtherParticipant(selectedThread)?.name || getOtherParticipant(selectedThread)?.username || 'Unknown'}
-                        </CardTitle>
-                        <p className="text-sm text-gray-500">
-                          {selectedThread.is_group 
-                            ? `${selectedThread.participants?.length || 0} members` 
-                            : 'Producer • Online now'
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {selectedThread.is_group && (
-                          <DropdownMenuItem onClick={handleEditChatName}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit Chat Name
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem onClick={handleDeleteChat} className="text-red-600">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete Chat
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleReportChat}>
-                          <Flag className="w-4 h-4 mr-2" />
-                          Report
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1 flex flex-col p-0">
-                  <ScrollArea className="flex-1 p-4">
-                    <div className="space-y-4">
-                      {threadMessages.length === 0 ? (
-                        <div className="text-center text-gray-500 py-8">
-                          No messages in this conversation yet
-                        </div>
-                      ) : (
-                        [...threadMessages].reverse().map((message) => {
-                          const isMyMessage = isCurrentUser(message.sender_id);
-                          return (
-                            <div
-                              key={message.id}
-                              className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
-                            >
-                              <div
-                                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                                  isMyMessage
-                                    ? 'bg-purple-600 text-white'
-                                    : 'bg-gray-100 text-gray-900'
-                                }`}
-                              >
-                                <p className="text-sm">{message.content}</p>
-                                <p
-                                  className={`text-xs mt-1 ${
-                                    isMyMessage ? 'text-purple-200' : 'text-gray-500'
-                                  }`}
-                                >
-                                  {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                      <div ref={messagesEndRef} />
-                    </div>
-                  </ScrollArea>
-                  <div className="p-4 border-t">
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        placeholder="Type a message..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        className="flex-1"
-                      />
-                      <Button 
-                        className="bg-purple-600 hover:bg-purple-700"
-                        onClick={handleSendMessage}
-                        disabled={!newMessage.trim()}
-                      >
-                        <Send className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </>
-            ) : (
-              <CardContent className="flex-1 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-                  <p>Choose a conversation from the list to start messaging</p>
-                </div>
-              </CardContent>
-            )}
-          </div>
+          {selectedThread ? (
+            <ChatWindow
+              selectedThread={selectedThread}
+              threadMessages={threadMessages}
+              messagesEndRef={messagesEndRef}
+              isCurrentUser={isCurrentUser}
+              formatDistanceToNow={formatDistanceToNow}
+              newMessage={newMessage}
+              setNewMessage={setNewMessage}
+              handleSendMessage={handleSendMessage}
+              handleEditChatName={handleEditChatName}
+              handleDeleteChat={handleDeleteChat}
+              handleReportChat={handleReportChat}
+              getOtherParticipant={getOtherParticipant}
+            />
+          ) : (
+            <CardContent className="flex-1 flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
+                <p>Choose a conversation from the list to start messaging</p>
+              </div>
+            </CardContent>
+          )}
         </Card>
       </div>
 
+      {/* Dialogs */}
       <NewMessageDialog 
         isOpen={showNewMessageDialog} 
         onClose={() => setShowNewMessageDialog(false)} 
