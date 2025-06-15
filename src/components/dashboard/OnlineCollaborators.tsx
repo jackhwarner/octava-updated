@@ -1,8 +1,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Send, User } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { useCollaborators } from '@/hooks/useCollaborators';
+import UserAvatar from '@/components/UserAvatar';
 
 interface Collaborator {
   id: string;
@@ -58,17 +59,11 @@ const OnlineCollaborators = ({ onMessageCollaborator }: OnlineCollaboratorsProps
             onlineCollaborators.map((collaborator) => (
               <div key={collaborator.id} className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                {collaborator.avatar_url ? (
-                  <img 
-                    src={collaborator.avatar_url} 
-                    alt={collaborator.name}
-                    className="w-8 h-8 rounded-full flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4" />
-                  </div>
-                )}
+                <UserAvatar
+                  name={collaborator.name}
+                  src={collaborator.avatar_url}
+                  size="sm"
+                />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{collaborator.name}</p>
                   <p className="text-xs text-gray-500">{collaborator.role || 'Musician'}</p>
