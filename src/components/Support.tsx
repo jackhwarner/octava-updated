@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,30 +12,31 @@ import { useToast } from "@/hooks/use-toast";
 const SUPPORT_FUNCTION_URL = "https://rcowsfonthsyjlfoiqoo.functions.supabase.co/send-support-email";
 
 const Support = () => {
+  // Refreshed FAQ list: only up-to-date and relevant site info
   const faqItems = [
     {
       question: "How do I start a new project?",
-      answer: "Click the 'New Project' button on your dashboard and fill out the project details."
+      answer: "Click the 'New Project' button on your dashboard and provide your project's details."
     },
     {
-      question: "How do I find collaborators?",
-      answer: "Go to the Browse page and use filters to find musicians that match your needs."
+      question: "How can I find and contact other musicians?",
+      answer: "Go to the Browse page to discover musicians and send them a connection request."
     },
     {
-      question: "Can I work with musicians remotely?",
-      answer: "Yes! Octava supports both remote and in-person collaboration."
+      question: "What roles can I assign to a project?",
+      answer: "You can assign roles such as Producer, Artist, Songwriter, and more when creating or editing your project."
     },
     {
-      question: "How do I set my availability?",
-      answer: "Visit the Availability page to set when you're free to collaborate."
+      question: "How do I send messages to my collaborators?",
+      answer: "Go to the Messages page to chat with your collaborators directly from your inbox."
     },
     {
-      question: "How do I organize my projects into folders?",
-      answer: "You can create folders from the Projects page and drag projects into them, or use the project menu to add them to folders."
+      question: "Is my project data backed up?",
+      answer: "Yes. All your data and uploaded files are securely stored and backed up automatically."
     },
     {
-      question: "Can I customize folder colors?",
-      answer: "Yes! Click the settings icon when viewing a folder to customize its name, description, and color."
+      question: "How do I manage my user profile and links?",
+      answer: "Visit the Profile section to update your display name, profile image, and add links to your socials or music."
     }
   ];
 
