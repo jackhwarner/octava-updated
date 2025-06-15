@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +12,7 @@ import { ProjectsTab } from '@/components/profile/ProjectsTab';
 import { LinksTab } from '@/components/profile/LinksTab';
 import { Profile } from '@/hooks/useProfile';
 import { ConnectionButton } from '@/components/connections/ConnectionButton';
+import { Link } from 'lucide-react';
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -127,7 +129,10 @@ const UserProfile = () => {
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="music">Music</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="links">Links</TabsTrigger>
+            <TabsTrigger value="links">
+              <Link className="w-4 h-4 mr-1" />
+              Links
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="about">
@@ -152,3 +157,4 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
+

@@ -10,6 +10,7 @@ import { MusicTab } from '@/components/profile/MusicTab';
 import { ProjectsTab } from '@/components/profile/ProjectsTab';
 import { LinksTab } from '@/components/profile/LinksTab';
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog';
+import { Link } from 'lucide-react';
 
 const Profile = () => {
   const { profile, loading, updateProfile } = useProfile();
@@ -90,7 +91,10 @@ const Profile = () => {
               <TabsTrigger value="about">About</TabsTrigger>
               <TabsTrigger value="music">Music</TabsTrigger>
               <TabsTrigger value="projects">Projects</TabsTrigger>
-              <TabsTrigger value="links">Links</TabsTrigger>
+              <TabsTrigger value="links">
+                <Link className="w-4 h-4 mr-1" />
+                Links
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="about" className="space-y-6">
