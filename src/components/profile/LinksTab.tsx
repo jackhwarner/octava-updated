@@ -1,19 +1,22 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, ExternalLink, Music, Video, Camera, Music2 } from 'lucide-react';
+import { Edit, ExternalLink, Music, Video, Camera, Music2, Link as LinkIcon } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { EditLinksDialog } from './EditLinksDialog';
 interface LinksTabProps {
   isOwnProfile?: boolean;
+  profile?: any; // Used for UserProfile, fallback to hook if not provided
 }
 export const LinksTab = ({
-  isOwnProfile = true
+  isOwnProfile = true,
+  profile: passedProfile
 }: LinksTabProps) => {
-  const {
-    profile
-  } = useProfile();
+  // Use profile from prop if present, otherwise from hook (for own profile/user profile compatibility)
+  const { profile: hookProfile } = useProfile();
+  const profile = passedProfile || hookProfile;
   const [showEditDialog, setShowEditDialog] = useState(false);
   const getPlatformInfo = (url: string) => {
     if (url.includes('spotify.com')) return {
@@ -60,44 +63,75 @@ export const LinksTab = ({
     };
   };
   const portfolioUrls = profile?.portfolio_urls || [];
-  return <>
+  return (
+    <>
       <Card>
         <CardHeader className="pt-4 ">
           <div className="flex items-center justify-between font-semibold text-2xl ">
             <CardTitle>Links</CardTitle>
-            {isOwnProfile && <Button variant="outline" onClick={() => setShowEditDialog(true)}>
+            {isOwnProfile && (
+              <Button variant="outline" onClick={() => setShowEditDialog(true)}>
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Links
-              </Button>}
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          {portfolioUrls.length > 0 ? <div className="space-y-3">
-              {portfolioUrls.map((url, index) => {
-            const platformInfo = getPlatformInfo(url);
-            const PlatformIcon = platformInfo.icon;
-            return <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+          {portfolioUrls.length > 0 ? (
+            <div className="space-y-3">
+              {portfolioUrls.map((url: string, index: number) => {
+                const platformInfo = getPlatformInfo(url);
+                const PlatformIcon = platformInfo.icon;
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                  >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-10 h-10 rounded-full ${platformInfo.bgColor} flex items-center justify-center`}>
-                        <PlatformIcon className={`w-5 h-5 ${platformInfo.color}`} />
+                      <div
+                        className={`w-10 h-10 rounded-full ${platformInfo.bgColor} flex items-center justify-center`}
+                      >
+                        <PlatformIcon
+                          className={`w-5 h-5 ${platformInfo.color}`}
+                        />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{platformInfo.name}</p>
-                        <p className="text-sm text-gray-500 truncate max-w-xs">{url}</p>
+                        <p className="font-medium text-gray-900">
+                          {platformInfo.name}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate max-w-xs">
+                          {url}
+                        </p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => window.open(url, '_blank')}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => window.open(url, '_blank')}
+                    >
                       <ExternalLink className="w-4 h-4" />
                     </Button>
-                  </div>;
-          })}
-            </div> : <div className="text-center py-8">
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 flex flex-col items-center justify-center">
+              <LinkIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <p className="text-gray-500 mb-4">No links added yet</p>
               {isOwnProfile}
-            </div>}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {isOwnProfile && <EditLinksDialog open={showEditDialog} onOpenChange={setShowEditDialog} />}
-    </>;
+      {isOwnProfile && (
+        <EditLinksDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+        />
+      )}
+    </>
+  );
 };
