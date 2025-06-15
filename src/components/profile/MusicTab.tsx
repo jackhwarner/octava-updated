@@ -159,10 +159,7 @@ export const MusicTab = ({
               </div>) : <div className="text-center py-8">
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-gray-500 mb-4">No tracks uploaded yet</p>
-                {isOwnProfile && <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Upload Your First Track
-                  </Button>}
+                {isOwnProfile}
               </div>}
           </div>
         </CardContent>
