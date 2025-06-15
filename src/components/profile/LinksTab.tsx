@@ -5,12 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, ExternalLink, Music, Video, Camera, Music2 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { EditLinksDialog } from './EditLinksDialog';
-
 interface LinksTabProps {
   isOwnProfile?: boolean;
 }
-
-export const LinksTab = ({ isOwnProfile = true }: LinksTabProps) => {
+export const LinksTab = ({
+  isOwnProfile = true
+}: LinksTabProps) => {
   const {
     profile
   } = useProfile();
@@ -63,14 +63,12 @@ export const LinksTab = ({ isOwnProfile = true }: LinksTabProps) => {
   return <>
       <Card>
         <CardHeader className="pt-4 ">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between font-semibold text-2xl ">
             <CardTitle>Links</CardTitle>
-            {isOwnProfile && (
-              <Button variant="outline" onClick={() => setShowEditDialog(true)}>
+            {isOwnProfile && <Button variant="outline" onClick={() => setShowEditDialog(true)}>
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Links
-              </Button>
-            )}
+              </Button>}
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -104,5 +102,5 @@ export const LinksTab = ({ isOwnProfile = true }: LinksTabProps) => {
       </Card>
 
       {isOwnProfile && <EditLinksDialog open={showEditDialog} onOpenChange={setShowEditDialog} />}
-    </>
+    </>;
 };
