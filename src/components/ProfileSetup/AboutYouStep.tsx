@@ -142,7 +142,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
             <Label htmlFor="username">Username *</Label>
             <Input
               id="username"
-              placeholder="@your_username"
+              placeholder="your_username"
               value={data.username}
               onChange={(e) => onUpdate({ username: e.target.value })}
               onBlur={() => {/* Triggers useEffect check for username */}}
