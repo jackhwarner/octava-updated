@@ -153,7 +153,7 @@ const Messages = () => {
       {/* Page header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 ">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">Messages</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 ">Messages</h1>
           <p className="text-gray-600 text-base">Keep in touch with your collaborators. Manage your conversations and start new chats.</p>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowNewMessageDialog(true)}>
