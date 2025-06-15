@@ -207,7 +207,12 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
       {/* Add Todo */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>To-Do List</CardTitle>
+          <div className="flex flex-col">
+            <CardTitle className="mb-1">To-Do List</CardTitle>
+            <div className="text-sm text-gray-600">
+              {incompleteTodos.length} pending • {completedTodos.length} completed
+            </div>
+          </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-purple-600 hover:bg-purple-700">
@@ -251,11 +256,7 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
             </DialogContent>
           </Dialog>
         </CardHeader>
-        <CardContent>
-          <div className="text-sm text-gray-600 mb-4">
-            {incompleteTodos.length} pending • {completedTodos.length} completed
-          </div>
-        </CardContent>
+        <CardContent />
       </Card>
 
       {/* Scrollable todo list area */}
