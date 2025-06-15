@@ -13,18 +13,20 @@ interface ProjectsTabProps {
   projects: Project[];
   showHeader?: boolean;
   onCreateProject?: (projectData: any) => Promise<void>;
+  isOwnProfile?: boolean;
 }
 
 export const ProjectsTab = ({
   projects,
   showHeader = false,
   onCreateProject,
+  isOwnProfile = true,
 }: ProjectsTabProps) => {
   const navigate = useNavigate();
   const { folders } = useFolders();
   const [showDialog, setShowDialog] = useState(false);
 
-  // Utility functions for project details (status, dates, etc)
+  // Utility functions for project details
   const getProjectStatus = (project: Project) => {
     if (!project.phases || project.phases.length === 0) {
       return { label: 'Not Started', color: 'bg-red-100 text-red-700' };
@@ -60,34 +62,36 @@ export const ProjectsTab = ({
 
   return (
     <Card>
-      <CardHeader className="pt-4 pb-0 flex flex-row items-center justify-between">
-        <CardTitle className="text-2xl font-bold text-gray-900">Projects</CardTitle>
-        {onCreateProject && (
-          <>
-            <Button
-              size="lg"
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 h-12 rounded-xl flex items-center gap-2 font-medium text-base"
-              onClick={() => setShowDialog(true)}
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              New Project
-            </Button>
-            <CreateProjectDialog
-              open={showDialog}
-              onOpenChange={setShowDialog}
-              folders={folders}
-              onCreateProject={onCreateProject}
-            />
-          </>
-        )}
+      <CardHeader className="pt-4 pb-0">
+        <CardTitle className="flex items-center justify-between text-lg font-semibold">
+          Projects
+          {(isOwnProfile && onCreateProject) && (
+            <>
+              <Button
+                size="lg"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 h-12 rounded-xl flex items-center gap-2 font-medium text-base"
+                onClick={() => setShowDialog(true)}
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                New Project
+              </Button>
+              <CreateProjectDialog
+                open={showDialog}
+                onOpenChange={setShowDialog}
+                folders={folders}
+                onCreateProject={onCreateProject}
+              />
+            </>
+          )}
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-8">
+      <CardContent className="p-6">
         {projects.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <File className="mx-auto h-16 w-16 text-gray-300 mb-6" />
-            <div className="text-2xl font-medium text-gray-500 mb-2">No projects yet</div>
+          <div className="flex flex-col items-center justify-center py-14">
+            <File className="mx-auto h-12 w-12 text-gray-300 mb-5" />
+            <div className="text-xl font-medium text-gray-500 mb-2">No projects yet</div>
             <div className="mb-6 text-gray-400 text-base">Start your first project to begin collaborating and making music!</div>
-            {onCreateProject && (
+            {(isOwnProfile && onCreateProject) && (
               <Button
                 variant="outline"
                 size="lg"
@@ -100,66 +104,64 @@ export const ProjectsTab = ({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
             {projects.map((project) => {
               const projectStatus = getProjectStatus(project);
               return (
-                <Card key={project.id} className="border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow bg-white">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-semibold truncate max-w-xs">{project.title || project.name}</h3>
-                      <Badge className={`${projectStatus.color} text-xs px-3 py-1 rounded-full`}>
-                        {projectStatus.label}
-                      </Badge>
+                <div
+                  key={project.id}
+                  className="flex items-center justify-between p-5 border rounded-lg hover:bg-gray-50 transition-all"
+                >
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="rounded-full bg-purple-100 p-2 flex items-center justify-center">
+                      <Music className="w-5 h-5 text-purple-600" />
                     </div>
-                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                      {project.description || 'No description available'}
-                    </p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Music className="w-4 h-4" />
-                        <span>{project.genre || 'No genre'}</span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-base truncate">{project.title || project.name}</h4>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 mt-1">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{project.deadline ? formatDate(project.deadline) : 'No deadline'}</span>
+                        </div>
+                        <span>•</span>
+                        <div className="flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          <span>{project.collaborators?.length || 0} collaborators</span>
+                        </div>
+                        <span>•</span>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{project.bpm ? `${project.bpm} BPM` : 'No BPM'}</span>
+                        </div>
+                        <span>•</span>
+                        <span>{projectStatus.label}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4" />
-                        <span>{project.deadline ? formatDate(project.deadline) : 'No deadline'}</span>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-sm font-medium text-gray-700">
+                          Current Phase: {getCurrentPhase(project)}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {(project.current_phase_index || 0) + 1} of {project.phases?.length || 0}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Clock className="w-4 h-4" />
-                        <span>{project.bpm ? `${project.bpm} BPM` : 'No BPM'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Users className="w-4 h-4" />
-                        <span>{project.collaborators?.length || 0} collaborators</span>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                        <div
+                          className="bg-purple-600 h-1.5 rounded-full transition-all duration-300"
+                          style={{ width: `${getPhaseProgress(project)}%` }}
+                        ></div>
                       </div>
                     </div>
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-medium text-gray-700">
-                        Current Phase: {getCurrentPhase(project)}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {(project.current_phase_index || 0) + 1} of {project.phases?.length || 0}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                      <div
-                        className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${getPhaseProgress(project)}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-end">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate(`/projects/${project.id}`)}
-                        className="ml-4"
-                        aria-label="Open project"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/projects/${project.id}`)}
+                    className="ml-4"
+                    aria-label="Open project"
+                  >
+                    <ExternalLink className="w-5 h-5" />
+                  </Button>
+                </div>
               );
             })}
           </div>

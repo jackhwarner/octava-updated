@@ -38,7 +38,6 @@ interface CollaboratorProfileDialogProps {
   collaborator: Collaborator | null;
 }
 
-// For full-screen dialog, we just use a portal (for overlay) and mount a div that fills viewport
 export const CollaboratorProfileDialog = ({
   open,
   onOpenChange,
@@ -48,6 +47,14 @@ export const CollaboratorProfileDialog = ({
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cityName, setCityName] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id ?? null);
+    })();
+  }, []);
 
   useEffect(() => {
     if (!collaborator || !open) {
@@ -68,7 +75,6 @@ export const CollaboratorProfileDialog = ({
 
         if (!error && data) {
           setFullProfile(data);
-          // Fetch city name if available from zip
           if (data?.zip_code && data.zip_code.length === 5) {
             const resp = await fetch(`https://api.zippopotam.us/us/${data.zip_code}`);
             if (resp.ok) {
@@ -82,10 +88,8 @@ export const CollaboratorProfileDialog = ({
           }
         }
       } catch (e) {
-        // fallback to limited profile info
         setFullProfile(collaborator);
       }
-      // fetch projects
       try {
         const { data: projectsData } = await supabase
           .from("projects")
@@ -99,21 +103,21 @@ export const CollaboratorProfileDialog = ({
   }, [collaborator, open]);
 
   if (!collaborator) return null;
-  // Dialog overlays are handled by the shadcn Dialog Root. We'll use a custom full-screen "sheet" design.
+
+  const isOwnProfile = currentUserId === collaborator.id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
-          {/* Background overlay */}
+          {/* Overlay */}
           <div className="absolute inset-0 bg-black/80" onClick={() => onOpenChange(false)} />
 
-          {/* Profile Content Fullscreen */}
           <div
             className="relative z-10 w-screen h-screen flex flex-col overflow-y-auto bg-background"
             style={{ maxWidth: "100vw", maxHeight: "100vh", borderRadius: 0 }}
           >
-            {/* Back Button */}
+            {/* Back button, top left */}
             <button
               className="absolute top-4 left-4 z-20 inline-flex items-center gap-2 bg-white/80 hover:bg-white text-gray-900 rounded-full px-3 py-2 shadow transition-all"
               onClick={() => onOpenChange(false)}
@@ -125,7 +129,6 @@ export const CollaboratorProfileDialog = ({
               Back
             </button>
 
-            {/* Profile Main (center content/padding) */}
             <div className="flex-1 w-full flex flex-col items-center overflow-y-auto overflow-x-hidden pt-20 pb-10 px-3 sm:px-8">
               <div className="w-full max-w-4xl mx-auto">
                 {loading ? (
@@ -136,18 +139,19 @@ export const CollaboratorProfileDialog = ({
                   </div>
                 ) : (
                   <>
-                    {/* ProfileHeader: Don't pass onEditClick, isOwnProfile = false */}
                     <ProfileHeader
                       profile={fullProfile as any}
                       cityName={cityName}
-                      isOwnProfile={false}
+                      isOwnProfile={isOwnProfile}
                       actionButton={
-                        <ConnectionButton
-                          userId={collaborator.id}
-                          userName={collaborator.name}
-                          size="lg"
-                          className="ml-auto"
-                        />
+                        !isOwnProfile && collaborator.id ? (
+                          <ConnectionButton
+                            userId={collaborator.id}
+                            userName={collaborator.name}
+                            size="lg"
+                            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow ml-auto"
+                          />
+                        ) : null
                       }
                     />
                     <ProfileStats
@@ -156,21 +160,25 @@ export const CollaboratorProfileDialog = ({
                       profile={fullProfile as any}
                     />
                     <TooltipProvider>
-                      <Tabs defaultValue="about" className="mt-4">
-                        <TabsList>
-                          <TabsTrigger value="about">About</TabsTrigger>
-                          <TabsTrigger value="music">Music</TabsTrigger>
-                          <TabsTrigger value="projects">Projects</TabsTrigger>
-                          <TabsTrigger value="links">Links</TabsTrigger>
+                      <Tabs
+                        defaultValue="about"
+                        className="mt-4"
+                      >
+                        {/* TabsList full width */}
+                        <TabsList className="w-full grid grid-cols-4 gap-2 mb-2">
+                          <TabsTrigger value="about" className="w-full">About</TabsTrigger>
+                          <TabsTrigger value="music" className="w-full">Music</TabsTrigger>
+                          <TabsTrigger value="projects" className="w-full">Projects</TabsTrigger>
+                          <TabsTrigger value="links" className="w-full">Links</TabsTrigger>
                         </TabsList>
                         <TabsContent value="about">
                           <AboutTab profile={fullProfile as any} />
                         </TabsContent>
                         <TabsContent value="music">
-                          <MusicTab userId={collaborator.id} />
+                          <MusicTab userId={collaborator.id} isOwnProfile={isOwnProfile} />
                         </TabsContent>
                         <TabsContent value="projects">
-                          <ProjectsTab projects={projects} />
+                          <ProjectsTab projects={projects} isOwnProfile={isOwnProfile} />
                         </TabsContent>
                         <TabsContent value="links">
                           <LinksTab profile={fullProfile as any} />
