@@ -327,7 +327,19 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
   }) => (
     <section className="bg-white rounded-2xl mb-6 shadow-sm px-0">
       <header
-        className="flex items-center justify-between px-6 cursor-pointer select-none py-4 border-b-2 border-gray-200"
+        className={
+          `flex items-center justify-between px-6 cursor-pointer select-none py-4` +
+          ` relative transition-all duration-300` +
+          (open
+            ? ` border-b-2 border-gray-200`
+            : ``)
+        }
+        style={{
+          // Animate border appearance/disappearance
+          borderBottomWidth: open ? 2 : 0,
+          borderBottomColor: open ? "#e5e7eb" : "transparent", // gray-200
+          transition: "border-bottom-color 0.3s, border-bottom-width 0.3s"
+        }}
         onClick={() => setOpen(!open)}
         tabIndex={0}
         aria-expanded={open}
@@ -341,17 +353,18 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
           </span>
         </div>
         <span>
-          {open ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          {open ? <ChevronUp className="w-5 h-5 text-gray-400 transition-transform duration-200" /> : <ChevronDown className="w-5 h-5 text-gray-400 transition-transform duration-200" />}
         </span>
       </header>
       <div className={`transition-all duration-200 ease-in ${open ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"} overflow-hidden`}>
-        <div className="px-2 sm:px-6 pb-2 pt-1">
+        <div className="px-6 pb-2 pt-1">
           <div>
             {requests.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <div className="mb-3">{icon}</div>
                 <h4 className="text-gray-800 text-base font-medium mb-1">{emptyTitle}</h4>
                 <p className="text-gray-500 text-sm">
+                  {/* Display search message if searching */}
                   {searchQuery ? 'No requests match your search.' : emptyMessage}
                 </p>
               </div>
