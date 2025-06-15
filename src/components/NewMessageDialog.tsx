@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,40 +6,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Search, User, Users, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { supabase } from '@/integrations/supabase/client'; // Import supabase client
-import { useDebounce } from '@/hooks/useDebounce'; // Assuming a useDebounce hook exists
-import { useMessages, MessageThread } from '@/hooks/useMessages'; // Import useMessages hook
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { supabase } from '@/integrations/supabase/client';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useMessages, MessageThread } from '@/hooks/useMessages';
+import { useNavigate } from 'react-router-dom';
 
 interface NewMessageDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedCollaborator?: any; // Consider a more specific type if possible
+  selectedCollaborator?: any;
 }
 
-// Define a type for user profiles fetched from the database
 interface UserProfile {
-  id: string; // Assuming Supabase user IDs are strings
-  name: string | null; // Assuming name is nullable
-  username: string | null; // Assuming username is nullable
-  // Add other profile fields you might need (e.g., avatar_url)
+  id: string;
+  name: string | null;
+  username: string | null;
 }
 
 const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState<UserProfile[]>([]); // Use UserProfile type
+  const [selectedUsers, setSelectedUsers] = useState<UserProfile[]>([]);
   const [isGroupMessage, setIsGroupMessage] = useState(false);
   const [groupName, setGroupName] = useState('');
-  const [searchResults, setSearchResults] = useState<UserProfile[]>([]); // State for search results
+  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isCreating, setIsCreating] = useState(false); // Add loading state
-  const { createThread, fetchThreads, sendMessage, threads, currentUser, fetchMessages } = useMessages(); // Get createThread, fetchThreads, and sendMessage from useMessages
-  const navigate = useNavigate(); // Get navigate function
+  const [isCreating, setIsCreating] = useState(false);
+  const { createThread, fetchThreads, threads, currentUser } = useMessages();
+  const navigate = useNavigate();
   
-  // Debounce the search term to avoid excessive API calls
-  const debouncedSearchTerm = useDebounce(searchTerm, 500); // Adjust debounce time as needed
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // Fetch users from database based on search term
   const searchUsers = useCallback(async (term: string) => {
     if (!term.trim()) {
       setSearchResults([]);
@@ -54,17 +51,15 @@ const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageD
         return;
       }
 
-      // Optimize search query to only search for non-empty terms
       const searchTerm = term.trim();
       const { data, error } = await supabase
         .from('profiles')
         .select('id, name, username')
         .or(`name.ilike.%${searchTerm}%,username.ilike.%${searchTerm}%`)
-        .limit(10); // Limit results for better performance
+        .limit(10);
         
       if (error) throw error;
 
-      // Filter out the current user from search results
       const filteredResults = data.filter((user: UserProfile) => user.id !== currentUser.id);
       setSearchResults(filteredResults);
     } catch (error) {
@@ -75,7 +70,6 @@ const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageD
     }
   }, []);
 
-  // Trigger search when debouncedSearchTerm changes
   useEffect(() => {
     if (isOpen && debouncedSearchTerm.trim()) {
       searchUsers(debouncedSearchTerm);
@@ -84,32 +78,28 @@ const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageD
     }
   }, [debouncedSearchTerm, searchUsers, isOpen]);
 
-  // Only fetch threads when dialog opens
   useEffect(() => {
     if (isOpen) {
       fetchThreads();
     }
   }, [isOpen, fetchThreads]);
 
-  // Set the selected user when selectedCollaborator is provided
   useEffect(() => {
     if (selectedCollaborator && isOpen) {
-       // Assuming selectedCollaborator has a structure compatible with UserProfile
       setSelectedUsers([selectedCollaborator]);
-      setSearchTerm(''); // Clear search term
-       setSearchResults([]); // Clear search results
+      setSearchTerm('');
+      setSearchResults([]);
     }
   }, [selectedCollaborator, isOpen]);
 
-  // Reset state when dialog closes
   useEffect(() => {
     if (!isOpen) {
       setSelectedUsers([]);
       setSearchTerm('');
       setIsGroupMessage(false);
       setGroupName('');
-      setSearchResults([]); // Also clear search results on close
-       setIsSearching(false); // Reset searching state
+      setSearchResults([]);
+      setIsSearching(false);
     }
   }, [isOpen]);
 
@@ -152,13 +142,8 @@ const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageD
       }
       
       if (threadId && newThread) {
-        // Send initial message and fetch threads in parallel
-        await Promise.all([
-          sendMessage('Hi there!', undefined, threadId),
-          fetchThreads()
-        ]);
-        
-        // Close dialog and navigate
+        // Just fetch threads and navigate - no initial message
+        await fetchThreads();
         onClose();
         navigate(`/messages/${threadId}`);
       }
@@ -169,7 +154,6 @@ const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageD
     }
   };
 
-  // Update handleUserSelect to use UserProfile type
   const handleUserSelect = (user: UserProfile) => {
     if (isGroupMessage) {
       setSelectedUsers(prev => {
@@ -182,12 +166,11 @@ const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageD
       });
     } else {
       setSelectedUsers([user]);
-      setSearchTerm(''); // Clear search term after selecting a user in non-group mode
-       setSearchResults([]); // Clear search results after selecting a user
+      setSearchTerm('');
+      setSearchResults([]);
     }
   };
 
-  // Update removeUser to use UserProfile id type (string)
   const removeUser = (userId: string) => {
     setSelectedUsers(prev => prev.filter(u => u.id !== userId));
   };
@@ -236,7 +219,7 @@ const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageD
                     key={user.id}
                     className="flex items-center space-x-2 bg-purple-100 px-3 py-1 rounded-full"
                   >
-                    <span className="text-sm">{user.name || user.username}</span>{/* Display name or username */}
+                    <span className="text-sm">{user.name || user.username}</span>
                     <button
                       onClick={() => removeUser(user.id)}
                       className="text-purple-600 hover:text-purple-800"
@@ -264,14 +247,13 @@ const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageD
               />
                {isSearching && (
                 <div className="absolute right-3 top-3">
-                 {/* Optional: Add a loading spinner here */}
                  Loading...
                 </div>
               )}
             </div>
           </div>
           
-          {searchTerm && ( // Only show search results if there's a search term
+          {searchTerm && (
             <div className="max-h-48 overflow-y-auto space-y-2">
               {searchResults.map((user) => {
                 const isSelected = selectedUsers.some(u => u.id === user.id);
@@ -284,13 +266,10 @@ const NewMessageDialog = ({ isOpen, onClose, selectedCollaborator }: NewMessageD
                     }`}
                   >
                     <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                      {/* Display user initial or avatar */}
-                      <User className="w-5 h-5" />{/* Replace with avatar if available */}
+                      <User className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium">{user.name || user.username}</div>{/* Display name or username */}
-                      {/* Optional: Display user role or other info if available in profile */}
-                      {/* <div className="text-sm text-gray-500">{user.role}</div> */}
+                      <div className="font-medium">{user.name || user.username}</div>
                     </div>
                     {isSelected && <span className="text-purple-600">✓</span>}
                   </div>

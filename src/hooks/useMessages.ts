@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useMessageLimits } from '@/hooks/useMessageLimits';
 
 export interface Message {
   id: string;
@@ -46,6 +47,7 @@ export const useMessages = () => {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
+  const { checkMessageLimit, updateMessageLimit } = useMessageLimits();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -194,6 +196,25 @@ export const useMessages = () => {
       const user = currentUser || (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error('User not authenticated');
 
+      // Check message limits for 1-on-1 threads with non-connected users
+      if (threadId && !projectId) {
+        const thread = threads.find(t => t.id === threadId);
+        if (thread && !thread.is_group && thread.participants?.length === 2) {
+          const otherParticipant = thread.participants.find(p => p.user_id !== user.id);
+          if (otherParticipant) {
+            const { canSend, messageCount } = await checkMessageLimit(otherParticipant.user_id);
+            if (!canSend) {
+              toast({
+                title: "Message Limit Reached",
+                description: `You can only send 3 messages to users you're not connected with. Connect with this user to send unlimited messages.`,
+                variant: "destructive",
+              });
+              throw new Error('Message limit reached');
+            }
+          }
+        }
+      }
+
       const { data, error } = await supabase
         .from('messages')
         .insert([{
@@ -217,6 +238,17 @@ export const useMessages = () => {
         .single();
 
       if (error) throw error;
+
+      // Update message limit for non-connected users
+      if (threadId && !projectId) {
+        const thread = threads.find(t => t.id === threadId);
+        if (thread && !thread.is_group && thread.participants?.length === 2) {
+          const otherParticipant = thread.participants.find(p => p.user_id !== user.id);
+          if (otherParticipant) {
+            await updateMessageLimit(otherParticipant.user_id);
+          }
+        }
+      }
 
       // Create notification for the recipient
       if (recipientId) {
