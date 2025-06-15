@@ -1,94 +1,38 @@
 
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import type { User } from '@supabase/supabase-js';
+import { useAuthAndProfile } from '@/hooks/useAuthAndProfile';
 
-// Helper to check if profile is completed (you can adjust if needed)
-const isProfileSetupComplete = (profile: any) => {
-  if (profile?.profile_setup_completed === true) return true;
-  return (
-    !!profile?.name &&
-    !!profile?.username &&
-    !!profile?.bio &&
-    !!profile?.location &&
-    !!profile?.experience
-  );
-};
-
+/**
+ * Wraps protected routes: shows loading until auth/profile loaded; redirects if not complete.
+ */
 interface AuthWrapperProps {
   children: React.ReactNode;
 }
 
 const AuthWrapper = ({ children }: AuthWrapperProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [profileComplete, setProfileComplete] = useState<boolean>(false);
+  const { user, loading, profileComplete } = useAuthAndProfile();
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    let cancelled = false;
-    let unsub: any = null;
-
-    async function checkAuthAndProfile(sessionUser: User | null) {
-      setUser(sessionUser);
-      if (!sessionUser) {
-        setLoading(false);
-        navigate('/login', { state: { from: location }, replace: true });
-        return;
-      }
-
-      // -- FIX: Make sure select string is correct, no ":1" --
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('id, name, username, bio, location, experience, profile_setup_completed')
-        .eq('id', sessionUser.id)
-        .maybeSingle();
-
-      if (cancelled) return;
-
-      const completed = !!profile && (
-        profile.profile_setup_completed === true ||
-        (
-          !!profile?.name &&
-          !!profile?.username &&
-          !!profile?.bio &&
-          !!profile?.location &&
-          !!profile?.experience
-        )
-      );
-
-      setProfileComplete(completed);
-      setLoading(false);
-
-      // If user is not on /profile-setup and profile not completed, redirect
-      const onProfileSetupPage = location.pathname === '/profile-setup';
-      if (!onProfileSetupPage && !completed) {
-        navigate('/profile-setup', { replace: true });
-      }
-      // If user is on /profile-setup BUT they've just completed it, redirect to dashboard
-      if (onProfileSetupPage && completed) {
-        navigate('/dashboard', { replace: true });
-      }
+  React.useEffect(() => {
+    if (loading) return;
+    const onProfileSetupPage = location.pathname === '/profile-setup';
+    // Not authenticated: redirect to login
+    if (!user) {
+      navigate('/login', { state: { from: location }, replace: true });
+      return;
     }
-
-    unsub = supabase.auth.onAuthStateChange((event, session) => {
-      checkAuthAndProfile(session?.user ?? null);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      checkAuthAndProfile(session?.user ?? null);
-    });
-
-    return () => {
-      if (unsub && typeof unsub.data?.subscription?.unsubscribe === 'function') {
-        unsub.data.subscription.unsubscribe();
-      }
-      cancelled = true;
-    };
-    // eslint-disable-next-line
-  }, [navigate, location.pathname]);
+    // Authenticated, but NOT completed profile: must be on /profile-setup
+    if (!profileComplete && !onProfileSetupPage) {
+      navigate('/profile-setup', { replace: true });
+      return;
+    }
+    // Profile completed but user is at /profile-setup: redirect to dashboard
+    if (profileComplete && onProfileSetupPage) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, profileComplete, location.pathname, location, navigate]);
 
   if (loading) {
     return (
@@ -97,13 +41,8 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
       </div>
     );
   }
-
-  // Only render children if authenticated AND profile is completed
-  if (!user || !profileComplete) {
-    // We already redirected above, nothing to render here
-    return null;
-  }
-
+  // We already redirected above if not authenticated/profile not complete.
+  if (!user || !profileComplete) return null;
   return <>{children}</>;
 };
 
