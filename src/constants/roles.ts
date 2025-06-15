@@ -8,7 +8,16 @@ const roles = [
   'Instrumentalist',
   'Songwriter',
   'Composer',
-  'Engineer'
+  'Engineer',
+  'Audio Engineer',
+  'Mixing Engineer',
+  'Mastering Engineer',
+  'Session Musician',
+  'DJ',
+  'Beatmaker',
+  'Sound Designer',
+  'Music Director',
+  'Arranger'
 ];
 
 export default roles;

@@ -5,12 +5,25 @@
 const instruments = [
   'Piano',
   'Guitar',
+  'Electric Guitar',
+  'Acoustic Guitar',
   'Drums',
   'Bass',
   'Violin',
-  'Vocals',
   'Saxophone',
-  'Trumpet'
+  'Synthesizer',
+  'Trumpet',
+  'Flute',
+  'Cello',
+  'Clarinet',
+  'Trombone',
+  'Harmonica',
+  'Banjo',
+  'Ukelele',
+  'Accordion',
+  'Harp',
+  'Oboe',
+  'Percussion'
 ];
 
 export default instruments;

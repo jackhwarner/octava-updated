@@ -10,7 +10,23 @@ const genres = [
   'Country',
   'Electronic',
   'Jazz',
-  'Classical'
+  'Classical',
+  'Folk',
+  'Reggae',
+  'Indie',
+  'Alternative',
+  'Metal',
+  'Punk',
+  'Blues',
+  'Gospel',
+  'Latin',
+  'World',
+  'Ambient',
+  'Techno',
+  'House',
+  'Trap',
+  'Lo-fi',
+  'Experimental'
 ];
 
 export default genres;
