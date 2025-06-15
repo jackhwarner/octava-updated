@@ -102,7 +102,11 @@ const Profile = () => {
             </TabsContent>
 
             <TabsContent value="projects" className="space-y-6">
-              <ProjectsTab projects={projects} />
+              <ProjectsTab
+                projects={projects}
+                showHeader={true}
+                onCreateProject={useProjects().addProject}
+              />
             </TabsContent>
 
             <TabsContent value="links" className="space-y-6">
