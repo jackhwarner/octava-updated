@@ -3,6 +3,9 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
+// Toggle this variable to enable/disable auto-redirect for non-subscribers
+const REDIRECT_IF_NO_SUBSCRIPTION = true;
+
 interface SubscriptionGuardProps {
   children: React.ReactNode;
 }
@@ -18,8 +21,8 @@ const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
       return;
     }
 
-    // If no access, redirect to subscription page
-    if (!hasAccess) {
+    // If no access, redirect to subscription page (only if variable is turned on)
+    if (!hasAccess && REDIRECT_IF_NO_SUBSCRIPTION) {
       navigate('/subscription', { replace: true });
     }
   }, [hasAccess, loading, navigate, location.pathname]);
@@ -46,3 +49,4 @@ const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
 };
 
 export default SubscriptionGuard;
+
