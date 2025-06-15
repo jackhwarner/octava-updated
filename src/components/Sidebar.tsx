@@ -8,63 +8,60 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
-
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
-
-const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
+const Sidebar = ({
+  activeTab,
+  setActiveTab
+}: SidebarProps) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
   const navigate = useNavigate();
-  const { notifications, markAsRead, markAllAsRead } = useNotifications();
-  const { profile } = useProfile();
+  const {
+    notifications,
+    markAsRead,
+    markAllAsRead
+  } = useNotifications();
+  const {
+    profile
+  } = useProfile();
 
   // Get only recent notifications for the dropdown
   const recentNotifications = notifications.slice(0, 3);
   const unreadCount = notifications.filter(n => !n.is_read).length;
-
-  const mainMenuItems = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: Home
-    },
-    {
-      id: 'browse',
-      label: 'Browse',
-      icon: Search
-    },
-    {
-      id: 'messages',
-      label: 'Messages',
-      icon: MessageCircle
-    },
-    {
-      id: 'projects',
-      label: 'Projects',
-      icon: FolderOpen
-    },
-    {
-      id: 'following',
-      label: 'Following',
-      icon: Users
-    }
-  ];
-
+  const mainMenuItems = [{
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: Home
+  }, {
+    id: 'browse',
+    label: 'Browse',
+    icon: Search
+  }, {
+    id: 'messages',
+    label: 'Messages',
+    icon: MessageCircle
+  }, {
+    id: 'projects',
+    label: 'Projects',
+    icon: FolderOpen
+  }, {
+    id: 'following',
+    label: 'Following',
+    icon: Users
+  }];
   const handleViewAllNotifications = () => {
     setIsNotificationsOpen(false);
     setShowNotificationsPanel(true);
   };
-
   const handleNotificationClick = (notification: any) => {
     if (!notification.is_read) {
       markAsRead(notification.id);
     }
   };
-
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -73,14 +70,11 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
       console.error('Error logging out:', error);
     }
   };
-
   const getInitials = (name: string) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-
-  return (
-    <>
+  return <>
       <div className="w-[90px] bg-white border-r border-gray-200 flex flex-col items-center py-3 h-full">
         {/* Logo */}
         <div className="mb-4">
@@ -111,53 +105,38 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
             <DropdownMenuTrigger asChild>
               <button className={`relative p-3 rounded-lg transition-colors ${isNotificationsOpen ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`} aria-label="Notifications">
                 <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {unreadCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
+                  </span>}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80 p-3 mr-44">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">Notifications</h3>
-                <button 
-                  className="text-xs text-purple-600"
-                  onClick={markAllAsRead}
-                  disabled={unreadCount === 0}
-                >
+                <button className="text-xs text-purple-600" onClick={markAllAsRead} disabled={unreadCount === 0}>
                   Mark all as read
                 </button>
               </div>
               <DropdownMenuSeparator />
-              {recentNotifications.length === 0 ? (
-                <div className="py-4 text-center text-gray-500 text-sm">
+              {recentNotifications.length === 0 ? <div className="py-4 text-center text-gray-500 text-sm">
                   No notifications yet
-                </div>
-              ) : (
-                recentNotifications.map((notification, index) => (
-                  <div key={notification.id}>
-                    <div 
-                      className={`py-2 cursor-pointer hover:bg-gray-50 rounded px-2 ${!notification.is_read ? 'bg-blue-50' : ''}`}
-                      onClick={() => handleNotificationClick(notification)}
-                    >
+                </div> : recentNotifications.map((notification, index) => <div key={notification.id}>
+                    <div className={`py-2 cursor-pointer hover:bg-gray-50 rounded px-2 ${!notification.is_read ? 'bg-blue-50' : ''}`} onClick={() => handleNotificationClick(notification)}>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <p className="text-sm font-medium">{notification.title}</p>
                           <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
                           <p className="text-xs text-gray-400 mt-1">
-                            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                            {formatDistanceToNow(new Date(notification.created_at), {
+                        addSuffix: true
+                      })}
                           </p>
                         </div>
-                        {!notification.is_read && (
-                          <div className="w-2 h-2 bg-blue-600 rounded-full ml-2 mt-1"></div>
-                        )}
+                        {!notification.is_read && <div className="w-2 h-2 bg-blue-600 rounded-full ml-2 mt-1"></div>}
                       </div>
                     </div>
                     {index !== recentNotifications.length - 1 && <DropdownMenuSeparator className="mt-2" />}
-                  </div>
-                ))
-              )}
+                  </div>)}
               <DropdownMenuSeparator />
               <button className="w-full text-center text-sm text-purple-600 py-2" onClick={handleViewAllNotifications}>
                 View all notifications
@@ -179,7 +158,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 p-3 mr-44">
+            <DropdownMenuContent align="end" className="w-80 p-3 left-4 ">
               <div className="flex items-center p-3 mb-2">
                 <Avatar className="w-10 h-10 mr-4">
                   <AvatarImage src={profile?.avatar_url || profile?.profile_picture_url} />
@@ -217,8 +196,6 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
       </div>
 
       <NotificationsPanel isOpen={showNotificationsPanel} onClose={() => setShowNotificationsPanel(false)} />
-    </>
-  );
+    </>;
 };
-
 export default Sidebar;
