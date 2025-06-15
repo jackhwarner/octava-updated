@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Check, Star } from "lucide-react";
 import { useMemo } from "react";
+import SmartLoginButton from "@/components/SmartLoginButton";
 
 const Home = () => {
   const reviews = useMemo(() => [{
@@ -47,9 +48,7 @@ const Home = () => {
           <a href="#about" className="text-gray-700 hover:text-gray-900">About Us</a>
         </nav>
         <div className="flex gap-4">
-          <Button variant="ghost" asChild>
-            <Link to="/login">Log In</Link>
-          </Button>
+          <SmartLoginButton />
           <Button className="bg-purple-600 hover:bg-purple-700" asChild>
             <Link to="/signup">Sign Up</Link>
           </Button>
@@ -155,11 +154,11 @@ const Home = () => {
                 </li>
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
-                  <span className="text-lg">Portfolio building and showcasing</span>
+                  <span>Portfolio building and showcasing</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="w-6 h-6 text-green-500 mr-3" />
-                  <span className="text-lg">Professional networking</span>
+                  <span>Professional networking</span>
                 </li>
               </ul>
             </div>
