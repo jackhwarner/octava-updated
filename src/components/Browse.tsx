@@ -2,8 +2,9 @@
 import { useEffect, useState } from 'react';
 import BrowseFilters from './browse/BrowseFilters';
 import SearchResults from './browse/SearchResults';
+// import BulletinBoard from './browse/BulletinBoard';
+// import SuggestedCollaborators from './browse/SuggestedCollaborators';
 import BulletinBoard from './browse/BulletinBoard';
-import SuggestedCollaborators from './browse/SuggestedCollaborators';
 import { useCollaborators } from '../hooks/useCollaborators';
 import { useProfile } from '../hooks/useProfile';
 import { useSuggestedProjects } from '../hooks/useSuggestedProjects';
@@ -113,19 +114,20 @@ const Browse = () => {
           setLocation={setLocation}
           onSearch={handleSearch}
         />
-
-        {hasSearched ? (
-          <SearchResults profiles={collaboratorsFormatted} />
-        ) : (
-          <div className="space-y-10">
-            <BulletinBoard userProfile={profile} />
-            <FilteredSuggestedProjects filteredSuggestedProjects={filteredSuggestedProjects} />
-            <SuggestedCollaborators collaborators={filteredSuggestedCollaborators} />
+        <div className="space-y-10">
+          <BulletinBoard userProfile={profile} />
+          <FilteredSuggestedProjects filteredSuggestedProjects={filteredSuggestedProjects} />
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Suggested Collaborators
+            </h2>
+            <SearchResults profiles={filteredSuggestedCollaborators} />
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default Browse;
+
