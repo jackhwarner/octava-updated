@@ -79,7 +79,7 @@ const Browse = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gray-50 p-10">
+  return <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Browse</h1>
         <p className="text-gray-600 text-base mt-2">
