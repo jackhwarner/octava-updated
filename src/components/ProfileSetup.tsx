@@ -11,6 +11,8 @@ import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
 
 const ProfileSetup = () => {
+  console.log('ProfileSetup component rendering');
+  
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -37,6 +39,8 @@ const ProfileSetup = () => {
     },
     profile_setup_completed: false
   });
+
+  console.log('ProfileSetup state:', { currentStep, profileData });
 
   const steps = [
     { id: 1, title: 'About You', description: 'Tell us about yourself' },
@@ -144,6 +148,7 @@ const ProfileSetup = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 p-6">
+      {console.log('ProfileSetup render method called')}
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">

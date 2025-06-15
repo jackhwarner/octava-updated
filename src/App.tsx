@@ -21,40 +21,58 @@ import ForgotPassword from "./pages/ForgotPassword";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SubscriptionProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/profile-setup" element={<AuthWrapper><ProfileSetup /></AuthWrapper>} />
-            <Route path="/subscription" element={<AuthWrapper><Subscription /></AuthWrapper>} />
-            <Route path="/dashboard" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="/browse" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="/messages" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="/messages/:threadId" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="/projects" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="/projects/folder/:folderId" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="/projects/:projectId" element={<AuthWrapper><ProjectDetail /></AuthWrapper>} />
-            <Route path="/following" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="/profile" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="/profile/:userId" element={<AuthWrapper><UserProfile /></AuthWrapper>} />
-            <Route path="/settings" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="/support" element={<AuthWrapper><Index /></AuthWrapper>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </SubscriptionProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  console.log('App component rendering');
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SubscriptionProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              
+              {/* Add debug logging for profile setup route */}
+              <Route 
+                path="/profile-setup" 
+                element={
+                  <div>
+                    {console.log('Profile setup route matched')}
+                    <AuthWrapper>
+                      {console.log('About to render ProfileSetup')}
+                      <ProfileSetup />
+                    </AuthWrapper>
+                  </div>
+                } 
+              />
+              
+              <Route path="/subscription" element={<AuthWrapper><Subscription /></AuthWrapper>} />
+              <Route path="/dashboard" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="/browse" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="/messages" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="/messages/:threadId" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="/projects" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="/projects/folder/:folderId" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="/projects/:projectId" element={<AuthWrapper><ProjectDetail /></AuthWrapper>} />
+              <Route path="/following" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="/profile" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="/profile/:userId" element={<AuthWrapper><UserProfile /></AuthWrapper>} />
+              <Route path="/settings" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="/support" element={<AuthWrapper><Index /></AuthWrapper>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </SubscriptionProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

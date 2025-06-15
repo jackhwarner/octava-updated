@@ -11,6 +11,8 @@ interface AuthWrapperProps {
 }
 
 const AuthWrapper = ({ children }: AuthWrapperProps) => {
+  console.log('AuthWrapper rendering');
+  
   const { user, loading, profileComplete } = useAuthAndProfile();
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,6 +23,12 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
     profileComplete, 
     pathname: location.pathname 
   });
+
+  // Temporarily bypass complex logic for profile setup page to debug
+  if (location.pathname === '/profile-setup') {
+    console.log('AuthWrapper: On profile setup page, rendering children directly for debugging');
+    return <>{children}</>;
+  }
 
   React.useEffect(() => {
     if (loading) {
@@ -67,19 +75,13 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
   }
 
   // We already redirected above if not authenticated/profile not complete.
-  if (!user) {
+  if (!user && location.pathname !== '/profile-setup') {
     console.log('AuthWrapper: No user after loading, showing null');
     return null;
   }
 
-  // For profile setup page, allow access even if profile not complete
-  if (location.pathname === '/profile-setup') {
-    console.log('AuthWrapper: On profile setup page, rendering children');
-    return <>{children}</>;
-  }
-
   // For other pages, require profile to be complete
-  if (!profileComplete) {
+  if (!profileComplete && location.pathname !== '/profile-setup') {
     console.log('AuthWrapper: Profile not complete for protected route, showing null');
     return null;
   }
