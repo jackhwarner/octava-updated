@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { UserCheck, UserX, Inbox, Send } from 'lucide-react';
+import { UserCheck, UserX, Inbox, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -29,6 +28,8 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
   const [incomingRequests, setIncomingRequests] = useState<ConnectionRequest[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<ConnectionRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [incomingOpen, setIncomingOpen] = useState(true);
+  const [outgoingOpen, setOutgoingOpen] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -221,7 +222,7 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
     return (
       <div className="space-y-6">
         {[...Array(2)].map((_, idx) => (
-          <div key={idx} className="bg-white px-0">
+          <div key={idx} className="bg-white px-6 py-6 rounded-2xl">
             <div className="py-4 border-b border-gray-200 flex items-center gap-4 animate-pulse">
               <div className="w-12 h-12 bg-gray-200 rounded-full" />
               <div className="flex-1 space-y-2">
@@ -242,7 +243,7 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
   const renderRequestRow = (request: ConnectionRequest, isIncoming: boolean, isLast: boolean) => (
     <div
       key={request.id}
-      className={`flex items-center justify-between px-0 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}
+      className={`flex items-center justify-between px-2 sm:px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}
     >
       <div className="flex items-center gap-4">
         <Avatar className="w-12 h-12 bg-gray-100">
@@ -305,51 +306,88 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
     </div>
   );
 
-  const renderSection = (label: string, requests: ConnectionRequest[], emptyIcon: React.ReactNode, emptyTitle: string, emptyMessage: string, isIncoming: boolean) => (
-    <section className="bg-white w-full mb-6">
-      <header className="flex items-center gap-2 px-0 py-4 border-b-2 border-gray-200">
-        {emptyIcon}
-        <h2 className="text-base sm:text-lg font-bold text-gray-900">{label}</h2>
-        <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${isIncoming ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-          {requests.length}
+  const SectionAccordion = ({
+    open,
+    setOpen,
+    label,
+    requests,
+    icon,
+    emptyTitle,
+    emptyMessage,
+    isIncoming
+  }: {
+    open: boolean;
+    setOpen: (v: boolean) => void;
+    label: string;
+    requests: ConnectionRequest[];
+    icon: React.ReactNode;
+    emptyTitle: string;
+    emptyMessage: string;
+    isIncoming: boolean;
+  }) => (
+    <section className="bg-white rounded-2xl mb-6 shadow-sm px-0">
+      <header
+        className="flex items-center justify-between px-6 cursor-pointer select-none py-4 border-b-2 border-gray-200"
+        onClick={() => setOpen(!open)}
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={`${label} header`}
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <h2 className="text-base sm:text-lg font-bold text-gray-900">{label}</h2>
+          <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${isIncoming ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+            {requests.length}
+          </span>
+        </div>
+        <span>
+          {open ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
         </span>
       </header>
-      <div className="divide-y divide-gray-100">
-        {requests.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="mb-3">{emptyIcon}</div>
-            <h4 className="text-gray-800 text-base font-medium mb-1">{emptyTitle}</h4>
-            <p className="text-gray-500 text-sm">
-              {searchQuery ? 'No requests match your search.' : emptyMessage}
-            </p>
+      <div className={`transition-all duration-200 ease-in ${open ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"} overflow-hidden`}>
+        <div className="px-2 sm:px-6 pb-2 pt-1">
+          <div>
+            {requests.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="mb-3">{icon}</div>
+                <h4 className="text-gray-800 text-base font-medium mb-1">{emptyTitle}</h4>
+                <p className="text-gray-500 text-sm">
+                  {searchQuery ? 'No requests match your search.' : emptyMessage}
+                </p>
+              </div>
+            ) : (
+              requests.map((request, idx) =>
+                renderRequestRow(request, isIncoming, idx === requests.length - 1)
+              )
+            )}
           </div>
-        ) : (
-          requests.map((request, idx) =>
-            renderRequestRow(request, isIncoming, idx === requests.length - 1)
-          )
-        )}
+        </div>
       </div>
     </section>
   );
 
   return (
     <div className="w-full flex flex-col gap-6">
-      {renderSection(
-        "Incoming Requests",
-        incomingRequests,
-        <Inbox className="w-5 h-5 text-blue-600" />,
-        "No incoming requests",
-        "You have no pending connection requests.",
-        true
-      )}
-      {renderSection(
-        "Outgoing Requests",
-        outgoingRequests,
-        <Send className="w-5 h-5 text-purple-600" />,
-        "No outgoing requests",
-        "You haven't sent any connection requests yet.",
-        false
-      )}
+      <SectionAccordion
+        open={incomingOpen}
+        setOpen={setIncomingOpen}
+        label="Incoming Requests"
+        requests={incomingRequests}
+        icon={<Inbox className="w-5 h-5 text-blue-600" />}
+        emptyTitle="No incoming requests"
+        emptyMessage="You have no pending connection requests."
+        isIncoming={true}
+      />
+      <SectionAccordion
+        open={outgoingOpen}
+        setOpen={setOutgoingOpen}
+        label="Outgoing Requests"
+        requests={outgoingRequests}
+        icon={<Send className="w-5 h-5 text-purple-600" />}
+        emptyTitle="No outgoing requests"
+        emptyMessage="You haven't sent any connection requests yet."
+        isIncoming={false}
+      />
     </div>
   );
 };
