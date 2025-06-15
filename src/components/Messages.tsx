@@ -164,7 +164,7 @@ const Messages = () => {
 
       {/* Main card area */}
       <div className="flex-1 flex justify-center items-stretch">
-        <Card className="flex w-full max-w-6xl flex-1 min-h-[600px] rounded-2xl shadow border bg-white overflow-hidden">
+        <Card className="flex w-full max-w-6xl flex-1 min-h-[600px] rounded-2xl border bg-white overflow-hidden \n">
           {/* Conversations List */}
           <ConversationList threads={threads} selectedThreadId={selectedThreadId} handleThreadClick={handleThreadClick} getOtherParticipant={getOtherParticipant} formatDistanceToNow={formatDistanceToNow} />
 
