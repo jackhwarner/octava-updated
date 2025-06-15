@@ -93,17 +93,11 @@ const ProfileSetup = () => {
       setCompletedSteps(prev => [...prev, currentStep]);
       toast({
         title: "Profile setup complete!",
-        description: REDIRECT_IF_NO_SUBSCRIPTION
-          ? "Now let's set up your subscription to get started."
-          : "You're all set! Redirecting to your dashboard.",
+        description: "Welcome to Octava! Let's show you around.",
       });
 
-      // Respect the subscription enforcement toggle!
-      if (REDIRECT_IF_NO_SUBSCRIPTION) {
-        navigate('/subscription');
-      } else {
-        navigate('/dashboard');
-      }
+      // Always redirect to welcome page after profile setup
+      navigate('/welcome');
     } catch (error: any) {
       toast({
         title: "Error",

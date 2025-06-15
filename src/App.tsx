@@ -1,4 +1,3 @@
-
 import { Toaster } from "./components/ui/toaster";
 import { Toaster as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -18,6 +17,7 @@ import ProjectDetail from "./components/ProjectDetail";
 import UserProfile from "./components/UserProfile";
 import AuthWrapper from "./components/AuthWrapper";
 import ForgotPassword from "./pages/ForgotPassword";
+import Welcome from "./components/Welcome";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +52,9 @@ const App = () => {
                   </div>
                 } 
               />
+              
+              {/* Welcome page route */}
+              <Route path="/welcome" element={<AuthWrapper><Welcome /></AuthWrapper>} />
               
               <Route path="/subscription" element={<AuthWrapper><Subscription /></AuthWrapper>} />
               <Route path="/dashboard" element={<AuthWrapper><Index /></AuthWrapper>} />
