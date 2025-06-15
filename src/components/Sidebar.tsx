@@ -110,7 +110,7 @@ const Sidebar = ({
                   </span>}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 p-3 mr-44">
+            <DropdownMenuContent align="end" className="w-80 p-3 left-4 ">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">Notifications</h3>
                 <button className="text-xs text-purple-600" onClick={markAllAsRead} disabled={unreadCount === 0}>
