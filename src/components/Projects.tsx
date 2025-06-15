@@ -226,15 +226,11 @@ const Projects = () => {
 
   return (
     <div className="p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Projects</h1>
-        <p className="text-gray-600 text-base">Manage your music projects and collaborate with others</p>
-      </div>
-
-      <div className="flex items-center justify-between mb-8">
+      {/* Header - all on the same row for alignment */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
         <div>
-          {/* (Moved the title/subtitle to the header above for better structure) */}
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">Projects</h1>
+          <p className="text-gray-600 text-base">Manage your music projects and collaborate with others</p>
         </div>
         <div className="flex items-center space-x-3">
           <CreateFolderDialog 
@@ -244,42 +240,6 @@ const Projects = () => {
           />
           <CreateProjectDialog folders={folders} onCreateProject={handleCreateProject} />
         </div>
-      </div>
-
-      <div className={`flex items-center justify-between ${folderId && currentFolder ? 'mb-6' : ''}`}>
-        {folderId && currentFolder && (
-          <>
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink onClick={handleBackToMain} className="cursor-pointer">
-                    Projects
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{currentFolder.name}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-
-            <FolderSettings 
-              folder={currentFolder} 
-              setCurrentFolderId={(id: string | null) => {
-                if (id === null) {
-                  navigate('/projects');
-                } else {
-                  navigate(`/projects/folder/${id}`);
-                }
-              }}
-              onFolderUpdated={async () => {
-                console.log('🔄 Folder updated, refreshing state...');
-                await refetchFolders();
-                setDummyState(prev => prev + 1);
-              }}
-            />
-          </>
-        )}
       </div>
 
       {/* Filters Row: search and sort on the same line */}
