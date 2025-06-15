@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -9,13 +8,14 @@ import { Play, Pause, Upload, Plus, Trash2, Clock, Volume2 } from 'lucide-react'
 import { useMusic, MusicTrack } from '../../hooks/useMusic';
 import { useProfile } from '../../hooks/useProfile';
 import React from 'react';
-
 interface MusicTabProps {
   userId?: string;
   isOwnProfile?: boolean;
 }
-
-export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
+export const MusicTab = ({
+  userId,
+  isOwnProfile = true
+}: MusicTabProps) => {
   const {
     tracks,
     loading,
@@ -27,7 +27,6 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
   const {
     profile
   } = useProfile();
-
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -37,13 +36,11 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
-
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
   const handlePlayPause = async (track: MusicTrack) => {
     if (isPlaying === track.id) {
       audioRef.current?.pause();
@@ -75,7 +72,6 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
       }
     }
   };
-
   const handleSeek = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!audioRef.current || duration === 0) return;
     const progressBar = progressBarRef.current;
@@ -86,7 +82,6 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
     audioRef.current.currentTime = seekTime;
     setCurrentTime(seekTime);
   };
-
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith('audio/')) {
@@ -94,7 +89,6 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
       setUploadTitle(file.name.replace(/\.[^/.]+$/, ''));
     }
   };
-
   const handleUpload = async () => {
     if (!selectedFile || !uploadTitle.trim()) return;
     try {
@@ -109,7 +103,6 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
       // Error handled in hook
     }
   };
-
   if (loading) {
     return <Card>
       <CardContent className="p-6">
@@ -120,25 +113,20 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
       </CardContent>
     </Card>;
   }
-
-  return (
-    <>
+  return <>
       <Card>
         <CardHeader className="pt-4 pb-0">
-          <CardTitle className="flex items-center justify-between text-lg font-semibold">
+          <CardTitle className="flex items-center justify-between font-semibold text-2xl">
             My Tracks
-            {isOwnProfile && (
-              <Button onClick={() => setShowUploadDialog(true)} className="bg-purple-600 hover:bg-purple-700">
+            {isOwnProfile && <Button onClick={() => setShowUploadDialog(true)} className="bg-purple-600 hover:bg-purple-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Upload Track
-              </Button>
-            )}
+              </Button>}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
-            {tracks.length > 0 ? tracks.map(track => (
-              <div key={track.id} className="flex items-center justify-between p-5 border rounded-lg hover:bg-gray-50">
+            {tracks.length > 0 ? tracks.map(track => <div key={track.id} className="flex items-center justify-between p-5 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center space-x-4 flex-1">
                   <Button variant="ghost" size="sm" onClick={() => handlePlayPause(track)} className="w-10 h-10 rounded-full bg-purple-100 hover:bg-purple-200">
                     {isPlaying === track.id ? <Pause className="w-5 h-5 text-purple-600" /> : <Play className="w-5 h-5 text-purple-600" />}
@@ -154,7 +142,9 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
                     </div>
                     {isPlaying === track.id && <div className="mt-2">
                       <div ref={progressBarRef} className="w-full bg-gray-200 rounded-full h-1 cursor-pointer" onClick={handleSeek}>
-                        <div className="bg-purple-600 h-1 rounded-full transition-all duration-100" style={{ width: `${currentTime / duration * 100}%` }}></div>
+                        <div className="bg-purple-600 h-1 rounded-full transition-all duration-100" style={{
+                      width: `${currentTime / duration * 100}%`
+                    }}></div>
                       </div>
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
                         <span>{formatDuration(currentTime)}</span>
@@ -163,30 +153,22 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
                     </div>}
                   </div>
                 </div>
-                {isOwnProfile && (
-                  <Button variant="ghost" size="sm" onClick={() => deleteTrack(track.id)} className="text-red-600 hover:text-red-700">
+                {isOwnProfile && <Button variant="ghost" size="sm" onClick={() => deleteTrack(track.id)} className="text-red-600 hover:text-red-700">
                     <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            )) : (
-              <div className="text-center py-8">
+                  </Button>}
+              </div>) : <div className="text-center py-8">
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-gray-500 mb-4">No tracks uploaded yet</p>
-                {isOwnProfile && (
-                  <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
+                {isOwnProfile && <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Upload Your First Track
-                  </Button>
-                )}
-              </div>
-            )}
+                  </Button>}
+              </div>}
           </div>
         </CardContent>
       </Card>
 
-      {isOwnProfile && (
-        <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+      {isOwnProfile && <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Upload Track</DialogTitle>
@@ -210,8 +192,6 @@ export const MusicTab = ({ userId, isOwnProfile = true }: MusicTabProps) => {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
-      )}
-    </>
-  );
+        </Dialog>}
+    </>;
 };
