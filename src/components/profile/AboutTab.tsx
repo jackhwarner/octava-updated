@@ -22,7 +22,7 @@ export const AboutTab = ({
   }];
   return <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-0 ">
           <CardTitle>About Me</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6 p-6 pt-0 ">
