@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { UserCheck, UserX, Inbox, Send, ChevronDown } from 'lucide-react';
+import { UserCheck, UserX, Inbox, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -30,7 +29,6 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
   const [incomingRequests, setIncomingRequests] = useState<ConnectionRequest[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<ConnectionRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openPanel, setOpenPanel] = useState<'incoming' | 'outgoing' | null>('incoming');
   const { user } = useAuth();
   const { toast } = useToast();
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -129,7 +127,7 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
       setIncomingRequests(filteredIncoming);
       setOutgoingRequests(filteredOutgoing);
     } catch (error) {
-      console.error('Error fetching connection requests:', error);
+      console.error("Error fetching connection requests:", error);
       toast({
         title: "Error",
         description: "Failed to load connection requests",
@@ -218,29 +216,51 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
 
   useEffect(() => {
     fetchConnectionRequests();
+    // eslint-disable-next-line
   }, [user, debouncedSearchQuery]);
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {[...Array(2)].map((_, i) => (
-          <div key={i} className="bg-white p-3 rounded-md border animate-pulse flex items-center space-x-4">
-            <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-            <div className="flex-1">
-              <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+      <div className="space-y-6">
+        <div className="bg-white w-full px-6 py-6 animate-pulse">
+          <div className="h-9 w-44 bg-gray-200 rounded mb-5"></div>
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="bg-white p-3 rounded-md border flex items-center space-x-4 mb-2">
+              <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+              <div className="flex-1">
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+              </div>
+              <div className="flex space-x-2">
+                <div className="w-16 h-7 bg-gray-200 rounded"></div>
+              </div>
             </div>
-            <div className="flex space-x-2">
-              <div className="w-16 h-7 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+        <div className="bg-white w-full px-6 py-6 animate-pulse">
+          <div className="h-9 w-44 bg-gray-200 rounded mb-5"></div>
+          {[...Array(2)].map((_, i) => (
+            <div key={i + 2} className="bg-white p-3 rounded-md border flex items-center space-x-4 mb-2">
+              <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+              <div className="flex-1">
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+              </div>
+              <div className="flex space-x-2">
+                <div className="w-16 h-7 bg-gray-200 rounded"></div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }
 
   const renderRequestCard = (request: ConnectionRequest, isIncoming: boolean) => (
-    <div key={request.id} className="bg-white p-3 rounded-md border flex items-center space-x-3">
+    <div
+      key={request.id}
+      className="bg-gray-50 rounded-md border px-4 py-3 flex items-center space-x-3 mb-2 last:mb-0"
+    >
       <Avatar className="w-10 h-10">
         <AvatarImage src={request.avatar_url} />
         <AvatarFallback className="bg-purple-100 text-purple-700">
@@ -304,61 +324,68 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
     </div>
   );
 
+  // White panel style for both sections, with underlined heading
   return (
-    <div className="space-y-2 max-w-2xl">
-      {/* Incoming Requests Accordion Panel */}
-      <Collapsible open={openPanel === 'incoming'} onOpenChange={(open) => setOpenPanel(open ? 'incoming' : null)}>
-        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md bg-white px-4 py-3 border hover:bg-gray-50 focus:outline-none">
-          <div className="flex items-center space-x-2">
-            <Inbox className="w-5 h-5 text-blue-600" />
-            <span className="text-base font-medium">Incoming Requests</span>
-            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
-              {incomingRequests.length}
-            </span>
-          </div>
-          <ChevronDown className={`w-5 h-5 transition-transform ${openPanel === 'incoming' ? 'rotate-180' : ''}`} />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-2 mt-2">
+    <div className="space-y-8 max-w-2xl mx-auto">
+      {/* Incoming Requests */}
+      <section className="bg-white w-full px-6 py-6 shadow-sm">
+        <div className="flex items-center space-x-2 mb-2">
+          <Inbox className="w-5 h-5 text-blue-600" />
+          <span className="text-lg font-semibold text-gray-900 border-b-2 border-blue-600 pb-1">
+            Incoming Requests
+          </span>
+          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs ml-2">
+            {incomingRequests.length}
+          </span>
+        </div>
+        <div>
           {incomingRequests.length === 0 ? (
-            <div className="text-center py-4 bg-white rounded border text-gray-500">
+            <div className="text-center py-6 text-gray-500">
               <Inbox className="w-8 h-8 mx-auto text-gray-400 mb-2" />
               <div className="font-medium text-gray-900">No incoming requests</div>
               <div className="text-xs">
-                {searchQuery ? "No requests match your search." : "You have no pending connection requests."}
+                {searchQuery
+                  ? "No requests match your search."
+                  : "You have no pending connection requests."}
               </div>
             </div>
           ) : (
-            incomingRequests.map((request) => renderRequestCard(request, true))
+            <div>
+              {incomingRequests.map((request) => renderRequestCard(request, true))}
+            </div>
           )}
-        </CollapsibleContent>
-      </Collapsible>
+        </div>
+      </section>
 
-      {/* Outgoing Requests Accordion Panel */}
-      <Collapsible open={openPanel === 'outgoing'} onOpenChange={(open) => setOpenPanel(open ? 'outgoing' : null)}>
-        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md bg-white px-4 py-3 border hover:bg-gray-50 focus:outline-none">
-          <div className="flex items-center space-x-2">
-            <Send className="w-5 h-5 text-purple-600" />
-            <span className="text-base font-medium">Outgoing Requests</span>
-            <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">
-              {outgoingRequests.length}
-            </span>
-          </div>
-          <ChevronDown className={`w-5 h-5 transition-transform ${openPanel === 'outgoing' ? 'rotate-180' : ''}`} />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-2 mt-2">
+      {/* Outgoing Requests */}
+      <section className="bg-white w-full px-6 py-6 shadow-sm">
+        <div className="flex items-center space-x-2 mb-2">
+          <Send className="w-5 h-5 text-purple-600" />
+          <span className="text-lg font-semibold text-gray-900 border-b-2 border-purple-600 pb-1">
+            Outgoing Requests
+          </span>
+          <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs ml-2">
+            {outgoingRequests.length}
+          </span>
+        </div>
+        <div>
           {outgoingRequests.length === 0 ? (
-            <div className="text-center py-4 bg-white rounded border text-gray-500">
+            <div className="text-center py-6 text-gray-500">
               <Send className="w-8 h-8 mx-auto text-gray-400 mb-2" />
               <div className="font-medium text-gray-900">No outgoing requests</div>
               <div className="text-xs">
-                {searchQuery ? "No requests match your search." : "You haven't sent any connection requests yet."}
+                {searchQuery
+                  ? "No requests match your search."
+                  : "You haven't sent any connection requests yet."}
               </div>
             </div>
           ) : (
-            outgoingRequests.map((request) => renderRequestCard(request, false))
+            <div>
+              {outgoingRequests.map((request) => renderRequestCard(request, false))}
+            </div>
           )}
-        </CollapsibleContent>
-      </Collapsible>
+        </div>
+      </section>
     </div>
   );
 };
