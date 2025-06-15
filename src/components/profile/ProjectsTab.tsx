@@ -1,12 +1,13 @@
 
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Music, ExternalLink, Calendar, Users, Clock } from 'lucide-react';
+import { Music, ExternalLink, Calendar, Users, Clock, Plus, File } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Project } from '@/hooks/useProjects';
 import { CreateProjectDialog } from '@/components/projects/CreateProjectDialog';
 import { useFolders } from '@/hooks/useFolders';
+import React, { useState } from 'react';
 
 interface ProjectsTabProps {
   projects: Project[];
@@ -21,7 +22,9 @@ export const ProjectsTab = ({
 }: ProjectsTabProps) => {
   const navigate = useNavigate();
   const { folders } = useFolders();
+  const [showDialog, setShowDialog] = useState(false);
 
+  // Utility functions for project details (status, dates, etc)
   const getProjectStatus = (project: Project) => {
     if (!project.phases || project.phases.length === 0) {
       return { label: 'Not Started', color: 'bg-red-100 text-red-700' };
@@ -56,77 +59,81 @@ export const ProjectsTab = ({
   };
 
   return (
-    <div>
-      {showHeader && (
-        <div className="flex items-center justify-between p-6 pb-2 bg-white border-b rounded-t-lg mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Projects</h2>
-          {onCreateProject && (
-            <CreateProjectDialog folders={folders} onCreateProject={onCreateProject} />
-          )}
-        </div>
-      )}
-
-      {projects.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Music className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-gray-500 mb-4">No projects yet</p>
+    <Card>
+      <CardHeader className="pt-4 pb-0 flex flex-row items-center justify-between">
+        <CardTitle className="text-2xl font-bold text-gray-900">Projects</CardTitle>
+        {onCreateProject && (
+          <>
+            <Button
+              size="lg"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 h-12 rounded-xl flex items-center gap-2 font-medium text-base"
+              onClick={() => setShowDialog(true)}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              New Project
+            </Button>
+            <CreateProjectDialog
+              open={showDialog}
+              onOpenChange={setShowDialog}
+              folders={folders}
+              onCreateProject={onCreateProject}
+            />
+          </>
+        )}
+      </CardHeader>
+      <CardContent className="p-8">
+        {projects.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <File className="mx-auto h-16 w-16 text-gray-300 mb-6" />
+            <div className="text-2xl font-medium text-gray-500 mb-2">No projects yet</div>
+            <div className="mb-6 text-gray-400 text-base">Start your first project to begin collaborating and making music!</div>
             {onCreateProject && (
-              <CreateProjectDialog folders={folders} onCreateProject={onCreateProject} />
+              <Button
+                variant="outline"
+                size="lg"
+                className="px-6 py-3 rounded-xl flex items-center gap-3 border-2 border-gray-200 text-lg font-semibold"
+                onClick={() => setShowDialog(true)}
+              >
+                <Plus className="w-5 h-5" />
+                New Project
+              </Button>
             )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {projects.map((project) => {
-            const projectStatus = getProjectStatus(project);
-            return (
-              <Card key={project.id} className="hover:shadow-lg transition-shadow border">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold">{project.title || project.name}</h3>
-                        <Badge className={projectStatus.color}>
-                          {projectStatus.label}
-                        </Badge>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {projects.map((project) => {
+              const projectStatus = getProjectStatus(project);
+              return (
+                <Card key={project.id} className="border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow bg-white">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-lg font-semibold truncate max-w-xs">{project.title || project.name}</h3>
+                      <Badge className={`${projectStatus.color} text-xs px-3 py-1 rounded-full`}>
+                        {projectStatus.label}
+                      </Badge>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                      {project.description || 'No description available'}
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Music className="w-4 h-4" />
+                        <span>{project.genre || 'No genre'}</span>
                       </div>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                        {project.description || 'No description available'}
-                      </p>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        <span>{project.deadline ? formatDate(project.deadline) : 'No deadline'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Clock className="w-4 h-4" />
+                        <span>{project.bpm ? `${project.bpm} BPM` : 'No BPM'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Users className="w-4 h-4" />
+                        <span>{project.collaborators?.length || 0} collaborators</span>
+                      </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/projects/${project.id}`)}
-                      className="ml-4"
-                      aria-label="Open project"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Music className="w-4 h-4" />
-                      <span>{project.genre || 'No genre'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar className="w-4 h-4" />
-                      <span>{project.deadline ? formatDate(project.deadline) : 'No deadline'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Clock className="w-4 h-4" />
-                      <span>{project.bpm ? `${project.bpm} BPM` : 'No BPM'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Users className="w-4 h-4" />
-                      <span>{project.collaborators?.length || 0} collaborators</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-3">
                       <span className="text-sm font-medium text-gray-700">
                         Current Phase: {getCurrentPhase(project)}
                       </span>
@@ -134,34 +141,30 @@ export const ProjectsTab = ({
                         {(project.current_phase_index || 0) + 1} of {project.phases?.length || 0}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
                       <div
                         className="bg-purple-600 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${getPhaseProgress(project)}%` }}
                       ></div>
                     </div>
-                  </div>
-
-                  {(project.key || project.mood) && (
-                    <div className="flex gap-2 mt-3">
-                      {project.key && (
-                        <Badge variant="outline" className="text-xs">
-                          Key: {project.key}
-                        </Badge>
-                      )}
-                      {project.mood && (
-                        <Badge variant="outline" className="text-xs">
-                          {project.mood}
-                        </Badge>
-                      )}
+                    <div className="flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/projects/${project.id}`)}
+                        className="ml-4"
+                        aria-label="Open project"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
