@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { AboutTab } from "@/components/profile/AboutTab";
@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft } from "lucide-react";
 
 type Collaborator = {
   id: string;
@@ -37,6 +38,7 @@ interface CollaboratorProfileDialogProps {
   collaborator: Collaborator | null;
 }
 
+// For full-screen dialog, we just use a portal (for overlay) and mount a div that fills viewport
 export const CollaboratorProfileDialog = ({
   open,
   onOpenChange,
@@ -97,63 +99,91 @@ export const CollaboratorProfileDialog = ({
   }, [collaborator, open]);
 
   if (!collaborator) return null;
+  // Dialog overlays are handled by the shadcn Dialog Root. We'll use a custom full-screen "sheet" design.
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl w-full h-[98vh] max-h-[720px] flex flex-col p-0 overflow-hidden">
-        <div className="flex-1 min-h-0 h-full overflow-y-auto flex flex-col bg-background rounded-lg">
-          {loading ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-10">
-              <div className="w-20 h-20 rounded-full bg-gray-200 animate-pulse mb-6" />
-              <div className="h-5 w-32 rounded bg-gray-200 animate-pulse mb-2" />
-              <div className="h-4 w-48 rounded bg-gray-100 animate-pulse mb-4" />
+      {open && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+          {/* Background overlay */}
+          <div className="absolute inset-0 bg-black/80" onClick={() => onOpenChange(false)} />
+
+          {/* Profile Content Fullscreen */}
+          <div
+            className="relative z-10 w-screen h-screen flex flex-col overflow-y-auto bg-background"
+            style={{ maxWidth: "100vw", maxHeight: "100vh", borderRadius: 0 }}
+          >
+            {/* Back Button */}
+            <button
+              className="absolute top-4 left-4 z-20 inline-flex items-center gap-2 bg-white/80 hover:bg-white text-gray-900 rounded-full px-3 py-2 shadow transition-all"
+              onClick={() => onOpenChange(false)}
+              tabIndex={0}
+              aria-label="Back"
+              type="button"
+            >
+              <ArrowLeft className="w-5 h-5 mr-1" />
+              Back
+            </button>
+
+            {/* Profile Main (center content/padding) */}
+            <div className="flex-1 w-full flex flex-col items-center overflow-y-auto overflow-x-hidden pt-20 pb-10 px-3 sm:px-8">
+              <div className="w-full max-w-4xl mx-auto">
+                {loading ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-10">
+                    <div className="w-20 h-20 rounded-full bg-gray-200 animate-pulse mb-6" />
+                    <div className="h-5 w-32 rounded bg-gray-200 animate-pulse mb-2" />
+                    <div className="h-4 w-48 rounded bg-gray-100 animate-pulse mb-4" />
+                  </div>
+                ) : (
+                  <>
+                    {/* ProfileHeader: Don't pass onEditClick, isOwnProfile = false */}
+                    <ProfileHeader
+                      profile={fullProfile as any}
+                      cityName={cityName}
+                      isOwnProfile={false}
+                      actionButton={
+                        <ConnectionButton
+                          userId={collaborator.id}
+                          userName={collaborator.name}
+                          size="lg"
+                          className="ml-auto"
+                        />
+                      }
+                    />
+                    <ProfileStats
+                      totalCollaborations={projects.length}
+                      activeProjects={projects.filter((p: any) => p.status === 'active').length}
+                      profile={fullProfile as any}
+                    />
+                    <TooltipProvider>
+                      <Tabs defaultValue="about" className="mt-4">
+                        <TabsList>
+                          <TabsTrigger value="about">About</TabsTrigger>
+                          <TabsTrigger value="music">Music</TabsTrigger>
+                          <TabsTrigger value="projects">Projects</TabsTrigger>
+                          <TabsTrigger value="links">Links</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="about">
+                          <AboutTab profile={fullProfile as any} />
+                        </TabsContent>
+                        <TabsContent value="music">
+                          <MusicTab userId={collaborator.id} />
+                        </TabsContent>
+                        <TabsContent value="projects">
+                          <ProjectsTab projects={projects} />
+                        </TabsContent>
+                        <TabsContent value="links">
+                          <LinksTab profile={fullProfile as any} />
+                        </TabsContent>
+                      </Tabs>
+                    </TooltipProvider>
+                  </>
+                )}
+              </div>
             </div>
-          ) : (
-            <>
-              <ProfileHeader
-                profile={fullProfile as any}
-                cityName={cityName}
-                actionButton={
-                  <ConnectionButton
-                    userId={collaborator.id}
-                    userName={collaborator.name}
-                    size="lg"
-                  />
-                }
-                isOwnProfile={false}
-                showEdit={false}
-              />
-              <ProfileStats
-                totalCollaborations={projects.length}
-                activeProjects={projects.filter((p: any) => p.status === 'active').length}
-                profile={fullProfile as any}
-              />
-              <TooltipProvider>
-                <Tabs defaultValue="about" className="mt-4">
-                  <TabsList>
-                    <TabsTrigger value="about">About</TabsTrigger>
-                    <TabsTrigger value="music">Music</TabsTrigger>
-                    <TabsTrigger value="projects">Projects</TabsTrigger>
-                    <TabsTrigger value="links">Links</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="about">
-                    <AboutTab profile={fullProfile as any} />
-                  </TabsContent>
-                  <TabsContent value="music">
-                    <MusicTab userId={collaborator.id} />
-                  </TabsContent>
-                  <TabsContent value="projects">
-                    <ProjectsTab projects={projects} />
-                  </TabsContent>
-                  <TabsContent value="links">
-                    <LinksTab profile={fullProfile as any} />
-                  </TabsContent>
-                </Tabs>
-              </TooltipProvider>
-            </>
-          )}
+          </div>
         </div>
-      </DialogContent>
+      )}
     </Dialog>
   );
 };
