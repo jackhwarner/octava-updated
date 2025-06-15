@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import { UserCheck, UserX, Inbox, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
 
 interface ConnectionRequest {
   id: string;
@@ -31,8 +29,6 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
   const [incomingRequests, setIncomingRequests] = useState<ConnectionRequest[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<ConnectionRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [incomingOpen, setIncomingOpen] = useState(true);
-  const [outgoingOpen, setOutgoingOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -42,7 +38,7 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
 
     try {
       setLoading(true);
-      
+
       // Get incoming requests
       const { data: incomingData, error: incomingError } = await supabase
         .from('connection_requests')
@@ -89,7 +85,6 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
 
       if (outgoingError) throw outgoingError;
 
-      // Format incoming requests
       const formattedIncoming: ConnectionRequest[] = (incomingData || []).map(item => ({
         id: item.id,
         sender_id: item.sender_id,
@@ -103,7 +98,6 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
         created_at: item.created_at,
       }));
 
-      // Format outgoing requests
       const formattedOutgoing: ConnectionRequest[] = (outgoingData || []).map(item => ({
         id: item.id,
         sender_id: item.sender_id,
@@ -220,22 +214,23 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
 
   useEffect(() => {
     fetchConnectionRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, debouncedSearchQuery]);
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-white p-4 rounded-lg border animate-pulse">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-              <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+      <div className="space-y-6">
+        {[...Array(2)].map((_, idx) => (
+          <div key={idx} className="bg-white px-0">
+            <div className="py-4 border-b border-gray-200 flex items-center gap-4 animate-pulse">
+              <div className="w-12 h-12 bg-gray-200 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-1/3" />
+                <div className="h-3 bg-gray-200 rounded w-1/4" />
               </div>
               <div className="flex space-x-2">
-                <div className="w-20 h-8 bg-gray-200 rounded"></div>
-                <div className="w-20 h-8 bg-gray-200 rounded"></div>
+                <div className="w-16 h-8 bg-gray-200 rounded" />
+                <div className="w-16 h-8 bg-gray-200 rounded" />
               </div>
             </div>
           </div>
@@ -244,128 +239,117 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
     );
   }
 
-  const renderRequestCard = (request: ConnectionRequest, isIncoming: boolean) => (
-    <div key={request.id} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Avatar className="w-12 h-12">
-            <AvatarImage src={request.avatar_url} />
-            <AvatarFallback className="bg-purple-100 text-purple-700">
-              {getInitials(request.name)}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="flex-1">
-            <h3 className="font-medium text-gray-900">{request.name}</h3>
-            <p className="text-sm text-gray-500">@{request.username}</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="text-xs text-gray-400">{request.role}</span>
-              {request.location && (
-                <>
-                  <span className="text-xs text-gray-300">•</span>
-                  <span className="text-xs text-gray-400">{request.location}</span>
-                </>
-              )}
-            </div>
-            {request.message && (
-              <p className="text-sm text-gray-600 mt-2 italic">"{request.message}"</p>
+  const renderRequestRow = (request: ConnectionRequest, isIncoming: boolean, isLast: boolean) => (
+    <div
+      key={request.id}
+      className={`flex items-center justify-between px-0 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}
+    >
+      <div className="flex items-center gap-4">
+        <Avatar className="w-12 h-12 bg-gray-100">
+          <AvatarImage src={request.avatar_url} />
+          <AvatarFallback className="bg-purple-100 text-purple-700">
+            {getInitials(request.name)}
+          </AvatarFallback>
+        </Avatar>
+        <div>
+          <div className="font-semibold text-gray-900">{request.name}</div>
+          <div className="text-sm text-gray-600">@{request.username}</div>
+          <div className="flex items-center space-x-2 mt-1">
+            <span className="text-xs text-gray-400">{request.role}</span>
+            {request.location && (
+              <>
+                <span className="text-xs text-gray-300">•</span>
+                <span className="text-xs text-gray-400">{request.location}</span>
+              </>
             )}
           </div>
-        </div>
-
-        <div className="flex space-x-2">
-          {isIncoming ? (
-            <>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleAcceptRequest(request.id)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <UserCheck className="w-4 h-4 mr-2" />
-                Accept
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDeclineRequest(request.id)}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <UserX className="w-4 h-4 mr-2" />
-                Decline
-              </Button>
-            </>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleCancelRequest(request.id)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <UserX className="w-4 h-4 mr-2" />
-              Cancel
-            </Button>
+          {request.message && (
+            <p className="text-xs text-gray-500 mt-1 italic">"{request.message}"</p>
           )}
         </div>
+      </div>
+      <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 items-start sm:items-center ml-4">
+        {isIncoming ? (
+          <>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => handleAcceptRequest(request.id)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <UserCheck className="w-4 h-4 mr-1" />
+              Accept
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDeclineRequest(request.id)}
+              className="text-red-600 hover:text-red-700"
+            >
+              <UserX className="w-4 h-4 mr-1" />
+              Decline
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCancelRequest(request.id)}
+            className="text-red-600 hover:text-red-700"
+          >
+            <UserX className="w-4 h-4 mr-1" />
+            Cancel
+          </Button>
+        )}
       </div>
     </div>
   );
 
-  return (
-    <div className="space-y-6">
-      {/* Incoming Requests */}
-      <Collapsible open={incomingOpen} onOpenChange={setIncomingOpen}>
-        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg bg-white p-4 border hover:bg-gray-50">
-          <div className="flex items-center space-x-3">
-            <Inbox className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-semibold">Incoming Requests</h3>
-            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-              {incomingRequests.length}
-            </span>
+  const renderSection = (label: string, requests: ConnectionRequest[], emptyIcon: React.ReactNode, emptyTitle: string, emptyMessage: string, isIncoming: boolean) => (
+    <section className="bg-white w-full mb-6">
+      <header className="flex items-center gap-2 px-0 py-4 border-b-2 border-gray-200">
+        {emptyIcon}
+        <h2 className="text-base sm:text-lg font-bold text-gray-900">{label}</h2>
+        <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${isIncoming ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+          {requests.length}
+        </span>
+      </header>
+      <div className="divide-y divide-gray-100">
+        {requests.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="mb-3">{emptyIcon}</div>
+            <h4 className="text-gray-800 text-base font-medium mb-1">{emptyTitle}</h4>
+            <p className="text-gray-500 text-sm">
+              {searchQuery ? 'No requests match your search.' : emptyMessage}
+            </p>
           </div>
-          <ChevronDown className={`w-5 h-5 transition-transform ${incomingOpen ? 'rotate-180' : ''}`} />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-4 mt-4">
-          {incomingRequests.length === 0 ? (
-            <div className="text-center py-8 bg-white rounded-lg border">
-              <Inbox className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h4 className="text-lg font-medium text-gray-900 mb-2">No incoming requests</h4>
-              <p className="text-gray-500">
-                {searchQuery ? 'No requests match your search.' : 'You have no pending connection requests.'}
-              </p>
-            </div>
-          ) : (
-            incomingRequests.map((request) => renderRequestCard(request, true))
-          )}
-        </CollapsibleContent>
-      </Collapsible>
+        ) : (
+          requests.map((request, idx) =>
+            renderRequestRow(request, isIncoming, idx === requests.length - 1)
+          )
+        )}
+      </div>
+    </section>
+  );
 
-      {/* Outgoing Requests */}
-      <Collapsible open={outgoingOpen} onOpenChange={setOutgoingOpen}>
-        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg bg-white p-4 border hover:bg-gray-50">
-          <div className="flex items-center space-x-3">
-            <Send className="w-5 h-5 text-purple-600" />
-            <h3 className="text-lg font-semibold">Outgoing Requests</h3>
-            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm">
-              {outgoingRequests.length}
-            </span>
-          </div>
-          <ChevronDown className={`w-5 h-5 transition-transform ${outgoingOpen ? 'rotate-180' : ''}`} />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-4 mt-4">
-          {outgoingRequests.length === 0 ? (
-            <div className="text-center py-8 bg-white rounded-lg border">
-              <Send className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h4 className="text-lg font-medium text-gray-900 mb-2">No outgoing requests</h4>
-              <p className="text-gray-500">
-                {searchQuery ? 'No requests match your search.' : 'You haven\'t sent any connection requests yet.'}
-              </p>
-            </div>
-          ) : (
-            outgoingRequests.map((request) => renderRequestCard(request, false))
-          )}
-        </CollapsibleContent>
-      </Collapsible>
+  return (
+    <div className="w-full flex flex-col gap-6">
+      {renderSection(
+        "Incoming Requests",
+        incomingRequests,
+        <Inbox className="w-5 h-5 text-blue-600" />,
+        "No incoming requests",
+        "You have no pending connection requests.",
+        true
+      )}
+      {renderSection(
+        "Outgoing Requests",
+        outgoingRequests,
+        <Send className="w-5 h-5 text-purple-600" />,
+        "No outgoing requests",
+        "You haven't sent any connection requests yet.",
+        false
+      )}
     </div>
   );
 };
