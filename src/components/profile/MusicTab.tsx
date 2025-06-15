@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -8,7 +9,12 @@ import { Play, Pause, Upload, Plus, Trash2, Clock, Volume2 } from 'lucide-react'
 import { useMusic, MusicTrack } from '../../hooks/useMusic';
 import { useProfile } from '../../hooks/useProfile';
 import React from 'react';
-export const MusicTab = () => {
+
+interface MusicTabProps {
+  userId?: string;
+  hideUploadButtons?: boolean;
+}
+export const MusicTab = ({ userId, hideUploadButtons = false }: MusicTabProps) => {
   const {
     tracks,
     loading,
@@ -16,10 +22,8 @@ export const MusicTab = () => {
     uploadTrack,
     deleteTrack,
     incrementPlayCount
-  } = useMusic();
-  const {
-    profile
-  } = useProfile();
+  } = useMusic(userId); // useMusic hook now supports userId parameter for viewing other's tracks
+  const { profile } = useProfile();
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -109,23 +113,25 @@ export const MusicTab = () => {
   return <>
       <Card>
         <CardHeader className="pt-4 ">
-          <CardTitle className="flex items-center justify-between">
-            My Tracks
-            <Button onClick={() => setShowUploadDialog(true)} className="bg-purple-600 hover:bg-purple-700 ">
-              <Plus className="w-4 h-4 mr-2" />
-              Upload Track
-            </Button>
+          <CardTitle className="flex items-center justify-between text-lg">
+            Tracks
+            {!hideUploadButtons && (
+              <Button onClick={() => setShowUploadDialog(true)} className="bg-purple-600 hover:bg-purple-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Upload Track
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
-            {tracks.length > 0 ? tracks.map(track => <div key={track.id} className="flex items-center justify-between p-5 border rounded-lg hover:bg-gray-50">
+            {tracks.length > 0 ? tracks.map(track => <div key={track.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex items-center space-x-4 flex-1">
                     <Button variant="ghost" size="sm" onClick={() => handlePlayPause(track)} className="w-10 h-10 rounded-full bg-purple-100 hover:bg-purple-200">
                       {isPlaying === track.id ? <Pause className="w-4 h-4 text-purple-600" /> : <Play className="w-4 h-4 text-purple-600" />}
                     </Button>
                     <div className="flex-1">
-                      <h4 className="font-medium">{track.title}</h4>
+                      <h4 className="font-medium text-base">{track.title}</h4>
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
                         <Clock className="w-3 h-3" />
                         <span>{formatDuration(track.duration)}</span>
@@ -146,45 +152,52 @@ export const MusicTab = () => {
                         </div>}
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => deleteTrack(track.id)} className="text-red-600 hover:text-red-700">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  {!hideUploadButtons && (
+                    <Button variant="ghost" size="sm" onClick={() => deleteTrack(track.id)} className="text-red-600 hover:text-red-700">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>) : <div className="text-center py-8">
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-gray-500 mb-4">No tracks uploaded yet</p>
-                <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Upload Your First Track
-                </Button>
+                {!hideUploadButtons && (
+                  <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Upload Your First Track
+                  </Button>
+                )}
               </div>}
           </div>
         </CardContent>
       </Card>
 
-      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Upload Track</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="audio-file">Audio File</Label>
-              <Input ref={fileInputRef} id="audio-file" type="file" accept="audio/*" onChange={handleFileSelect} />
+      {/* only show upload dialog if not hidden */}
+      {!hideUploadButtons && (
+        <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Upload Track</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="audio-file">Audio File</Label>
+                <Input ref={fileInputRef} id="audio-file" type="file" accept="audio/*" onChange={handleFileSelect} />
+              </div>
+              <div>
+                <Label htmlFor="track-title">Track Title</Label>
+                <Input id="track-title" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} placeholder="Enter track title" />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="track-title">Track Title</Label>
-              <Input id="track-title" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} placeholder="Enter track title" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpload} disabled={!selectedFile || !uploadTitle.trim() || uploading}>
-              {uploading ? 'Uploading...' : 'Upload'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpload} disabled={!selectedFile || !uploadTitle.trim() || uploading}>
+                {uploading ? 'Uploading...' : 'Upload'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>;
 };
