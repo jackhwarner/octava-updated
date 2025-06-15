@@ -1,4 +1,3 @@
-
 import { Dialog } from "@/components/ui/dialog";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
@@ -106,13 +105,23 @@ export const CollaboratorProfileDialog = ({
 
   const isOwnProfile = currentUserId === collaborator.id;
 
+  // Purple connect button used for other profiles
+  const connectActionButton = (
+    !isOwnProfile && collaborator.id ? (
+      <ConnectionButton
+        userId={collaborator.id}
+        userName={collaborator.name}
+        size="lg"
+        className="bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow"
+      />
+    ) : null
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
-          {/* Overlay */}
           <div className="absolute inset-0 bg-black/80" onClick={() => onOpenChange(false)} />
-
           <div
             className="relative z-10 w-screen h-screen flex flex-col overflow-y-auto bg-background"
             style={{ maxWidth: "100vw", maxHeight: "100vh", borderRadius: 0 }}
@@ -128,7 +137,6 @@ export const CollaboratorProfileDialog = ({
               <ArrowLeft className="w-5 h-5 mr-1" />
               Back
             </button>
-
             <div className="flex-1 w-full flex flex-col items-center overflow-y-auto overflow-x-hidden pt-20 pb-10 px-3 sm:px-8">
               <div className="w-full max-w-4xl mx-auto">
                 {loading ? (
@@ -143,16 +151,7 @@ export const CollaboratorProfileDialog = ({
                       profile={fullProfile as any}
                       cityName={cityName}
                       isOwnProfile={isOwnProfile}
-                      actionButton={
-                        !isOwnProfile && collaborator.id ? (
-                          <ConnectionButton
-                            userId={collaborator.id}
-                            userName={collaborator.name}
-                            size="lg"
-                            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow ml-auto"
-                          />
-                        ) : null
-                      }
+                      actionButton={connectActionButton}
                     />
                     <ProfileStats
                       totalCollaborations={projects.length}
@@ -164,7 +163,6 @@ export const CollaboratorProfileDialog = ({
                         defaultValue="about"
                         className="mt-4"
                       >
-                        {/* TabsList full width */}
                         <TabsList className="w-full grid grid-cols-4 gap-2 mb-2">
                           <TabsTrigger value="about" className="w-full">About</TabsTrigger>
                           <TabsTrigger value="music" className="w-full">Music</TabsTrigger>
@@ -181,7 +179,7 @@ export const CollaboratorProfileDialog = ({
                           <ProjectsTab projects={projects} isOwnProfile={isOwnProfile} />
                         </TabsContent>
                         <TabsContent value="links">
-                          <LinksTab profile={fullProfile as any} />
+                          <LinksTab isOwnProfile={isOwnProfile} />
                         </TabsContent>
                       </Tabs>
                     </TooltipProvider>

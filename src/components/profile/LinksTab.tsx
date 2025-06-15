@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, ExternalLink, Music, Video, Camera, Music2 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { EditLinksDialog } from './EditLinksDialog';
-export const LinksTab = () => {
+
+interface LinksTabProps {
+  isOwnProfile?: boolean;
+}
+
+export const LinksTab = ({ isOwnProfile = true }: LinksTabProps) => {
   const {
     profile
   } = useProfile();
@@ -60,10 +66,12 @@ export const LinksTab = () => {
         <CardHeader className="pt-4 ">
           <div className="flex items-center justify-between">
             <CardTitle>Links</CardTitle>
-            <Button variant="outline" onClick={() => setShowEditDialog(true)}>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Links
-            </Button>
+            {isOwnProfile && (
+              <Button variant="outline" onClick={() => setShowEditDialog(true)}>
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Links
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -88,14 +96,13 @@ export const LinksTab = () => {
           })}
             </div> : <div className="text-center py-8">
               <p className="text-gray-500 mb-4">No links added yet</p>
-              <Button variant="outline" onClick={() => setShowEditDialog(true)}>
+              {isOwnProfile && <Button variant="outline" onClick={() => setShowEditDialog(true)}>
                 <Edit className="w-4 h-4 mr-2" />
                 Add Links
-              </Button>
+              </Button>}
             </div>}
         </CardContent>
       </Card>
 
-      <EditLinksDialog open={showEditDialog} onOpenChange={setShowEditDialog} />
+      {isOwnProfile && <EditLinksDialog open={showEditDialog} onOpenChange={setShowEditDialog} />}
     </>;
-};

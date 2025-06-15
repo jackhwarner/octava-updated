@@ -9,11 +9,12 @@ import { Profile } from '@/hooks/useProfile';
 interface ProfileHeaderProps {
   profile: Profile | null;
   cityName: string;
-  onEditClick: () => void;
+  onEditClick?: () => void;
   isOwnProfile?: boolean;
+  actionButton?: React.ReactNode;
 }
 
-export const ProfileHeader = ({ profile, cityName, onEditClick, isOwnProfile = true }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ profile, cityName, onEditClick, isOwnProfile = true, actionButton }: ProfileHeaderProps) => {
   const formatRole = (role: string | undefined) => {
     if (!role) return 'Musician';
     return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
@@ -34,9 +35,8 @@ export const ProfileHeader = ({ profile, cityName, onEditClick, isOwnProfile = t
               {getInitials(profile?.name || profile?.full_name || 'User')}
             </AvatarFallback>
           </Avatar>
-          
           <div className="flex-1">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 gap-4">
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
                   {profile?.name || profile?.full_name || 'Your Name'}
@@ -45,17 +45,16 @@ export const ProfileHeader = ({ profile, cityName, onEditClick, isOwnProfile = t
                   {profile?.username ? `@${profile.username}` : '@username'}
                 </p>
               </div>
-              {isOwnProfile && (
+              {isOwnProfile && onEditClick && (
                 <Button variant="outline" onClick={onEditClick}>
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Profile
                 </Button>
               )}
+              {!isOwnProfile && actionButton && actionButton}
             </div>
-
             <div className="flex flex-wrap justify-between items-center">
               <div className="flex flex-wrap gap-2">
-                {/* Remove hover by making the badge static */}
                 <Badge className="bg-purple-100 text-purple-700 px-3 py-1.5 text-sm pointer-events-none">
                   {formatRole(profile?.role)}
                 </Badge>
@@ -65,7 +64,6 @@ export const ProfileHeader = ({ profile, cityName, onEditClick, isOwnProfile = t
                   </Badge>
                 ))}
               </div>
-              
               <div className="inline-flex items-center text-gray-900 px-5 py-2 border border-gray-300 rounded ml-auto mt-3 md:mt-0">
                 <MapPin className="w-4 h-4 mr-2 text-gray-900" />
                 {cityName || profile?.location || 'Add Location'}
