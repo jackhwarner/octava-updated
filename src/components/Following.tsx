@@ -1,13 +1,16 @@
+
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import FollowingMutuals from './following/FollowingMutuals';
 import FollowingRequests from './following/FollowingRequests';
+
 const Following = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  return <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-6">
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <h1 className="font-bold text-gray-900 mb-2 text-3xl">Connections</h1>
@@ -24,7 +27,12 @@ const Following = () => {
           {/* Search Bar */}
           <div className="relative mb-6">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input placeholder="Search by name or username..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+            <Input
+              placeholder="Search by name or username..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
           </div>
 
           <TabsContent value="connections">
@@ -36,6 +44,8 @@ const Following = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Following;
