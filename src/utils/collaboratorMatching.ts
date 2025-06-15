@@ -16,6 +16,7 @@ interface CollaboratorProfile {
 interface UserProfile {
   genres: string[];
   location: string | null;
+  skills: string[];
 }
 
 // Simple distance calculation using city/state matching
@@ -68,6 +69,19 @@ function calculateGenreScore(userGenres: string[], collaboratorGenres: string[])
   return (matches.length / userGenres.length) * 100;
 }
 
+function calculateSkillsScore(userSkills: string[], collaboratorSkills: string[]): number {
+  if (!userSkills.length || !collaboratorSkills.length) return 0;
+  
+  const matches = userSkills.filter(skill => 
+    collaboratorSkills.some(collabSkill => 
+      collabSkill.toLowerCase() === skill.toLowerCase()
+    )
+  );
+  
+  // Return percentage of user's skills that match
+  return (matches.length / userSkills.length) * 100;
+}
+
 export function rankCollaborators(
   collaborators: CollaboratorProfile[], 
   userProfile: UserProfile | null
@@ -77,9 +91,10 @@ export function rankCollaborators(
   const rankedCollaborators = collaborators.map(collaborator => {
     const genreScore = calculateGenreScore(userProfile.genres || [], collaborator.genres || []);
     const locationScore = calculateLocationScore(userProfile.location, collaborator.location);
+    const skillsScore = calculateSkillsScore(userProfile.skills || [], collaborator.skills || []);
     
-    // Weight genres more heavily than location (70% genres, 30% location)
-    const totalScore = (genreScore * 0.7) + (locationScore * 0.3);
+    // Weight genres most heavily (50%), then skills (30%), then location (20%)
+    const totalScore = (genreScore * 0.5) + (skillsScore * 0.3) + (locationScore * 0.2);
     
     return {
       ...collaborator,

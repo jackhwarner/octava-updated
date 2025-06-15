@@ -6,7 +6,7 @@ export const filterCollaborators = (
   return collaborators.filter(collaborator => {
     const roleMatch = selectedRole ? collaborator.role === selectedRole : true;
     const genreMatch = selectedGenre ? collaborator.genres.includes(selectedGenre) : true;
-    const instrumentMatch = selectedInstrument ? (collaborator.instruments?.includes(selectedInstrument)) : true;
+    const instrumentMatch = selectedInstrument ? (collaborator.instruments?.includes(selectedInstrument) || collaborator.skills?.includes(selectedInstrument)) : true;
     const experienceMatch = selectedExperience ? collaborator.experience === selectedExperience : true;
     const locationMatch = location ? (collaborator.location?.toLowerCase().includes(location.toLowerCase())) : true;
     return roleMatch && genreMatch && instrumentMatch && experienceMatch && locationMatch;

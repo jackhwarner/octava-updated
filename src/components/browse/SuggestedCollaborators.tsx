@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { MapPin, Users } from 'lucide-react';
+import { MapPin, Users, Music } from 'lucide-react';
 import { ConnectionButton } from '../connections/ConnectionButton';
 
 interface SuggestedCollaborator {
@@ -58,6 +58,27 @@ const SuggestedCollaborators = ({ collaborators }: SuggestedCollaboratorsProps) 
                       </Badge>
                     ))}
                   </div>
+
+                  {profile.instruments && profile.instruments.length > 0 && (
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <Music className="w-4 h-4 mr-1 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-700">Skills</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {profile.instruments.slice(0, 3).map((instrument) => (
+                          <Badge key={instrument} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                            {instrument}
+                          </Badge>
+                        ))}
+                        {profile.instruments.length > 3 && (
+                          <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600">
+                            +{profile.instruments.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
