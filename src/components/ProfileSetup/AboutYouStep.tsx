@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +19,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
   const [detectedCity, setDetectedCity] = useState('');
   const [usernameError, setUsernameError] = useState<string>('');
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
 
   const experienceLevels = [
     { value: 'beginner', label: 'Beginner (0-2 years)' },
@@ -93,6 +93,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
     const checkUsername = async () => {
       if (!data.username) {
         setUsernameError('');
+        setUsernameAvailable(null);
         return;
       }
       
@@ -109,16 +110,20 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
             // PGRST116 is "no rows returned" which is fine
             console.error('Error checking username:', error);
             setUsernameError('Unable to check username availability. Please try again.');
+            setUsernameAvailable(null);
           } else if (profiles) {
             setUsernameError('This username is already taken.');
+            setUsernameAvailable(false);
           } else {
             setUsernameError('');
+            setUsernameAvailable(true);
           }
         }
       } catch (error: any) {
         console.error('Error checking username:', error);
         if (!cancelled) {
           setUsernameError('Connection error while checking username. Please check your internet or try again later.');
+          setUsernameAvailable(null);
         }
       }
       setCheckingUsername(false);
@@ -163,6 +168,9 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
             />
             {checkingUsername && (
               <p className="text-xs text-gray-500">Checking availability...</p>
+            )}
+            {!checkingUsername && data.username && !usernameError && usernameAvailable === true && (
+              <p className="text-xs text-green-600">Username available!</p>
             )}
             {usernameError && (
               <p className="text-xs text-red-500">{usernameError}</p>
