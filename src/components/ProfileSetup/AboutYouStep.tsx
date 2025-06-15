@@ -42,7 +42,8 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
     'Oboe', 'Percussion', 'Electric Guitar', 'Acoustic Guitar'
   ];
 
-  const maxGenres = 5;
+  const maxGenres = 3;
+  const maxInstruments = 5;
 
   const addGenre = (genre: string) => {
     if (genre && !data.genres.includes(genre) && data.genres.length < maxGenres) {
@@ -55,7 +56,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
   };
 
   const addInstrument = (instrument: string) => {
-    if (instrument && !data.instruments.includes(instrument)) {
+    if (instrument && !data.instruments.includes(instrument) && data.instruments.length < maxInstruments) {
       onUpdate({ instruments: [...data.instruments, instrument] });
     }
   };
@@ -239,7 +240,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label>Genres (5 max)</Label>
+          <Label>Genres (3 max)</Label>
           <div className="flex flex-wrap gap-2 mb-2">
             {data.genres.map((genre: string) => (
               <Badge key={genre} variant="outline" className="px-3 py-1">
@@ -270,7 +271,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label>Instruments</Label>
+          <Label>Instruments (5 max)</Label>
           <div className="flex flex-wrap gap-2 mb-2">
             {data.instruments.map((instrument: string) => (
               <Badge key={instrument} variant="outline" className="px-3 py-1">
@@ -283,17 +284,20 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            {commonInstruments.filter(i => !data.instruments.includes(i)).map((instrument) => (
-              <Button
-                key={instrument}
-                variant="ghost"
-                size="sm"
-                onClick={() => addInstrument(instrument)}
-                className="text-xs"
-              >
-                + {instrument}
-              </Button>
-            ))}
+            {commonInstruments
+              .filter(i => !data.instruments.includes(i))
+              .map((instrument) => (
+                <Button
+                  key={instrument}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addInstrument(instrument)}
+                  className="text-xs"
+                  disabled={data.instruments.length >= maxInstruments}
+                >
+                  + {instrument}
+                </Button>
+              ))}
           </div>
         </div>
 
