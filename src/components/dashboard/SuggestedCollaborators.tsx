@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Music } from 'lucide-react';
@@ -73,7 +72,7 @@ const SuggestedCollaborators = ({
               suggestedCollaborators.slice(0, 5).map(collaborator => (
                 <div
                   key={collaborator.id}
-                  className="flex items-center justify-between cursor-pointer hover:bg-accent/50 rounded transition px-4 py-3"
+                  className="flex items-center justify-between cursor-pointer hover:bg-accent/50 rounded transition px-3 py-2"
                   onClick={e => {
                     // Only open dialog if NOT clicking the connect button (for compatibility, though button is now gone)
                     if (
@@ -98,14 +97,21 @@ const SuggestedCollaborators = ({
                         {collaborator.genres && collaborator.genres.length > 0 && (
                           <>
                             <span className="text-xs text-gray-300">•</span>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-row flex-wrap gap-x-1 gap-y-0.5">
                               {collaborator.genres.slice(0, 2).map((genre) => (
-                                <Badge key={genre} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                <Badge
+                                  key={genre}
+                                  variant="outline"
+                                  className="text-[11px] px-2 py-0 border-gray-200 text-gray-700 font-normal bg-transparent"
+                                >
                                   {genre}
                                 </Badge>
                               ))}
                               {collaborator.genres.length > 2 && (
-                                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[11px] px-2 py-0 border-gray-100 text-gray-500 font-normal bg-transparent"
+                                >
                                   +{collaborator.genres.length - 2}
                                 </Badge>
                               )}
