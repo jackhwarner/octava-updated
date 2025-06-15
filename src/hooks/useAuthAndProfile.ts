@@ -21,6 +21,7 @@ export function useAuthAndProfile(): UseAuthAndProfileReturn {
 
   // reloadProfile can be called manually from components to re-fetch profile state
   const reloadProfile = async () => {
+    console.log('useAuthAndProfile: Reloading profile');
     setLoading(true);
     const { data: { session } } = await supabase.auth.getSession();
     const sessionUser = session?.user ?? null;
@@ -35,7 +36,11 @@ export function useAuthAndProfile(): UseAuthAndProfileReturn {
       .select('id, name, username, bio, location, experience, profile_setup_completed')
       .eq('id', sessionUser.id)
       .maybeSingle();
-    setProfileComplete(!!profile && isProfileSetupComplete(profile));
+    
+    console.log('useAuthAndProfile: Profile data:', profile);
+    const complete = !!profile && isProfileSetupComplete(profile);
+    console.log('useAuthAndProfile: Profile complete:', complete);
+    setProfileComplete(complete);
     setLoading(false);
   };
 
@@ -45,31 +50,53 @@ export function useAuthAndProfile(): UseAuthAndProfileReturn {
 
     async function checkAuthAndProfile(sessionUser: User | null) {
       if (cancelled) return;
+      console.log('useAuthAndProfile: Checking auth and profile for user:', !!sessionUser);
       setUser(sessionUser);
       if (!sessionUser) {
         setProfileComplete(false);
         setLoading(false);
         return;
       }
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, name, username, bio, location, experience, profile_setup_completed')
-        .eq('id', sessionUser.id)
-        .maybeSingle();
-      if (cancelled) return;
-      setProfileComplete(!!profile && isProfileSetupComplete(profile));
+      
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('id, name, username, bio, location, experience, profile_setup_completed')
+          .eq('id', sessionUser.id)
+          .maybeSingle();
+        
+        if (error && error.code !== 'PGRST116') {
+          console.error('useAuthAndProfile: Error fetching profile:', error);
+        }
+        
+        if (cancelled) return;
+        console.log('useAuthAndProfile: Profile fetched:', profile);
+        const complete = !!profile && isProfileSetupComplete(profile);
+        console.log('useAuthAndProfile: Profile complete check:', complete);
+        setProfileComplete(complete);
+      } catch (error) {
+        console.error('useAuthAndProfile: Unexpected error:', error);
+        if (!cancelled) {
+          setProfileComplete(false);
+        }
+      }
+      
       setLoading(false);
     }
 
+    console.log('useAuthAndProfile: Setting up auth state listener');
     unsub = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('useAuthAndProfile: Auth state change:', event, !!session?.user);
       checkAuthAndProfile(session?.user ?? null);
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('useAuthAndProfile: Initial session check:', !!session?.user);
       checkAuthAndProfile(session?.user ?? null);
     });
 
     return () => {
+      console.log('useAuthAndProfile: Cleaning up');
       if (unsub && typeof unsub.data?.subscription?.unsubscribe === 'function') {
         unsub.data.subscription.unsubscribe();
       }
