@@ -278,7 +278,26 @@ const Projects = () => {
         )}
       </div>
 
-      <ProjectFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+      {/* Filters Row: search and sort on the same line */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div className="flex-1">
+          <ProjectFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+        </div>
+        <div>
+          <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="updated">Last Updated</SelectItem>
+              <SelectItem value="created">Last Created</SelectItem>
+              <SelectItem value="name">Name (A-Z)</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+              <SelectItem value="collaborators">Collaborators</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {/* Show folders section ONLY if at least one folder exists */}
       {!folderId && !searchTerm && folders.length > 0 && (
@@ -306,18 +325,6 @@ const Projects = () => {
                 : 'Projects'
             }
           </h2>
-          <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="updated">Last Updated</SelectItem>
-              <SelectItem value="created">Last Created</SelectItem>
-              <SelectItem value="name">Name (A-Z)</SelectItem>
-              <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="collaborators">Collaborators</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map(project => (
