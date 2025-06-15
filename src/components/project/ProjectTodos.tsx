@@ -207,12 +207,14 @@ const ProjectTodos = ({ projectId }: ProjectTodosProps) => {
       {/* Add Todo */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex flex-col">
-            <CardTitle className="mb-1">To-Do List</CardTitle>
+          {/* Left: title + counts */}
+          <div className="flex flex-col gap-1">
+            <CardTitle className="mb-0">To-Do List</CardTitle>
             <div className="text-sm text-gray-600">
               {incompleteTodos.length} pending • {completedTodos.length} completed
             </div>
           </div>
+          {/* Right: Add Todo button */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-purple-600 hover:bg-purple-700">
