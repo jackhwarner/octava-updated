@@ -131,15 +131,17 @@ export const useConnections = () => {
         }
       }
 
-      // Create notification
+      // Create notification WITHOUT actor_id
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
           user_id: userId,
           type: 'connection_request',
-          actor_id: user.id,
+          // actor_id: user.id, // Removed because it doesn't exist in schema
           created_at: new Date().toISOString(),
-          read: false
+          is_read: false,
+          title: 'Connection Request',
+          message: `${user.id} sent you a connection request.`,
         });
 
       if (notificationError) throw notificationError;
