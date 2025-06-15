@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,6 +73,7 @@ const ProfileSetup = () => {
           role: profileData.role,
           genres: profileData.genres,
           skills: profileData.instruments,
+          profile_setup_completed: true  // <-- Mark profile setup as completed!
         });
 
       if (error) throw error;
