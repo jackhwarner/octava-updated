@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import AboutYouStep from './ProfileSetup/AboutYouStep';
 import UploadFilesStep from './ProfileSetup/UploadFilesStep';
 import LinkAccountsStep from './ProfileSetup/LinkAccountsStep';
 import { REDIRECT_IF_NO_SUBSCRIPTION } from '@/constants/subscription';
++import { useAuthAndProfile } from '@/hooks/useAuthAndProfile';
 
 const ProfileSetup = () => {
   console.log('ProfileSetup component rendering');
@@ -18,6 +18,7 @@ const ProfileSetup = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { reloadProfile } = useAuthAndProfile();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [profileData, setProfileData] = useState({
@@ -96,6 +97,9 @@ const ProfileSetup = () => {
         title: "Profile setup complete!",
         description: "Welcome to Octava! Let's show you around.",
       });
+
+      // Reload the profile state so downstream hooks show it's completed
+      await reloadProfile();
 
       // Navigate to dashboard with tutorial flag
       navigate('/dashboard?tutorial=true');
