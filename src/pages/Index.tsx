@@ -11,11 +11,13 @@ import Profile from '../components/Profile';
 import Settings from '../components/Settings';
 import Support from '../components/Support';
 import AuthWrapper from '../components/AuthWrapper';
+import { useIsMobile } from "../hooks/use-mobile";
 
 const Index = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+  const isMobile = useIsMobile();
+
   // Extract the active tab from the URL path, handling specific cases
   const getTabFromPath = (pathname: string) => {
     if (pathname === '/' || pathname === '/dashboard') return 'dashboard';
@@ -81,6 +83,18 @@ const Index = () => {
         return <Dashboard onNavigate={handleNavigate} />;
     }
   };
+
+  // Block on mobile devices
+  if (isMobile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="max-w-md w-full p-6 text-center border rounded-xl shadow bg-gray-50">
+          <h2 className="text-2xl font-bold mb-4">Octava does not support mobile devices</h2>
+          <p className="text-gray-700 mb-2">Please use a desktop or laptop browser to access Octava.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthWrapper>
