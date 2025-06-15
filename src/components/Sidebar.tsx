@@ -158,7 +158,7 @@ const Sidebar = ({
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 p-3 left-4 ">
+            <DropdownMenuContent align="end" className="w-80 p-3 ml-4 ">
               <div className="flex items-center p-3 mb-2">
                 <Avatar className="w-10 h-10 mr-4">
                   <AvatarImage src={profile?.avatar_url || profile?.profile_picture_url} />
