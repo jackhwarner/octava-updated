@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { UserCheck, UserX, Inbox, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
+import SectionAccordion from './SectionAccordion'
+import RequestRow from './RequestRow'
 
 interface ConnectionRequest {
   id: string;
@@ -240,143 +242,21 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
     );
   }
 
-  const renderRequestRow = (request: ConnectionRequest, isIncoming: boolean, isLast: boolean) => (
-    <div
-      key={request.id}
-      className={`flex items-center justify-between px-2 sm:px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}
-    >
-      <div className="flex items-center gap-4">
-        <Avatar className="w-12 h-12 bg-gray-100">
-          <AvatarImage src={request.avatar_url} />
-          <AvatarFallback className="bg-purple-100 text-purple-700">
-            {getInitials(request.name)}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="font-semibold text-gray-900">{request.name}</div>
-          <div className="text-sm text-gray-600">@{request.username}</div>
-          <div className="flex items-center space-x-2 mt-1">
-            <span className="text-xs text-gray-400">{request.role}</span>
-            {request.location && (
-              <>
-                <span className="text-xs text-gray-300">•</span>
-                <span className="text-xs text-gray-400">{request.location}</span>
-              </>
-            )}
-          </div>
-          {request.message && (
-            <p className="text-xs text-gray-500 mt-1 italic">"{request.message}"</p>
-          )}
-        </div>
-      </div>
-      <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 items-start sm:items-center ml-4">
-        {isIncoming ? (
-          <>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => handleAcceptRequest(request.id)}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <UserCheck className="w-4 h-4 mr-1" />
-              Accept
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleDeclineRequest(request.id)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <UserX className="w-4 h-4 mr-1" />
-              Decline
-            </Button>
-          </>
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleCancelRequest(request.id)}
-            className="text-red-600 hover:text-red-700"
-          >
-            <UserX className="w-4 h-4 mr-1" />
-            Cancel
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-
-  const SectionAccordion = ({
-    open,
-    setOpen,
-    label,
-    requests,
-    icon,
-    emptyTitle,
-    emptyMessage,
-    isIncoming
-  }: {
-    open: boolean;
-    setOpen: (v: boolean) => void;
-    label: string;
-    requests: ConnectionRequest[];
-    icon: React.ReactNode;
-    emptyTitle: string;
-    emptyMessage: string;
-    isIncoming: boolean;
-  }) => (
-    <section className="bg-white rounded-2xl mb-6 shadow-sm px-0">
-      <header
-        className={
-          `flex items-center justify-between px-6 cursor-pointer select-none py-4` +
-          ` relative transition-all duration-300` +
-          (open
-            ? ` border-b-2 border-gray-200`
-            : ``)
-        }
-        style={{
-          // Animate border appearance/disappearance
-          borderBottomWidth: open ? 2 : 0,
-          borderBottomColor: open ? "#e5e7eb" : "transparent", // gray-200
-          transition: "border-bottom-color 0.3s, border-bottom-width 0.3s"
-        }}
-        onClick={() => setOpen(!open)}
-        tabIndex={0}
-        aria-expanded={open}
-        aria-label={`${label} header`}
-      >
-        <div className="flex items-center gap-2">
-          {icon}
-          <h2 className="text-base sm:text-lg font-bold text-gray-900">{label}</h2>
-          <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${isIncoming ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-            {requests.length}
-          </span>
-        </div>
-        <span>
-          {open ? <ChevronUp className="w-5 h-5 text-gray-400 transition-transform duration-200" /> : <ChevronDown className="w-5 h-5 text-gray-400 transition-transform duration-200" />}
-        </span>
-      </header>
-      <div className={`transition-all duration-200 ease-in ${open ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"} overflow-hidden`}>
-        <div className="px-6 pb-2 pt-1">
-          <div>
-            {requests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="mb-3">{icon}</div>
-                <h4 className="text-gray-800 text-base font-medium mb-1">{emptyTitle}</h4>
-                <p className="text-gray-500 text-sm">
-                  {/* Display search message if searching */}
-                  {searchQuery ? 'No requests match your search.' : emptyMessage}
-                </p>
-              </div>
-            ) : (
-              requests.map((request, idx) =>
-                renderRequestRow(request, isIncoming, idx === requests.length - 1)
-              )
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
+  // Move the renderRequestRow to a callback to pass to SectionAccordion
+  const renderRequestRow = (
+    request: ConnectionRequest,
+    isIncoming: boolean,
+    isLast: boolean
+  ) => (
+    <RequestRow
+      request={request}
+      isIncoming={isIncoming}
+      isLast={isLast}
+      onAccept={handleAcceptRequest}
+      onDecline={handleDeclineRequest}
+      onCancel={handleCancelRequest}
+      getInitials={getInitials}
+    />
   );
 
   return (
@@ -390,6 +270,8 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
         emptyTitle="No incoming requests"
         emptyMessage="You have no pending connection requests."
         isIncoming={true}
+        renderRequestRow={renderRequestRow}
+        searchQuery={searchQuery}
       />
       <SectionAccordion
         open={outgoingOpen}
@@ -400,6 +282,8 @@ const FollowingRequests = ({ searchQuery }: FollowingRequestsProps) => {
         emptyTitle="No outgoing requests"
         emptyMessage="You haven't sent any connection requests yet."
         isIncoming={false}
+        renderRequestRow={renderRequestRow}
+        searchQuery={searchQuery}
       />
     </div>
   );
