@@ -192,7 +192,7 @@ const ProjectTodos = ({
   return <div className="flex flex-col h-full min-h-0">
       {/* Add Todo */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between \n">
+        <CardHeader className="flex flex-row items-center justify-between">
           {/* Left: title + counts */}
           <div className="flex flex-col gap-1">
             <CardTitle className="mb-0">To-Do List</CardTitle>
@@ -203,7 +203,7 @@ const ProjectTodos = ({
           {/* Right: Add Todo button */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-purple-600 hover:bg-purple-700">
+              <Button className="bg-purple-600 hover:bg-purple-700 my-auto ">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Todo
               </Button>
