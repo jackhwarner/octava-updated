@@ -13,7 +13,7 @@ import { EditProfileDialog } from '@/components/profile/EditProfileDialog';
 
 const Profile = () => {
   const { profile, loading, updateProfile } = useProfile();
-  const { projects } = useProjects();
+  const { projects, addProject } = useProjects();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [cityName, setCityName] = useState('');
 
@@ -105,7 +105,7 @@ const Profile = () => {
               <ProjectsTab
                 projects={projects}
                 showHeader={true}
-                onCreateProject={useProjects().addProject}
+                onCreateProject={addProject}
               />
             </TabsContent>
 
