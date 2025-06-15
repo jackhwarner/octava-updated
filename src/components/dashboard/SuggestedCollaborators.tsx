@@ -1,8 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Music, UserPlus } from 'lucide-react';
+import { Music } from 'lucide-react';
 import { useCollaborators } from '@/hooks/useCollaborators';
 import UserAvatar from "@/components/UserAvatar";
 import { useState } from "react";
@@ -41,7 +40,7 @@ const SuggestedCollaborators = ({
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between px-4 py-3">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
                     <div className="flex-1">
@@ -74,9 +73,9 @@ const SuggestedCollaborators = ({
               suggestedCollaborators.slice(0, 5).map(collaborator => (
                 <div
                   key={collaborator.id}
-                  className="flex items-center justify-between cursor-pointer hover:bg-accent/50 rounded transition"
+                  className="flex items-center justify-between cursor-pointer hover:bg-accent/50 rounded transition px-4 py-3"
                   onClick={e => {
-                    // Only open dialog if NOT clicking the connect button
+                    // Only open dialog if NOT clicking the connect button (for compatibility, though button is now gone)
                     if (
                       e.target instanceof HTMLElement &&
                       e.target.closest("button")
@@ -128,14 +127,7 @@ const SuggestedCollaborators = ({
                       </div>
                     </div>
                   </div>
-                  <Button 
-                    size="sm" 
-                    className="bg-purple-600 hover:bg-purple-700 text-xs px-4 py-2" 
-                    onClick={() => onConnectCollaborator(collaborator)}
-                  >
-                    <UserPlus className="w-3 h-3 mr-1" />
-                    Connect
-                  </Button>
+                  {/* Connect button removed: now click row to open dialog */}
                 </div>
               ))
             )}
@@ -152,4 +144,3 @@ const SuggestedCollaborators = ({
 };
 
 export default SuggestedCollaborators;
-
