@@ -194,7 +194,7 @@ const ProjectTodos = ({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           {/* Left: title + counts */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2 ">
             <CardTitle className="mb-0">To-Do List</CardTitle>
             <div className="text-sm text-gray-600">
               {incompleteTodos.length} pending • {completedTodos.length} completed
