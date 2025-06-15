@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +16,8 @@ interface AboutYouStepProps {
 
 const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
   const [detectedCity, setDetectedCity] = useState('');
+  const [usernameError, setUsernameError] = useState<string>('');
+  const [checkingUsername, setCheckingUsername] = useState(false);
 
   const experienceLevels = [
     { value: 'beginner', label: 'Beginner (0-2 years)' },
@@ -85,7 +86,43 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
     }
   };
 
-  const isFormValid = data.name && data.username && data.bio && data.location && data.experience;
+  // Username uniqueness check, runs when username is changed
+  useEffect(() => {
+    let cancelled = false;
+    const checkUsername = async () => {
+      if (!data.username) {
+        setUsernameError('');
+        return;
+      }
+      setCheckingUsername(true);
+      try {
+        const res = await fetch(`/rest/v1/profiles?username=eq.${encodeURIComponent(data.username)}`, {
+          headers: { apikey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "" }
+        });
+        const result = await res.json();
+        if (!cancelled) {
+          if (result && Array.isArray(result) && result.length > 0) {
+            setUsernameError('This username is already taken.');
+          } else {
+            setUsernameError('');
+          }
+        }
+      } catch (error) {
+        if (!cancelled) setUsernameError('Error checking username.');
+      }
+      setCheckingUsername(false);
+    };
+    checkUsername();
+    return () => { cancelled = true; };
+  }, [data.username]);
+
+  const isFormValid =
+    data.name &&
+    data.username &&
+    !usernameError &&
+    data.bio &&
+    data.location &&
+    data.experience;
 
   return (
     <TooltipProvider>
@@ -108,7 +145,11 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
               placeholder="@your_username"
               value={data.username}
               onChange={(e) => onUpdate({ username: e.target.value })}
+              onBlur={() => {/* Triggers useEffect check for username */}}
             />
+            {usernameError && (
+              <p className="text-xs text-red-500">{usernameError}</p>
+            )}
           </div>
         </div>
 
@@ -229,7 +270,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
         <div className="flex justify-end pt-4">
           <Button 
             onClick={onNext} 
-            disabled={!isFormValid}
+            disabled={!isFormValid || checkingUsername}
             className="bg-purple-600 hover:bg-purple-700"
           >
             Next Step

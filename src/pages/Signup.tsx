@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import { supabase } from "@/integrations/supabase/client";
 const EMAIL_CONFIRMATION_REQUIRED = true; // Set to true if your Supabase project requires email confirmation
 
 const Signup = () => {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -42,7 +40,6 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      // Always include the emailRedirectTo for confirmation emails!
       const redirectToUrl = `${window.location.origin}/login`;
 
       const { error } = await supabase.auth.signUp({
@@ -51,7 +48,6 @@ const Signup = () => {
         options: {
           emailRedirectTo: redirectToUrl,
           data: {
-            full_name: name,
             role: accountType
           }
         }
@@ -62,13 +58,12 @@ const Signup = () => {
       setShowSuccess(true);
       setSuccessEmail(email);
 
-      // Only allow profile setup after confirming email (to eliminate ghost login)
       if (!EMAIL_CONFIRMATION_REQUIRED) {
         toast({
           title: "Account created",
           description: "Let's set up your profile."
         });
-        navigate("/profile-setup", { state: { role: accountType, fullName: name } });
+        navigate("/profile-setup", { state: { role: accountType } });
       }
     } catch (error: any) {
       toast({
@@ -165,17 +160,6 @@ const Signup = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
