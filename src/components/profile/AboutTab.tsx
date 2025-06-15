@@ -47,7 +47,7 @@ export const AboutTab = ({
               <div className="flex flex-wrap gap-3">
                 {profile?.skills?.length ? profile.skills.map(skill => <Badge key={skill} className="bg-white border-gray-300 text-gray-800 px-4 py-2 text-xs pointer-events-none">
                     {skill}
-                  </Badge>) : <p className="text-gray-500 text-sm">No skills listed</p>}
+                  </Badge>) : <p className="text-gray-500 text-sm">No instruments listed</p>}
               </div>
             </div>
           </div>
