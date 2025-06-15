@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -9,12 +8,14 @@ import { Play, Pause, Upload, Plus, Trash2, Clock, Volume2 } from 'lucide-react'
 import { useMusic, MusicTrack } from '../../hooks/useMusic';
 import { useProfile } from '../../hooks/useProfile';
 import React from 'react';
-
 interface MusicTabProps {
   userId?: string;
   hideUploadButtons?: boolean;
 }
-export const MusicTab = ({ userId, hideUploadButtons = false }: MusicTabProps) => {
+export const MusicTab = ({
+  userId,
+  hideUploadButtons = false
+}: MusicTabProps) => {
   const {
     tracks,
     loading,
@@ -23,7 +24,9 @@ export const MusicTab = ({ userId, hideUploadButtons = false }: MusicTabProps) =
     deleteTrack,
     incrementPlayCount
   } = useMusic(userId); // useMusic hook now supports userId parameter for viewing other's tracks
-  const { profile } = useProfile();
+  const {
+    profile
+  } = useProfile();
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -113,14 +116,12 @@ export const MusicTab = ({ userId, hideUploadButtons = false }: MusicTabProps) =
   return <>
       <Card>
         <CardHeader className="pt-4 ">
-          <CardTitle className="flex items-center justify-between text-lg">
+          <CardTitle className="flex items-center justify-between text-2xl">
             Tracks
-            {!hideUploadButtons && (
-              <Button onClick={() => setShowUploadDialog(true)} className="bg-purple-600 hover:bg-purple-700">
+            {!hideUploadButtons && <Button onClick={() => setShowUploadDialog(true)} className="bg-purple-600 hover:bg-purple-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Upload Track
-              </Button>
-            )}
+              </Button>}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -152,28 +153,23 @@ export const MusicTab = ({ userId, hideUploadButtons = false }: MusicTabProps) =
                         </div>}
                     </div>
                   </div>
-                  {!hideUploadButtons && (
-                    <Button variant="ghost" size="sm" onClick={() => deleteTrack(track.id)} className="text-red-600 hover:text-red-700">
+                  {!hideUploadButtons && <Button variant="ghost" size="sm" onClick={() => deleteTrack(track.id)} className="text-red-600 hover:text-red-700">
                       <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
+                    </Button>}
                 </div>) : <div className="text-center py-8">
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-gray-500 mb-4">No tracks uploaded yet</p>
-                {!hideUploadButtons && (
-                  <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
+                {!hideUploadButtons && <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Upload Your First Track
-                  </Button>
-                )}
+                  </Button>}
               </div>}
           </div>
         </CardContent>
       </Card>
 
       {/* only show upload dialog if not hidden */}
-      {!hideUploadButtons && (
-        <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+      {!hideUploadButtons && <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Upload Track</DialogTitle>
@@ -197,7 +193,6 @@ export const MusicTab = ({ userId, hideUploadButtons = false }: MusicTabProps) =
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
-      )}
+        </Dialog>}
     </>;
 };
