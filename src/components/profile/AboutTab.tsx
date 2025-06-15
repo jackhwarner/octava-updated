@@ -1,6 +1,8 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Profile } from '@/hooks/useProfile';
+
 interface AboutTabProps {
   profile: Profile | null;
 }
@@ -36,7 +38,8 @@ export const AboutTab = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-semibold mb-3">Experience Level</h3>
-              <Badge className="bg-purple-100 text-purple-700 px-4 py-2 text-xs ">
+              {/* Remove hover styles by setting static bg & text and no hover class */}
+              <Badge className="bg-purple-100 text-purple-700 px-4 py-2 text-xs pointer-events-none">
                 {experienceLevels.find(level => level.value === profile?.experience)?.label || 'Not specified'}
               </Badge>
             </div>
@@ -44,9 +47,11 @@ export const AboutTab = ({
             <div>
               <h3 className="font-semibold mb-3">Skills</h3>
               <div className="flex flex-wrap gap-3">
-                {profile?.skills?.length ? profile.skills.map(skill => <Badge key={skill} variant="outline" className="px-4 py-2 text-xs">
+                {profile?.skills?.length ? profile.skills.map(skill => (
+                  <Badge key={skill} className="bg-gray-100 border-gray-300 text-gray-800 px-4 py-2 text-xs pointer-events-none">
                     {skill}
-                  </Badge>) : <p className="text-gray-500 text-sm">No skills listed</p>}
+                  </Badge>
+                )) : <p className="text-gray-500 text-sm">No skills listed</p>}
               </div>
             </div>
           </div>
