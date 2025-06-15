@@ -8,14 +8,13 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
+
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
-const Sidebar = ({
-  activeTab,
-  setActiveTab
-}: SidebarProps) => {
+
+const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
@@ -32,36 +31,25 @@ const Sidebar = ({
   // Get only recent notifications for the dropdown
   const recentNotifications = notifications.slice(0, 3);
   const unreadCount = notifications.filter(n => !n.is_read).length;
-  const mainMenuItems = [{
-    id: 'dashboard',
-    label: 'Dashboard',
-    icon: Home
-  }, {
-    id: 'browse',
-    label: 'Browse',
-    icon: Search
-  }, {
-    id: 'messages',
-    label: 'Messages',
-    icon: MessageCircle
-  }, {
-    id: 'projects',
-    label: 'Projects',
-    icon: FolderOpen
-  }, {
-    id: 'following',
-    label: 'Following',
-    icon: Users
-  }];
+  const mainMenuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'browse', label: 'Browse', icon: Search },
+    { id: 'messages', label: 'Messages', icon: MessageCircle },
+    { id: 'projects', label: 'Projects', icon: FolderOpen },
+    { id: 'following', label: 'Following', icon: Users }
+  ];
+
   const handleViewAllNotifications = () => {
     setIsNotificationsOpen(false);
     setShowNotificationsPanel(true);
   };
+
   const handleNotificationClick = (notification: any) => {
     if (!notification.is_read) {
       markAsRead(notification.id);
     }
   };
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -70,19 +58,26 @@ const Sidebar = ({
       console.error('Error logging out:', error);
     }
   };
+
   const getInitials = (name: string) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-  return <>
+
+  return (
+    <>
       <div className="w-[90px] bg-white border-r border-gray-200 flex flex-col items-center py-3 h-full">
         {/* Logo */}
         <div className="mb-4">
-          <Link to="/" onClick={e => {
-          e.preventDefault();
-          navigate('/');
-        }}>
-            <img alt="Octava Logo" className="w-14 h-14" src="/lovable-uploads/octava-small-purple.png" />
+          <Link to="/" onClick={(e) => {
+            e.preventDefault();
+            navigate('/');
+          }}>
+            <img
+              alt="Octava Logo"
+              className="w-14 h-14"
+              src="/lovable-uploads/octava-small-purple.png"
+            />
           </Link>
         </div>
         
@@ -91,12 +86,24 @@ const Sidebar = ({
 
         {/* Main Navigation */}
         <nav className="flex-1 flex flex-col items-center space-y-5">
-          {mainMenuItems.map(item => {
-          const Icon = item.icon;
-          return <button key={item.id} onClick={() => setActiveTab(item.id)} className={`p-3 rounded-lg transition-colors ${activeTab === item.id ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`} aria-label={item.label}>
+          {mainMenuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                data-tutorial={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`p-3 rounded-lg transition-colors ${
+                  activeTab === item.id
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+                aria-label={item.label}
+              >
                 <Icon className="w-5 h-5" />
-              </button>;
-        })}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Notifications Button */}
@@ -195,7 +202,12 @@ const Sidebar = ({
         </div>
       </div>
 
-      <NotificationsPanel isOpen={showNotificationsPanel} onClose={() => setShowNotificationsPanel(false)} />
-    </>;
+      <NotificationsPanel 
+        isOpen={showNotificationsPanel} 
+        onClose={() => setShowNotificationsPanel(false)} 
+      />
+    </>
+  );
 };
+
 export default Sidebar;

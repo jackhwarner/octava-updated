@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,7 +86,7 @@ const ProfileSetup = () => {
           role: profileData.role,
           genres: profileData.genres,
           skills: profileData.instruments,
-          profile_setup_completed: true // <-- Mark profile setup as COMPLETE here!
+          profile_setup_completed: true
         });
 
       if (error) throw error;
@@ -96,8 +97,8 @@ const ProfileSetup = () => {
         description: "Welcome to Octava! Let's show you around.",
       });
 
-      // Always redirect to welcome page after profile setup
-      navigate('/welcome');
+      // Navigate to dashboard with tutorial flag
+      navigate('/dashboard?tutorial=true');
     } catch (error: any) {
       toast({
         title: "Error",

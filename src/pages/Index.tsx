@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -11,6 +10,7 @@ import Profile from '../components/Profile';
 import Settings from '../components/Settings';
 import Support from '../components/Support';
 import AuthWrapper from '../components/AuthWrapper';
+import TutorialOverlay from '../components/TutorialOverlay';
 import { useIsMobile } from "../hooks/use-mobile";
 
 const Index = () => {
@@ -98,13 +98,16 @@ const Index = () => {
 
   return (
     <AuthWrapper>
-      <div className="min-h-screen bg-white flex">
+      <div className="min-h-screen bg-white flex relative">
         <div className="fixed top-0 left-0 h-screen z-10">
           <Sidebar activeTab={activeTab} setActiveTab={handleNavigate} />
         </div>
         <main className="flex-1 ml-[90px] overflow-auto">
           {renderContent()}
         </main>
+        
+        {/* Tutorial Overlay */}
+        <TutorialOverlay />
       </div>
     </AuthWrapper>
   );
