@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
 // Toggle this variable to enable/disable auto-redirect for non-subscribers
-const REDIRECT_IF_NO_SUBSCRIPTION = true;
+const REDIRECT_IF_NO_SUBSCRIPTION = false;
 
 interface SubscriptionGuardProps {
   children: React.ReactNode;
