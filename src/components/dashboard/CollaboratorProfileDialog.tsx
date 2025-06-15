@@ -1,3 +1,4 @@
+
 import { Dialog } from "@/components/ui/dialog";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
@@ -98,13 +99,16 @@ export const CollaboratorProfileDialog = ({
   }, [collaborator, open]);
 
   if (!collaborator) return null;
+  // Dialog overlays are handled by the shadcn Dialog Root. We'll use a custom full-screen "sheet" design.
 
-  // Fullscreen overlay and main profile
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+          {/* Background overlay */}
           <div className="absolute inset-0 bg-black/80" onClick={() => onOpenChange(false)} />
+
+          {/* Profile Content Fullscreen */}
           <div
             className="relative z-10 w-screen h-screen flex flex-col overflow-y-auto bg-background"
             style={{ maxWidth: "100vw", maxHeight: "100vh", borderRadius: 0 }}
@@ -120,16 +124,8 @@ export const CollaboratorProfileDialog = ({
               <ArrowLeft className="w-5 h-5 mr-1" />
               Back
             </button>
-            {/* Connect Button - Always present at top right for now */}
-            <div className="absolute top-4 right-4 z-20">
-              <ConnectionButton
-                userId={collaborator.id}
-                userName={collaborator.name}
-                size="lg"
-                className=""
-              />
-            </div>
-            {/* Profile Main */}
+
+            {/* Profile Main (center content/padding) */}
             <div className="flex-1 w-full flex flex-col items-center overflow-y-auto overflow-x-hidden pt-20 pb-10 px-3 sm:px-8">
               <div className="w-full max-w-4xl mx-auto">
                 {loading ? (
@@ -140,12 +136,19 @@ export const CollaboratorProfileDialog = ({
                   </div>
                 ) : (
                   <>
-                    {/* Remove edit button from ProfileHeader by passing a dummy onEditClick and isOwnProfile={false} */}
+                    {/* ProfileHeader: Don't pass onEditClick, isOwnProfile = false */}
                     <ProfileHeader
                       profile={fullProfile as any}
                       cityName={cityName}
                       isOwnProfile={false}
-                      onEditClick={() => {}}
+                      actionButton={
+                        <ConnectionButton
+                          userId={collaborator.id}
+                          userName={collaborator.name}
+                          size="lg"
+                          className="ml-auto"
+                        />
+                      }
                     />
                     <ProfileStats
                       totalCollaborations={projects.length}
@@ -153,21 +156,21 @@ export const CollaboratorProfileDialog = ({
                       profile={fullProfile as any}
                     />
                     <TooltipProvider>
-                      <Tabs defaultValue="about" className="mt-4 w-full">
-                        <TabsList className="w-full grid grid-cols-4 gap-0 rounded-none bg-muted p-0 h-12">
-                          <TabsTrigger value="about" className="w-full rounded-none !h-12 text-base data-[state=active]:bg-background">About</TabsTrigger>
-                          <TabsTrigger value="music" className="w-full rounded-none !h-12 text-base data-[state=active]:bg-background">Music</TabsTrigger>
-                          <TabsTrigger value="projects" className="w-full rounded-none !h-12 text-base data-[state=active]:bg-background">Projects</TabsTrigger>
-                          <TabsTrigger value="links" className="w-full rounded-none !h-12 text-base data-[state=active]:bg-background">Links</TabsTrigger>
+                      <Tabs defaultValue="about" className="mt-4">
+                        <TabsList>
+                          <TabsTrigger value="about">About</TabsTrigger>
+                          <TabsTrigger value="music">Music</TabsTrigger>
+                          <TabsTrigger value="projects">Projects</TabsTrigger>
+                          <TabsTrigger value="links">Links</TabsTrigger>
                         </TabsList>
                         <TabsContent value="about">
                           <AboutTab profile={fullProfile as any} />
                         </TabsContent>
                         <TabsContent value="music">
-                          <MusicTab userId={collaborator.id} hideUploadButtons />
+                          <MusicTab userId={collaborator.id} />
                         </TabsContent>
                         <TabsContent value="projects">
-                          <ProjectsTab projects={projects} compact />
+                          <ProjectsTab projects={projects} />
                         </TabsContent>
                         <TabsContent value="links">
                           <LinksTab profile={fullProfile as any} />
