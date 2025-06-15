@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { X, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
+import roles from '@/constants/roles';
+import genres from '@/constants/genres';
+import instruments from '@/constants/instruments';
 
 interface AboutYouStepProps {
   data: any;
@@ -28,19 +32,10 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
     { value: 'professional', label: 'Professional (10+ years)' },
   ];
 
-  const commonGenres = [
-    'Pop', 'Hip-Hop', 'R&B', 'Rock', 'Electronic', 'Jazz', 'Classical', 
-    'Country', 'Folk', 'Reggae', 'Indie', 'Alternative', 'Metal', 'Punk',
-    'Blues', 'Gospel', 'Latin', 'World', 'Ambient', 'Techno', 'House',
-    'Drum & Bass', 'Trap', 'Lo-fi', 'Experimental'
-  ];
-
-  const commonInstruments = [
-    'Piano', 'Guitar', 'Bass', 'Drums', 'Violin', 'Saxophone', 'Trumpet', 
-    'Vocals', 'Synthesizer', 'Flute', 'Cello', 'Clarinet', 'Trombone',
-    'Harmonica', 'Banjo', 'Mandolin', 'Ukulele', 'Accordion', 'Harp',
-    'Oboe', 'Percussion', 'Electric Guitar', 'Acoustic Guitar'
-  ];
+  // Use the imported constants instead of local arrays
+  const availableGenres = genres;
+  const availableInstruments = instruments;
+  const availableRoles = roles;
 
   const maxGenres = 3;
   const maxInstruments = 5;
@@ -150,6 +145,24 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
   return (
     <TooltipProvider>
       <div className="space-y-6">
+
+        {/* Role selection using constants */}
+        <div className="space-y-2">
+          <Label htmlFor="role">Role *</Label>
+          <Select value={data.role} onValueChange={(value) => onUpdate({ role: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select your primary role" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableRoles.map((role: string) => (
+                <SelectItem key={role.toLowerCase()} value={role}>
+                  {role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="name">Full Name *</Label>
@@ -253,7 +266,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            {commonGenres
+            {availableGenres
               .filter(g => !data.genres.includes(g))
               .map((genre) => (
                 <Button
@@ -284,7 +297,7 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            {commonInstruments
+            {availableInstruments
               .filter(i => !data.instruments.includes(i))
               .map((instrument) => (
                 <Button
@@ -316,3 +329,4 @@ const AboutYouStep = ({ data, onUpdate, onNext }: AboutYouStepProps) => {
 };
 
 export default AboutYouStep;
+
