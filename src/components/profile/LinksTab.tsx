@@ -93,10 +93,7 @@ export const LinksTab = ({
           })}
             </div> : <div className="text-center py-8">
               <p className="text-gray-500 mb-4">No links added yet</p>
-              {isOwnProfile && <Button variant="outline" onClick={() => setShowEditDialog(true)}>
-                <Edit className="w-4 h-4 mr-2" />
-                Add Links
-              </Button>}
+              {isOwnProfile}
             </div>}
         </CardContent>
       </Card>
