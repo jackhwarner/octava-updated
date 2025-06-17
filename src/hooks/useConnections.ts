@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -131,17 +130,16 @@ export const useConnections = () => {
         }
       }
 
-      // Create notification WITHOUT actor_id
+      // Create notification - removed actor_id as it doesn't exist in schema
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
           user_id: userId,
           type: 'connection_request',
-          // actor_id: user.id, // Removed because it doesn't exist in schema
           created_at: new Date().toISOString(),
           is_read: false,
           title: 'Connection Request',
-          message: `${user.id} sent you a connection request.`,
+          message: `You have received a connection request.`,
         });
 
       if (notificationError) throw notificationError;
