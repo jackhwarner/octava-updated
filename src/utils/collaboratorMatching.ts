@@ -1,17 +1,4 @@
-
-interface CollaboratorProfile {
-  id: string;
-  name: string;
-  username: string | null;
-  role: string;
-  genres: string[];
-  location: string | null;
-  experience: string;
-  avatar_url: string | null;
-  skills: string[];
-  is_online: boolean;
-  visibility: string;
-}
+import type { Profile } from '../hooks/useProfile';
 
 interface UserProfile {
   genres: string[];
@@ -70,9 +57,9 @@ function calculateGenreScore(userGenres: string[], collaboratorGenres: string[])
 }
 
 export function rankCollaborators(
-  collaborators: CollaboratorProfile[], 
+  collaborators: Profile[], 
   userProfile: UserProfile | null
-): CollaboratorProfile[] {
+): Profile[] {
   if (!userProfile) return collaborators;
   
   const rankedCollaborators = collaborators.map(collaborator => {
@@ -94,7 +81,7 @@ export function rankCollaborators(
       if (b.matchScore !== a.matchScore) {
         return b.matchScore - a.matchScore;
       }
-      return a.name.localeCompare(b.name);
+      return (a.name || '').localeCompare(b.name || '');
     })
     .map(({ matchScore, ...collaborator }) => collaborator); // Remove matchScore from final result
 }

@@ -1,40 +1,22 @@
-import { Dialog } from "@/components/ui/dialog";
-import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { ProfileStats } from "@/components/profile/ProfileStats";
-import { AboutTab } from "@/components/profile/AboutTab";
-import { MusicTab } from "@/components/profile/MusicTab";
-import { ProjectsTab } from "@/components/profile/ProjectsTab";
-import { LinksTab } from "@/components/profile/LinksTab";
-import { ConnectionButton } from "@/components/connections/ConnectionButton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { Dialog } from "../ui/dialog";
+import { ProfileHeader } from "../profile/ProfileHeader";
+import { ProfileStats } from "../profile/ProfileStats";
+import { AboutTab } from "../profile/AboutTab";
+import { MusicTab } from "../profile/MusicTab";
+import { ProjectsTab } from "../profile/ProjectsTab";
+import { LinksTab } from "../profile/LinksTab";
+import { ConnectionButton } from "../connections/ConnectionButton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { TooltipProvider } from '../ui/tooltip';
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../../integrations/supabase/client";
 import { ArrowLeft } from "lucide-react";
-
-type Collaborator = {
-  id: string;
-  name: string;
-  username?: string;
-  role?: string;
-  genres?: string[];
-  location?: string;
-  experience?: string;
-  avatar_url?: string;
-  skills?: string[];
-  email?: string;
-  bio?: string;
-  full_name?: string;
-  visibility?: string;
-  instruments?: string[];
-  zip_code?: string;
-  hourly_rate?: number;
-};
+import type { Profile } from '../../hooks/useProfile';
 
 interface CollaboratorProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  collaborator: Collaborator | null;
+  collaborator: Profile | null;
 }
 
 export const CollaboratorProfileDialog = ({
@@ -42,7 +24,7 @@ export const CollaboratorProfileDialog = ({
   onOpenChange,
   collaborator
 }: CollaboratorProfileDialogProps) => {
-  const [fullProfile, setFullProfile] = useState<Collaborator | null>(collaborator);
+  const [fullProfile, setFullProfile] = useState<Profile | null>(collaborator);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cityName, setCityName] = useState("");
@@ -73,7 +55,11 @@ export const CollaboratorProfileDialog = ({
           .single();
 
         if (!error && data) {
-          setFullProfile(data);
+          const mappedProfile: Profile = {
+            ...data,
+            visibility: data.visibility === 'unlisted' ? 'connections_only' : data.visibility as 'public' | 'private' | 'connections_only'
+          };
+          setFullProfile(mappedProfile);
           if (data?.zip_code && data.zip_code.length === 5) {
             const resp = await fetch(`https://api.zippopotam.us/us/${data.zip_code}`);
             if (resp.ok) {
@@ -110,7 +96,7 @@ export const CollaboratorProfileDialog = ({
     !isOwnProfile && collaborator.id ? (
       <ConnectionButton
         userId={collaborator.id}
-        userName={collaborator.name}
+        userName={collaborator.name || ''}
         size="lg"
         className="bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow"
       />

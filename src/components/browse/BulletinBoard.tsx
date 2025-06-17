@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -94,9 +93,8 @@ const BulletinBoard = ({ userProfile }: BulletinBoardProps) => {
 
   if (loading) {
     return (
-      <div className="border border-gray-200 rounded-lg p-6 bg-white">
-        <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center">
-          <Briefcase className="w-6 h-6 mr-2 text-purple-600" />
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-5">
           Project Opportunities
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,9 +111,8 @@ const BulletinBoard = ({ userProfile }: BulletinBoardProps) => {
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-6 bg-white">
-      <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center">
-        <Briefcase className="w-6 h-6 mr-2 text-purple-600" />
+    <div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-5">
         Project Opportunities
       </h2>
       

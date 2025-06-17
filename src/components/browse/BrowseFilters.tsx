@@ -19,6 +19,7 @@ interface BrowseFiltersProps {
   location: string;
   setLocation: (value: string) => void;
   onSearch: () => void;
+  isSearching?: boolean;
 }
 const cities = ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA', 'Austin, TX', 'Jacksonville, FL', 'Fort Worth, TX', 'Columbus, OH', 'Indianapolis, IN', 'Charlotte, NC', 'San Francisco, CA', 'Seattle, WA', 'Denver, CO', 'Oklahoma City, OK', 'Nashville, TN', 'El Paso, TX', 'Washington, DC', 'Boston, MA', 'Las Vegas, NV', 'Portland, OR', 'Detroit, MI', 'Louisville, KY', 'Memphis, TN', 'Baltimore, MD', 'Milwaukee, WI', 'Albuquerque, NM', 'Fresno, CA', 'Tucson, AZ', 'Sacramento, CA', 'Mesa, AZ', 'Kansas City, MO', 'Atlanta, GA', 'Omaha, NE', 'Colorado Springs, CO', 'Raleigh, NC', 'Virginia Beach, VA', 'Miami, FL', 'Oakland, CA', 'Minneapolis, MN', 'Tulsa, OK', 'Arlington, TX', 'New Orleans, LA', 'Wichita, KS', 'Cleveland, OH'];
 
@@ -47,7 +48,8 @@ const BrowseFilters = ({
   setSelectedExperience,
   location,
   setLocation,
-  onSearch
+  onSearch,
+  isSearching = false
 }: BrowseFiltersProps) => {
   // manage input focus state
   const [locationFocused, setLocationFocused] = useState(false);
@@ -194,9 +196,9 @@ const BrowseFilters = ({
 
           {/* Search Button */}
           <div className="flex items-center">
-            <Button onClick={handleSearch} aria-label="Search" className="bg-purple-600 hover:bg-purple-700 w-full">
+            <Button onClick={handleSearch} aria-label="Search" className="bg-purple-600 hover:bg-purple-700 w-full" disabled={isSearching}>
               <Search className="w-4 h-4 mr-2" />
-              Search
+              {isSearching ? 'Searching...' : 'Search'}
             </Button>
           </div>
         </div>

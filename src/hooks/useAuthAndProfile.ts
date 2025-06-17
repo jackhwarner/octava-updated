@@ -1,8 +1,7 @@
-
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { User } from '@supabase/supabase-js';
-import { isProfileSetupComplete } from '@/utils/isProfileSetupComplete';
+import { supabase } from '../integrations/supabase/client';
+import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { isProfileSetupComplete } from '../utils/isProfileSetupComplete';
 
 interface UseAuthAndProfileReturn {
   user: User | null;
@@ -33,7 +32,7 @@ export function useAuthAndProfile(): UseAuthAndProfileReturn {
     }
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, name, username, bio, location, experience, profile_setup_completed')
+      .select('id, name, username, bio, location, experience, profile_setup_completed, genres, skills, avatar_url, visibility')
       .eq('id', sessionUser.id)
       .maybeSingle();
     
@@ -61,7 +60,7 @@ export function useAuthAndProfile(): UseAuthAndProfileReturn {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('id, name, username, bio, location, experience, profile_setup_completed')
+          .select('id, name, username, bio, location, experience, profile_setup_completed, genres, skills, avatar_url, visibility')
           .eq('id', sessionUser.id)
           .maybeSingle();
         
@@ -85,12 +84,12 @@ export function useAuthAndProfile(): UseAuthAndProfileReturn {
     }
 
     console.log('useAuthAndProfile: Setting up auth state listener');
-    unsub = supabase.auth.onAuthStateChange((event, session) => {
+    unsub = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       console.log('useAuthAndProfile: Auth state change:', event, !!session?.user);
       checkAuthAndProfile(session?.user ?? null);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       console.log('useAuthAndProfile: Initial session check:', !!session?.user);
       checkAuthAndProfile(session?.user ?? null);
     });

@@ -1,8 +1,12 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+if (!RESEND_API_KEY) {
+  console.error("RESEND_API_KEY is not set");
+}
+
+const resend = new Resend(RESEND_API_KEY);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +28,15 @@ serve(async (req: Request) => {
   }
 
   try {
+    if (!RESEND_API_KEY) {
+      throw new Error("Email service is not configured. Please contact support.");
+    }
+
     const { subject, email, message }: ContactEmailRequest = await req.json();
+
+    if (!subject || !email || !message) {
+      throw new Error("Missing required fields: subject, email, or message");
+    }
 
     const subjectMap: Record<string, string> = {
       technical: "Technical Issue",
@@ -56,7 +68,7 @@ serve(async (req: Request) => {
     if (result.error) {
       console.error("Resend error:", result.error);
       return new Response(
-        JSON.stringify({ error: result.error }),
+        JSON.stringify({ error: result.error.message || "Failed to send email" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -73,7 +85,7 @@ serve(async (req: Request) => {
   } catch (e: any) {
     console.error("Edge function error:", e);
     return new Response(
-      JSON.stringify({ error: e.message }),
+      JSON.stringify({ error: e.message || "An unexpected error occurred" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

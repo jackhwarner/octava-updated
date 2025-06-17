@@ -12,7 +12,7 @@ import GroupAvatar from './GroupAvatar';
 import { useMessages } from '../hooks/useMessages';
 import { formatDistanceToNow } from 'date-fns';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../integrations/supabase/client';
 import { Separator } from './ui/separator';
 import ConversationList from './messages/ConversationList';
 import ChatWindow from './messages/ChatWindow';
@@ -41,50 +41,48 @@ const Messages = () => {
   const selectedThread = threads.find(thread => thread.id === selectedThreadId);
   const threadMessages = messages.filter(msg => msg.thread_id === selectedThreadId);
 
-  // Update selected thread when URL changes
+  // Single effect to handle thread selection and URL synchronization
   useEffect(() => {
-    if (threadId) {
-      const thread = threads.find(t => t.id === threadId);
-      if (thread) {
-        setSelectedThreadId(threadId);
-      } else {
-        // If thread not found, fetch threads and try again
-        fetchThreads();
+    const handleThreadSelection = async () => {
+      // If we have a threadId in the URL
+      if (threadId) {
+        const thread = threads.find(t => t.id === threadId);
+        if (thread) {
+          setSelectedThreadId(threadId);
+        } else {
+          // If thread not found, fetch threads and try again
+          await fetchThreads();
+          const updatedThread = threads.find(t => t.id === threadId);
+          if (updatedThread) {
+            setSelectedThreadId(threadId);
+          } else {
+            // If still not found, navigate to messages list
+            navigate('/messages', { replace: true });
+          }
+        }
+      } else if (threads.length > 0 && !selectedThreadId) {
+        // If no thread is selected but we have threads, select the most recent one
+        const mostRecentThread = threads[0];
+        setSelectedThreadId(mostRecentThread.id);
+        navigate(`/messages/${mostRecentThread.id}`, { replace: true });
       }
-    }
-  }, [threadId, threads, fetchThreads]);
+    };
 
-  // Update URL when selected thread changes
-  useEffect(() => {
-    if (selectedThreadId) {
-      const thread = threads.find(t => t.id === selectedThreadId);
-      if (thread) {
-        navigate(`/messages/${selectedThreadId}`, {
-          replace: true
-        });
-      }
-    }
-  }, [selectedThreadId, threads, navigate]);
+    handleThreadSelection();
+  }, [threadId, threads, selectedThreadId, navigate, fetchThreads]);
 
-  // Handle new messages and thread updates
-  useEffect(() => {
-    if (threads.length > 0 && !selectedThreadId) {
-      const mostRecentThread = threads[0];
-      setSelectedThreadId(mostRecentThread.id);
-    }
-  }, [threads, selectedThreadId]);
-
-  // Scroll to bottom only when thread changes or on initial load
+  // Scroll to bottom when messages change
   useEffect(() => {
     if (threadMessages.length > 0) {
       messagesEndRef.current?.scrollIntoView({
-        behavior: "auto"
+        behavior: "smooth"
       });
     }
-  }, [selectedThreadId, threadMessages.length]); // Also scroll when messages change
+  }, [threadMessages.length]);
 
   const handleThreadClick = (threadId: string) => {
     setSelectedThreadId(threadId);
+    navigate(`/messages/${threadId}`, { replace: true });
   };
   const isCurrentUser = (senderId: string) => {
     return currentUser?.id === senderId;
@@ -93,12 +91,17 @@ const Messages = () => {
   // Helper to find the other participant in a 1-on-1 thread
   const getOtherParticipant = (thread: any) => {
     if (!currentUser || thread?.is_group) return null;
-    return thread?.participants?.find((p: any) => p.user_id !== currentUser.id)?.profiles;
+    return thread?.participants?.find((p: any) => p.user_id !== currentUser.id);
   };
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedThreadId) return;
     try {
-      await sendMessage(newMessage, undefined, selectedThreadId);
+      const otherParticipant = getOtherParticipant(selectedThread);
+      if (!otherParticipant) {
+        console.error('No other participant found in thread');
+        return;
+      }
+      await sendMessage(newMessage, otherParticipant.user_id, selectedThreadId);
       setNewMessage('');
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -151,7 +154,7 @@ const Messages = () => {
   }
   return <div className="min-h-screen bg-gray-50 p-6 sm:p-8 flex flex-col">
       {/* Page header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-3 max-w-6xl ">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 max-w-6xl mx-auto w-full">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2 ">Messages</h1>
           <p className="text-gray-600 text-base">Keep in touch with your collaborators. Manage your conversations and start new chats.</p>
@@ -164,7 +167,7 @@ const Messages = () => {
 
       {/* Main card area */}
       <div className="flex-1 flex justify-center items-stretch">
-        <Card className="flex w-full max-w-6xl flex-1 min-h-[600px] rounded-2xl border bg-white overflow-hidden \n">
+        <Card className="flex w-full max-w-6xl flex-1 min-h-[600px] rounded-2xl border bg-white overflow-hidden">
           {/* Conversations List */}
           <ConversationList threads={threads} selectedThreadId={selectedThreadId} handleThreadClick={handleThreadClick} getOtherParticipant={getOtherParticipant} formatDistanceToNow={formatDistanceToNow} />
 

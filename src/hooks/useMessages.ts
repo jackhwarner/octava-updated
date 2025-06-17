@@ -1,42 +1,43 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useMessageLimits } from '@/hooks/useMessageLimits';
+import { supabase } from '../integrations/supabase/client';
+import { useToast } from './use-toast';
+import { useMessageLimits } from './useMessageLimits';
+import { useNotifications } from './useNotifications';
 
 export interface Message {
   id: string;
   content: string;
   sender_id: string;
-  recipient_id?: string;
-  thread_id?: string;
-  project_id?: string;
-  event_invite_id?: string;
-  file_urls?: string[];
-  read_at?: string;
-  created_at: string;
+  recipient_id: string | null;
+  thread_id: string | null;
+  project_id: string | null;
+  event_invite_id: string | null;
+  file_urls: string[] | null;
+  read_at: string | null;
+  created_at: string | null;
   sender_profile?: {
-    name: string;
-    username: string;
-  };
+    name: string | null;
+    username: string | null;
+  } | null;
   recipient_profile?: {
-    name: string;
-    username: string;
-  };
+    name: string | null;
+    username: string | null;
+  } | null;
 }
 
 export interface MessageThread {
   id: string;
-  name?: string;
-  is_group: boolean;
+  name: string | null;
+  is_group: boolean | null;
   created_by: string;
-  created_at: string;
+  created_at: string | null;
   participants?: Array<{
     user_id: string;
     joined_at: string;
     profiles: {
-      name: string;
-      username: string;
-    };
+      name: string | null;
+      username: string | null;
+    } | null;
   }>;
   latest_message?: Message;
 }
@@ -48,6 +49,7 @@ export const useMessages = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
   const { checkMessageLimit, updateMessageLimit } = useMessageLimits();
+  const { notifyNewMessage } = useNotifications();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -165,8 +167,8 @@ export const useMessages = () => {
               user_id: p.user_id,
               joined_at: p.joined_at,
               profiles: {
-                name: p.sender_profile?.name || '',
-                username: p.sender_profile?.username || ''
+                name: p.sender_profile?.name || null,
+                username: p.sender_profile?.username || null
               }
             })) || [];
 
@@ -195,6 +197,17 @@ export const useMessages = () => {
     try {
       const user = currentUser || (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error('User not authenticated');
+
+      // If we have a thread ID but no recipient ID, get the recipient from the thread
+      if (threadId && !recipientId) {
+        const thread = threads.find(t => t.id === threadId);
+        if (thread && !thread.is_group && thread.participants?.length === 2) {
+          const otherParticipant = thread.participants.find(p => p.user_id !== user.id);
+          if (otherParticipant) {
+            recipientId = otherParticipant.user_id;
+          }
+        }
+      }
 
       // Check message limits for 1-on-1 threads with non-connected users
       if (threadId && !projectId) {
@@ -250,26 +263,13 @@ export const useMessages = () => {
         }
       }
 
-      // Create notification for the recipient
-      if (recipientId) {
-        const { error: notificationError } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: recipientId,
-            title: 'New Message',
-            message: `${data.sender_profile?.name || 'Someone'} sent you a message: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
-            type: 'message',
-            payload: { 
-              thread_id: threadId,
-              message_id: data.id
-            },
-            created_at: new Date().toISOString(),
-            is_read: false
-          });
-
-        if (notificationError) {
-          console.error('Error creating message notification:', notificationError);
-        }
+      // Create notification for the recipient using the useNotifications hook
+      if (recipientId && data.sender_profile) {
+        await notifyNewMessage(
+          recipientId,
+          data.sender_profile.name || data.sender_profile.username || 'Someone',
+          content
+        );
       }
 
       setMessages(prev => [data, ...prev]);

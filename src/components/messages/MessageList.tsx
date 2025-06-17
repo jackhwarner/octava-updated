@@ -1,8 +1,8 @@
-
 import { ScrollArea } from '../ui/scroll-area';
+import type { Message } from '../../hooks/useMessages';
 
 interface MessageListProps {
-  messages: any[];
+  messages: Message[];
   isCurrentUser: (senderId: string) => boolean;
   formatDistanceToNow: (date: Date, options?: any) => string;
   messagesEndRef: React.RefObject<HTMLDivElement>;
@@ -23,6 +23,8 @@ const MessageList = ({
       ) : (
         [...messages].reverse().map((message) => {
           const isMyMessage = isCurrentUser(message.sender_id);
+          const senderName = message.sender_profile?.name || message.sender_profile?.username || 'Unknown';
+          
           return (
             <div key={message.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
               <div
@@ -32,6 +34,11 @@ const MessageList = ({
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
+                {!isMyMessage && (
+                  <p className="text-xs font-medium mb-1 opacity-75">
+                    {senderName}
+                  </p>
+                )}
                 <p className="text-sm">{message.content}</p>
                 <p
                   className={`text-xs mt-1 ${

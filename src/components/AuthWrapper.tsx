@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuthAndProfile } from '@/hooks/useAuthAndProfile';
+import { useAuthAndProfile } from '../hooks/useAuthAndProfile';
 
 /**
  * Wraps protected routes: shows loading until auth/profile loaded; redirects if not complete.
@@ -23,12 +22,6 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
     profileComplete, 
     pathname: location.pathname 
   });
-
-  // Temporarily bypass complex logic for profile setup page to debug
-  if (location.pathname === '/profile-setup') {
-    console.log('AuthWrapper: On profile setup page, rendering children directly for debugging');
-    return <>{children}</>;
-  }
 
   React.useEffect(() => {
     if (loading) {

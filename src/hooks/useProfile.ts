@@ -1,29 +1,33 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { supabase } from '../integrations/supabase/client';
+import { useToast } from './use-toast';
 
 export interface Profile {
   id: string;
-  name: string;
+  name?: string | null;
   username: string | null;
-  role: string;
-  genres: string[];
+  role?: string | null;
+  genres?: string[] | null;
   location: string | null;
-  experience: string;
+  experience?: string | null;
   avatar_url: string | null;
-  skills: string[];
+  skills?: string[] | null;
   visibility: string;
   completed_projects?: number;
   instruments?: string[];
-  email?: string;
-  full_name?: string;
-  bio?: string;
-  zip_code?: string;
+  email?: string | null;
+  full_name?: string | null;
+  bio?: string | null;
+  zip_code?: string | null;
   hourly_rate?: number;
-  profile_picture_url?: string;
-  portfolio_urls?: string[];
-  created_at: string;
-  updated_at: string;
+  profile_picture_url?: string | null;
+  portfolio_urls?: string[] | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  allow_messages?: boolean;
+  email_notifications?: boolean;
+  project_updates?: boolean;
+  new_messages?: boolean;
 }
 
 export const useProfile = () => {

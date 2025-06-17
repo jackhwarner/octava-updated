@@ -1,13 +1,13 @@
-
 import React, { useRef, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { HelpCircle } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '../hooks/use-toast';
+import { supabase } from '../integrations/supabase/client';
 
 const SUPPORT_FUNCTION_URL = "https://rcowsfonthsyjlfoiqoo.functions.supabase.co/send-support-email";
 
@@ -57,13 +57,28 @@ const Support = () => {
     }
     setSending(true);
     try {
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
       const res = await fetch(SUPPORT_FUNCTION_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({ subject, email, message }),
       });
+      
       const data = await res.json();
-      if (res.ok && data.ok) {
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send message');
+      }
+
+      if (data.ok) {
         toast({
           title: "Message sent!",
           description: "Your support request has been sent. We'll follow up by email.",
@@ -72,16 +87,23 @@ const Support = () => {
         setEmail("");
         setMessage("");
       } else {
-        toast({
-          title: "Failed to send message.",
-          description: data.error || "Please try again later.",
-          variant: "destructive",
-        });
+        throw new Error(data.error || 'Failed to send message');
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error sending support email:', error);
+      // Show a more user-friendly error message
+      let errorMessage = "Please try again later.";
+      if (error.message.includes("Email service is not configured")) {
+        errorMessage = "The support system is currently unavailable. Please try again later or contact us directly.";
+      } else if (error.message.includes("Missing required fields")) {
+        errorMessage = "Please fill out all required fields.";
+      } else if (error.message.includes("Not authenticated")) {
+        errorMessage = "Please log in to send a support message.";
+      }
+      
       toast({
-        title: "Something went wrong.",
-        description: "Please try again later.",
+        title: "Failed to send message",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

@@ -308,11 +308,10 @@ const Projects = () => {
           </div>
 
           {filteredProjects.length === 0 && (
-            <EmptyState
+            <EmptyState 
               searchTerm={searchTerm}
               currentFolderId={folderId || null}
               currentFolderName={currentFolder?.name}
-              onCreateProject={() => {}}
             />
           )}
         </div>
